@@ -103,6 +103,17 @@ export const api = {
 
   // ---- helpers
   testFeed,
+  /**
+   * Clipboard text via the plugin (WebView2 denies navigator.clipboard by
+   * default); falls back to the webview API when the plugin is absent.
+   */
+  readClipboard: async () => {
+    try {
+      return await window.__TAURI__.clipboardManager.readText()
+    } catch {
+      try { return await navigator.clipboard.readText() } catch { return '' }
+    }
+  },
   /** Tell every window the saved feed URL changed (widget rebuilds fetcher). */
   emitFeedChanged: () => window.__TAURI__.event.emit('feed-changed'),
   /**

@@ -15,7 +15,7 @@ mod win32;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
-use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 
 const WIDGET_LABEL: &str = "widget";
 
@@ -66,6 +66,9 @@ pub fn show_widget(app: &AppHandle) {
         #[cfg(windows)]
         win32::bring_to_top(&win);
     }
+    // Safety net: if a feed save's broadcast was ever missed (e.g. saved while
+    // the widget page was reloading), the widget re-checks on every show.
+    let _ = app.emit("widget-shown", ());
     tray::update_menu(app);
 }
 
@@ -167,6 +170,7 @@ pub fn run() {
             Some(vec![]),
         ))
         .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             show_widget(app);
         }))

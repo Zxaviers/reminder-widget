@@ -1,0 +1,9 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "settings",
+  "description": "Settings sheet: clipboard read for the paste-and-connect flow",
+  "windows": ["settings"],
+  "permissions": [
+    "clipboard-manager:allow-read-text"
+  ]
+}

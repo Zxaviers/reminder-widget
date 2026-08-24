@@ -662,6 +662,12 @@ api.listen('settings-changed', async () => {
 
 api.listen('feed-changed', () => startFeed())
 
+// Safety net for missed saves: every time the widget is revealed, re-check
+// the configured URL if we still think there is none.
+api.listen('widget-shown', () => {
+  if (!state.meta.configured) startFeed()
+})
+
 // ---------------------------------------------------------------------- boot
 
 ;(async () => {

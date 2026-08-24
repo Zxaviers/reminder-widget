@@ -5,7 +5,7 @@
 
 use serde::Serialize;
 use serde_json::Value;
-use tauri::{AppHandle, Manager, PhysicalPosition, PhysicalSize, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, WebviewUrl, WebviewWindowBuilder};
 
 use crate::{brone_login, settings};
 
@@ -176,9 +176,11 @@ pub fn settings_write(app: AppHandle, patch: Value) -> Value {
 
 #[tauri::command]
 pub fn settings_changed(app: AppHandle) {
-    // Rebuild tray checkboxes + reapply layering after any renderer-side save.
+    // Rebuild tray checkboxes + reapply layering, then tell every window
+    // (including the widget) that settings moved.
     super::tray::update_menu(&app);
     crate::apply_display_mode(&app);
+    let _ = app.emit("settings-changed", ());
 }
 
 #[tauri::command]
@@ -220,8 +222,8 @@ pub fn feed_url_get_full() -> Result<Option<String>, String> {
 }
 
 #[tauri::command]
-pub fn feed_url_set(url: Option<String>) -> Result<(), String> {
-    match url {
+pub fn feed_url_set(app: AppHandle, url: Option<String>) -> Result<(), String> {
+    let result = match url {
         Some(raw) => {
             let trimmed = raw.trim();
             let parsed = tauri::Url::parse(trimmed).map_err(|_| "URL_INVALID")?;
@@ -231,7 +233,13 @@ pub fn feed_url_set(url: Option<String>) -> Result<(), String> {
             crate::secret::set(trimmed)
         }
         None => crate::secret::clear(),
+    };
+    if result.is_ok() {
+        // Broadcast from Rust: JS-to-JS events between webviews are not
+        // dependable here, and the widget MUST re-read after a save.
+        let _ = app.emit("feed-changed", ());
     }
+    result
 }
 
 /// Token params must never appear in logs or screenshots.

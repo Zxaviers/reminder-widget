@@ -97,12 +97,7 @@ function extractUrlFromText (rawText) {
 async function pasteFromClipboardAndConnect () {
   try {
     setBusy(true, 'Membaca clipboard...')
-    let text = ''
-    try {
-      text = await navigator.clipboard.readText()
-    } catch {
-      text = ''
-    }
+    const text = await api.readClipboard()
 
     const extracted = extractUrlFromText(text)
     if (!extracted || !extracted.startsWith('http')) {
