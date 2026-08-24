@@ -147,7 +147,7 @@ async function test () {
 /** Persist the feed URL and tell the widget page to rebuild its fetcher. */
 async function commitFeed (rawUrl) {
   await api.feedUrlSet(rawUrl === '' ? null : rawUrl)
-  await window.__TAURI__.event.emit('feed-changed')
+  await api.emitFeedChanged()
 }
 
 async function save () {

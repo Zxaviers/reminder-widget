@@ -23,7 +23,7 @@ test('marking a task records an ISO timestamp and hides it', () => {
   store.mark(t.id, '2026-08-25T09:00:00.000Z')
 
   assert.equal(store.isDone(t.id), true)
-  assert.deepEqual(store.visible([t], NOW), [], 'done tasks disappear from the visible list')
+  assert.deepEqual(store.visible([t]), [], 'done tasks disappear from the visible list')
 })
 
 test('unmark restores a previously done task', () => {
@@ -34,35 +34,37 @@ test('unmark restores a previously done task', () => {
   store.unmark(t.id)
 
   assert.equal(store.isDone(t.id), false)
-  assert.deepEqual(store.visible([t], NOW), [t])
+  assert.deepEqual(store.visible([t]), [t])
 })
 
 test('visible keeps undone tasks in their original order', () => {
   const store = createDoneStore({ 'b::2': '2026-08-24T00:00:00.000Z' })
   const list = [task('a::1', NOW + DAY), task('b::2', NOW + 2 * DAY), task('c::3', NOW + 3 * DAY)]
 
-  const visible = store.visible(list, NOW)
+  const visible = store.visible(list)
 
   assert.deepEqual(visible.map((t) => t.id), ['a::1', 'c::3'])
 })
 
-test('prune drops entries whose task left the feed past the keep window', () => {
-  const freshId = `gone-fresh::${NOW - DAY}` // inside the keep window
-  const staleId = `gone-stale::${NOW - 30 * DAY}` // far outside it
+test('prune keeps live tasks hidden and drops only retired absences', () => {
+  const freshId = `gone-fresh::${NOW - DAY}` // absent, still inside keep window
+  const staleId = `gone-stale::${NOW - 30 * DAY}` // absent, far outside it
+  const liveOld = `live-old::${NOW - 4 * DAY}` // live AND overdue: must stay hidden
   const store = createDoneStore({
     [freshId]: '2026-08-25T00:00:00.000Z',
-    [staleId]: '2026-08-01T00:00:00.000Z'
+    [staleId]: '2026-08-01T00:00:00.000Z',
+    [liveOld]: '2026-08-20T00:00:00.000Z',
+    'garbage-id': '2026-08-20T00:00:00.000Z'
   })
-  // A live task's entry is redundant: if the task is visible again the map
-  // does no work.
-  const feed = [task('live::7', NOW - 4 * DAY)]
+  const feed = [task(liveOld, NOW - 4 * DAY), task('live-fresh::7', NOW + DAY)]
   const keepOverdueMs = 3 * DAY
 
   const pruned = store.prune(feed, keepOverdueMs, NOW)
 
-  assert.equal(pruned.has(freshId), true)
-  assert.equal(pruned.has(staleId), false)
-  assert.equal(pruned.has('live::7'), false, 'entries for live tasks are unnecessary state')
+  assert.equal(pruned.has(freshId), true, 'absent but recent: may still reappear')
+  assert.equal(pruned.has(staleId), false, 'absent past the window: never coming back')
+  assert.equal(pruned.has(liveOld), true, 'a live task stays done/hidden across refreshes')
+  assert.equal(pruned.has('garbage-id'), false, 'malformed ids can never match again')
 })
 
 test('toJSON round-trips through plain objects', () => {

@@ -171,7 +171,7 @@ async fn run_extraction(app: AppHandle, shared: Arc<Shared>, already_on_export: 
     // Session cookie now exists: head for the export page.
     if !already_on_export {
         if let Some(win) = app.get_webview_window(LABEL) {
-            let _ = win.eval(&format!("location.href='{EXPORT_URL}';"));
+            let _ = win.eval(format!("location.href='{EXPORT_URL}';"));
         }
         tokio::time::sleep(Duration::from_millis(900)).await;
     }

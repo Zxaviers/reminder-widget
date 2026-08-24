@@ -19,7 +19,7 @@ pub const DEFAULT_HEIGHT: f64 = 420.0;
 #[serde(rename_all = "camelCase")]
 pub struct FeedUrlInfo {
     url: Option<String>,
-    /// "keyring" | "env-var" | "none"
+    /// "keyring-full" | "env-var" | "none" ("full" = unmasked payload present)
     source: &'static str,
 }
 
@@ -30,6 +30,12 @@ fn env_feed_url() -> Option<String> {
         .or_else(|| {
             std::env::var("BRONE_ICS_URL").ok().filter(|v| !v.trim().is_empty())
         })
+}
+
+/// True when neither the credential store nor the environment supplies a feed.
+pub fn env_feed_url_for_setup() -> bool {
+    std::env::var_os("CALENDAR_FEED_URL").is_none()
+        && std::env::var_os("BRONE_ICS_URL").is_none()
 }
 
 // ------------------------------------------------------------------- window
@@ -125,7 +131,7 @@ pub fn open_external(app: AppHandle, url: String) -> bool {
     use tauri_plugin_opener::OpenerExt;
     match tauri::Url::parse(&url) {
         Ok(parsed) if parsed.scheme() == "https" || parsed.scheme() == "http" => {
-            matches!(app.opener().open_url(parsed.as_str(), None::<&str>), Ok(_))
+            app.opener().open_url(parsed.as_str(), None::<&str>).is_ok()
         }
         _ => false,
     }

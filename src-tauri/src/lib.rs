@@ -222,7 +222,7 @@ pub fn run() {
 
             // First run: no feed configured yet -> open Settings directly to
             // guide the user (v1 parity).
-            if crate::secret::get()?.is_none() && std::env::var_os("CALENDAR_FEED_URL").is_none() && std::env::var_os("BRONE_ICS_URL").is_none() {
+            if crate::secret::get()?.is_none() && commands::env_feed_url_for_setup() {
                 commands::open_settings(handle.clone());
             }
 
@@ -246,14 +246,13 @@ pub fn run() {
                         }
                     }
                 }
-                WindowEvent::Focused(false) if is_widget => {
-                    if PIN_TO_DESKTOP.load(Ordering::Relaxed) {
+                WindowEvent::Focused(false) if is_widget
+                    && PIN_TO_DESKTOP.load(Ordering::Relaxed) => {
                         #[cfg(windows)]
                         if let Some(w) = window.app_handle().get_webview_window(WIDGET_LABEL) {
                             win32::send_to_bottom(&w);
                         }
                     }
-                }
                 _ => {}
             }
         })

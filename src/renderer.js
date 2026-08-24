@@ -112,9 +112,20 @@ function schedulePersist () {
   clearTimeout(persistTimer)
   persistTimer = setTimeout(async () => {
     try {
-      await api.settingsWrite({ done: done.toJSON(), notified: [...notified.entries()] })
+      // Both maps go over as plain objects: serde BTreeMap round-trips
+      // objects, not array-of-pairs.
+      await api.settingsWrite({ done: done.toJSON(), notified: Object.fromEntries(notified) })
     } catch { /* best effort */ }
   }, 400)
+}
+
+/** settings.json may carry an object or legacy array-of-pairs. */
+function toMap (value) {
+  if (Array.isArray(value)) return new Map(value)
+  if (value && typeof value === 'object') {
+    return new Map(Object.entries(value).map(([k, v]) => [k, Array.isArray(v) ? v : []]))
+  }
+  return new Map()
 }
 
 // -------------------------------------------------------------- notifications
@@ -123,7 +134,7 @@ function schedulePersist () {
  * Fires at most once per (task, threshold) as deadlines approach.
  * Done tasks never notify — that is the point of marking them.
  */
-function evaluateNotifications (tasksAll, meta) {
+function evaluateNotifications (tasksAll) {
   if (!settingsDoc.notifications) return
 
   const now = Date.now()
@@ -155,7 +166,6 @@ function evaluateNotifications (tasksAll, meta) {
     const course = task.course ? `${task.course} · ` : ''
     api.notify(task.title, `${course}${formatRelative(remaining)}`)
   }
-  void meta
 }
 
 function formatRelative (deltaMs) {
@@ -494,13 +504,11 @@ function markDone (task) {
 }
 
 function undoLastMark () {
-  const action = done.lastAction()
   done.undo()
   el.undoBar.hidden = true
   clearTimeout(undoTimer)
   applyVisibleTasks()
   schedulePersist()
-  void action
 }
 
 // --------------------------------------------------------------- state update
@@ -570,7 +578,7 @@ async function startFeed () {
         }
         // Retire done-entries for events Moodle removed long ago.
         done.prune(state._allTasks, DEFAULT_KEEP_OVERDUE_MS, Date.now())
-        evaluateNotifications(state._allTasks, state.meta)
+        evaluateNotifications(state._allTasks)
         applyVisibleTasks({ animate: true })
         schedulePersist()
       },
@@ -613,7 +621,17 @@ document.getElementById('btn-refresh')?.addEventListener('click', refreshNow)
 document.getElementById('btn-retry-error')?.addEventListener('click', refreshNow)
 document.getElementById('btn-retry-stale')?.addEventListener('click', refreshNow)
 document.getElementById('btn-hide')?.addEventListener('click', () => api.hide())
-document.getElementById('btn-quick-login')?.addEventListener('click', () => api.loginBrone())
+
+// Quick-login from the setup panel: surface the outcome in the status line so
+// a failed assisted login is never silent.
+document.getElementById('btn-quick-login')?.addEventListener('click', async () => {
+  const result = await api.loginBrone().catch((error) => ({ ok: false, message: String(error) }))
+  if (!result?.ok && el.status) {
+    el.status.textContent = result?.canceled
+      ? 'Login ditutup'
+      : `Login gagal: ${result?.message ?? 'coba lagi'}`
+  }
+})
 
 for (const id of ['btn-open-settings', 'btn-open-settings-2']) {
   document.getElementById(id)?.addEventListener('click', () => api.openSettings())
@@ -637,7 +655,7 @@ api.listen('tray-command', async (command) => {
 api.listen('settings-changed', async () => {
   const doc = await api.settingsRead().catch(() => ({}))
   settingsDoc = { ...settingsDoc, ...doc }
-  notified = new Map(Array.isArray(doc.notified) ? doc.notified : [])
+  notified = toMap(doc.notified)
   applyCollapsed(Boolean(settingsDoc.collapsed))
   applyVisibleTasks()
 })
@@ -649,7 +667,7 @@ api.listen('feed-changed', () => startFeed())
 ;(async () => {
   const doc = await api.settingsRead().catch(() => ({}))
   settingsDoc = { ...doc }
-  notified = new Map(Array.isArray(doc.notified) ? doc.notified : [])
+  notified = toMap(doc.notified)
   done = createDoneStore(doc.done ?? {})
   applyCollapsed(Boolean(settingsDoc.collapsed))
 

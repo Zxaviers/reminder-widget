@@ -70,10 +70,9 @@ pub fn settings_path(app: &AppHandle) -> PathBuf {
 pub fn load(app: &AppHandle) -> Settings {
     let path = settings_path(app);
     match std::fs::read_to_string(&path) {
-        Ok(raw) => match serde_json::from_str(raw.trim_start_matches('\u{feff}')) {
-            Ok(settings) => settings,
-            Err(_) => Settings::default(),
-        },
+        Ok(raw) => {
+            serde_json::from_str(raw.trim_start_matches('\u{feff}')).unwrap_or_default()
+        }
         Err(_) => Settings::default(),
     }
 }

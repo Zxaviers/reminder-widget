@@ -7,7 +7,10 @@
     "core:default",
     {
       "identifier": "http:default",
-      "allow": [{ "url": "https://brone.ub.ac.id/*" }]
+      "allow": [
+        { "url": "https://brone.ub.ac.id/calendar/export_execute.php*" },
+        { "url": "https://brone.ub.ac.id/calendar/export.php*" }
+      ]
     }
   ]
 }

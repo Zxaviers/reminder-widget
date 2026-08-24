@@ -103,6 +103,8 @@ export const api = {
 
   // ---- helpers
   testFeed,
+  /** Tell every window the saved feed URL changed (widget rebuilds fetcher). */
+  emitFeedChanged: () => window.__TAURI__.event.emit('feed-changed'),
   /**
    * Global events: 'tray-command', 'settings-changed', 'feed-changed'.
    * @returns {Promise<() => void>} unsubscribe

@@ -10,6 +10,12 @@
  * timestamp persisted inside settings.json. A task id is `${uid}::${dueMs}`,
  * which is stable across refreshes because it comes from the feed's own UID.
  *
+ * Pruning rule: an entry earns its keep exactly while it can still hide
+ * something. A task that is live in the feed keeps its entry (that is what
+ * keeps it hidden across refreshes); an entry is dropped only once its task
+ * has LEFT the feed and its deadline fell out of the keep-overdue window,
+ * because Moodle retired that event for good and it can never reappear.
+ *
  * Pure module: no DOM, no storage, no network. Safe to unit test and to run
  * in both the renderer and Node's test runner.
  */
@@ -48,20 +54,18 @@ export function createDoneStore (initial = {}) {
   }
 
   /**
-   * Forget entries that can never match anything again:
-   * - the task is back in the live feed (the entry is redundant state), or
-   * - its deadline fell out of the keep-overdue window while absent from the
-   *   feed, meaning Moodle retired the event for good.
+   * Forget entries that can never hide anything again: the task left the feed
+   * AND its deadline fell out of the keep-overdue window. Entries for live
+   * tasks are always retained — they are doing their job right now. Malformed
+   * ids can never match a task, so they go too.
    */
   function prune (feedTasks, keepOverdueMs, nowMs = Date.now()) {
     const liveIds = new Set(feedTasks.map((task) => task.id))
     const minDueMs = nowMs - keepOverdueMs
     for (const [id] of done) {
+      if (liveIds.has(id)) continue
       const dueMs = Number(id.split('::')[1])
-      const isLive = liveIds.has(id)
-      const isRetired = Number.isFinite(dueMs) && dueMs < minDueMs
-      if (isLive || isRetired || !Number.isFinite(dueMs)) {
-        // An unparseable id can never match again either; drop it too.
+      if (!Number.isFinite(dueMs) || dueMs < minDueMs) {
         done.delete(id)
       }
     }

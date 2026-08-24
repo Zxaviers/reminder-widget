@@ -44,11 +44,8 @@ fn build_menu(app: &AppHandle) -> tauri::Result<tauri::menu::Menu<tauri::Wry>> {
 /// Rebuild the context menu in place.
 pub fn update_menu(app: &AppHandle) {
     if let Some(tray) = app.tray_by_id(TRAY_ID) {
-        match build_menu(app) {
-            Ok(menu) => {
-                let _ = tray.set_menu(Some(menu));
-            }
-            Err(_) => {}
+        if let Ok(menu) = build_menu(app) {
+            let _ = tray.set_menu(Some(menu));
         }
     }
 }
@@ -88,7 +85,7 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
         "toggle" => super::toggle_widget(app),
         "front" => super::show_widget(app),
         "settings" => {
-            let _ = super::commands::open_settings(app.clone());
+            super::commands::open_settings(app.clone());
         }
         "refresh" => {
             let _ = app.emit("tray-command", "refresh");
