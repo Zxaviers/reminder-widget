@@ -9,7 +9,9 @@
       "identifier": "http:default",
       "allow": [
         { "url": "https://brone.ub.ac.id/calendar/export_execute.php*" },
-        { "url": "https://brone.ub.ac.id/calendar/export.php*" }
+        { "url": "https://brone.ub.ac.id/calendar/export_execute.php?*" },
+        { "url": "https://brone.ub.ac.id/calendar/export.php*" },
+        { "url": "https://brone.ub.ac.id/calendar/export.php?*" }
       ]
     }
   ]

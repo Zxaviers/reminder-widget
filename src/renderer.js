@@ -513,10 +513,33 @@ function undoLastMark () {
 
 // --------------------------------------------------------------- state update
 
+/**
+ * Placeholder decision (v1 apply() parity): exactly one of setup / error /
+ * loading / empty is shown, or none when the task list is on screen.
+ */
+function renderPlaceholders () {
+  const meta = state.meta ?? {}
+  const count = state.tasks.length
+
+  if (!meta.configured) {
+    showPlaceholder('setup')
+  } else if (count > 0) {
+    showPlaceholder(null)
+  } else if (meta.parseError || (meta.error && !meta.hasData)) {
+    showPlaceholder('error')
+    renderError()
+  } else if (meta.status === 'loading' && !meta.hasData) {
+    showPlaceholder('loading')
+  } else {
+    showPlaceholder('empty')
+  }
+}
+
 /** Recompute the visible list from the full parsed set + done map. */
 function applyVisibleTasks ({ animate = false } = {}) {
   const tasksAll = Array.isArray(state._allTasks) ? state._allTasks : []
   state.tasks = done.visible(tasksAll)
+  renderPlaceholders()
   renderList(animate && signatureChanged())
   renderStatus()
   updateTrayTooltip()
@@ -584,11 +607,14 @@ async function startFeed () {
       },
       onStatus: (meta) => {
         state.meta = { ...state.meta, ...meta }
+        renderPlaceholders()
         renderStatus()
         updateTrayTooltip()
+        requestAnimationFrame(autosize)
       },
       onError: (error) => {
         state.meta.error = { code: error?.code, message: error?.message }
+        renderPlaceholders()
         renderStatus()
       }
     }
