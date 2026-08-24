@@ -1,39 +1,117 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="stylesheet" href="styles.css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tauri App</title>
-    <script type="module" src="/main.js" defer></script>
+    <meta charset="utf-8" />
+    <title>Deadlines</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
-
   <body>
-    <main class="container">
-      <h1>Welcome to Tauri</h1>
+    <div class="stage">
+      <main class="panel" id="panel" data-state="loading" data-collapsed="false">
+        <header class="bar" id="bar" data-tauri-drag-region="">
+          <div class="bar__id" data-tauri-drag-region="">
+            <h1 class="bar__title" data-tauri-drag-region="">Deadlines</h1>
+            <p class="bar__status" id="status" aria-live="polite" data-tauri-drag-region="">Loading</p>
+          </div>
 
-      <div class="row">
-        <a href="https://tauri.app" target="_blank">
-          <img src="/assets/tauri.svg" class="logo tauri" alt="Tauri logo" />
-        </a>
-        <a
-          href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"
-          target="_blank"
-        >
-          <img
-            src="/assets/javascript.svg"
-            class="logo vanilla"
-            alt="JavaScript logo"
-          />
-        </a>
-      </div>
-      <p>Click on the Tauri logo to learn more about the framework</p>
+          <div class="bar__actions">
+            <button type="button" class="icon-btn" id="btn-refresh" title="Refresh now" aria-label="Refresh now">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M13.5 8a5.5 5.5 0 1 1-1.9-4.16" />
+                <path d="M13.6 1.9v2.4h-2.4" />
+              </svg>
+            </button>
 
-      <form class="row" id="greet-form">
-        <input id="greet-input" placeholder="Enter a name..." />
-        <button type="submit">Greet</button>
-      </form>
-      <p id="greet-msg"></p>
-    </main>
+            <button type="button" class="icon-btn" id="btn-collapse" title="Collapse" aria-label="Collapse" aria-expanded="true">
+              <svg viewBox="0 0 16 16" aria-hidden="true" class="icon-chevron">
+                <path d="M4 6.25 8 10.25l4-4" />
+              </svg>
+            </button>
+
+            <button type="button" class="icon-btn icon-btn--close" id="btn-hide" title="Hide to tray" aria-label="Hide to tray">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M4.2 4.2l7.6 7.6M11.8 4.2l-7.6 7.6" />
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <!-- Collapsed mode: the single next undone deadline, nothing else -->
+        <div class="digest" id="digest" aria-hidden="true"></div>
+
+        <div class="body" id="body">
+          <div class="groups" id="groups"></div>
+
+          <!-- Loading -->
+          <section class="placeholder" id="ph-loading" hidden>
+            <div class="skeleton" aria-hidden="true">
+              <div class="skeleton__row"><i></i><b></b></div>
+              <div class="skeleton__row"><i></i><b></b></div>
+              <div class="skeleton__row"><i></i><b></b></div>
+            </div>
+            <p class="placeholder__note">Reading your calendar feed</p>
+          </section>
+
+          <!-- Nothing due -->
+          <section class="placeholder" id="ph-empty" hidden>
+            <svg class="placeholder__mark" viewBox="0 0 40 40" aria-hidden="true">
+              <circle cx="20" cy="20" r="13.5" />
+              <path d="M20 13.2V20l4.6 2.8" />
+            </svg>
+            <h2 class="placeholder__title">Nothing due</h2>
+            <p class="placeholder__note">
+              No assignment deadlines in the next 120 days. This updates automatically.
+            </p>
+          </section>
+
+          <!-- No feed URL configured: the true first-run state -->
+          <section class="placeholder placeholder--setup" id="ph-setup" hidden>
+            <h2 class="placeholder__title">Hubungkan Kalender</h2>
+            <p class="placeholder__note">
+              Sinkronkan tugas dan deadline dari BRONE UB untuk memantau jadwal kuliah langsung di desktop.
+            </p>
+            <div class="placeholder__actions">
+              <button type="button" class="btn btn--primary" id="btn-open-settings">
+                Hubungkan Sekarang
+              </button>
+            </div>
+          </section>
+
+          <!-- Fetch or parse failure with no usable cache -->
+          <section class="placeholder placeholder--error" id="ph-error" hidden>
+            <svg class="placeholder__mark" viewBox="0 0 40 40" aria-hidden="true">
+              <path d="M20 8.5 34 31.5H6z" />
+              <path d="M20 17.5v6" />
+              <path d="M20 27.2v.1" />
+            </svg>
+            <h2 class="placeholder__title" id="error-title">Can't reach the feed</h2>
+            <p class="placeholder__note" id="error-note"></p>
+            <p class="placeholder__fix" id="error-fix"></p>
+            <div class="placeholder__actions">
+              <button type="button" class="btn btn--primary" id="btn-retry-error">Try again</button>
+              <button type="button" class="btn" id="btn-open-settings-2">Settings</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- Shown right after marking a task done; offers one undo -->
+        <footer class="undo-bar" id="undo-bar" hidden>
+          <span id="undo-text"></span>
+          <button type="button" class="undo-bar__btn" id="btn-undo">Urungkan</button>
+        </footer>
+
+        <!-- Shown when data is on screen but the last refresh failed -->
+        <footer class="stale" id="stale" hidden>
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <circle cx="8" cy="8" r="5.9" />
+            <path d="M8 5.1V8l2 1.2" />
+          </svg>
+          <span id="stale-text"></span>
+          <button type="button" class="stale__retry" id="btn-retry-stale">Retry</button>
+        </footer>
+      </main>
+    </div>
+
+    <script type="module" src="renderer.js"></script>
   </body>
 </html>

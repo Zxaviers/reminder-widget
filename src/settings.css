@@ -1,0 +1,501 @@
+/* ===========================================================================
+   Settings sheet. Inherits the widget's tokens and components from style.css;
+   this file adds styling for dialog form controls, login box, and mode toggles.
+   =========================================================================== */
+
+.settings-body {
+  user-select: none;
+}
+
+.sheet {
+  height: calc(100% - 24px);
+  margin: 12px;
+  max-height: none;
+}
+
+.sheet__bar {
+  -webkit-app-region: drag;
+}
+
+.sheet__bar .bar__actions {
+  -webkit-app-region: no-drag;
+}
+
+.sheet__body {
+  padding: 13px var(--pad) 14px;
+  overflow-y: auto;
+}
+
+/* ------------------------------------------------------------------ auth-box */
+
+.auth-box {
+  background: linear-gradient(135deg, rgba(82, 107, 255, 0.12) 0%, rgba(30, 34, 56, 0.4) 100%);
+  border: 1px solid rgba(130, 150, 255, 0.22);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.auth-box__title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--fg);
+  margin-bottom: 4px;
+}
+
+.auth-box__title .icon-key {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.auth-box__desc {
+  font-size: 11px;
+  line-height: 1.4;
+  color: #7ee0a0;
+  margin-bottom: 12px;
+  opacity: 0.9;
+}
+
+/* ---------------------------------------------------------------- step-guide */
+
+.step-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.step-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.step-num {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--fg);
+  font-size: 11px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  margin-top: 5px;
+}
+
+.step-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.step-note {
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: var(--fg-2);
+  margin-top: 6px;
+}
+
+.step-note b {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.btn--full {
+  width: 100%;
+  justify-content: center;
+  padding: 9px 12px;
+  font-size: 12px;
+  gap: 8px;
+}
+
+.btn--full svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.btn--accent {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.btn--accent:hover {
+  background: #059669;
+}
+
+/* ------------------------------------------------------------ manual-section */
+
+.manual-section {
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  margin-top: 10px;
+}
+
+.manual-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  font-size: 11.5px;
+  font-weight: 550;
+  color: var(--fg-2);
+  cursor: pointer;
+  list-style: none;
+}
+
+.manual-summary::-webkit-details-marker {
+  display: none;
+}
+
+.manual-summary:hover {
+  color: var(--fg);
+}
+
+.manual-summary .chevron {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.2s var(--ease);
+}
+
+.manual-section[open] .manual-summary .chevron {
+  transform: rotate(180deg);
+}
+
+.manual-content {
+  padding: 0 12px 12px;
+}
+
+/* --------------------------------------------------------------------- field */
+
+.field {
+  display: block;
+  margin-top: 6px;
+}
+
+.field__label {
+  display: block;
+  font-size: 11px;
+  font-weight: 620;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  margin-bottom: 6px;
+}
+
+.field__input {
+  display: block;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.34);
+  color: var(--fg);
+  font-family: "Cascadia Mono", Consolas, ui-monospace, monospace;
+  font-size: 11.5px;
+  line-height: 1.5;
+  resize: none;
+  user-select: text;
+  word-break: break-all;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09);
+  transition: box-shadow 0.16s var(--ease);
+}
+
+.field__input::placeholder {
+  color: #7e85a0;
+  font-family: var(--font);
+}
+
+.field__input:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+/* -------------------------------------------------------------------- result */
+
+.result {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 9px 10px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.result__icon {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  margin-top: 1px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.result__text {
+  min-width: 0;
+}
+
+.result__text b {
+  display: block;
+  font-weight: 620;
+  color: var(--fg);
+}
+
+.result__text span {
+  color: var(--fg-2);
+  word-break: break-word;
+}
+
+.result--ok {
+  background: rgba(126, 224, 160, 0.1);
+  color: #7ee0a0;
+}
+
+.result--bad {
+  background: rgba(255, 107, 114, 0.11);
+  color: var(--danger);
+}
+
+.result--busy {
+  color: var(--fg-2);
+}
+
+/* ------------------------------------------------------------------- actions */
+
+.actions {
+  display: flex;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.actions .btn {
+  padding: 7px 12px;
+}
+
+.btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn[disabled]:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.btn--primary[disabled]:hover {
+  background: var(--accent);
+}
+
+.rule {
+  border: 0;
+  border-top: 1px solid var(--hairline);
+  margin: 14px 0 12px;
+}
+
+/* ------------------------------------------------------------- mode-selector */
+
+.section-title {
+  font-size: 11px;
+  font-weight: 620;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  margin-bottom: 8px;
+}
+
+.mode-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.radio-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+
+.radio-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.radio-card input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.radio-card__dot {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: grid;
+  place-items: center;
+  transition: border-color 0.15s var(--ease), background-color 0.15s var(--ease);
+}
+
+.radio-card__dot::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.15s var(--ease), transform 0.15s var(--ease);
+}
+
+.radio-card input:checked + .radio-card__dot {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.radio-card input:checked + .radio-card__dot::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.radio-card__text {
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+.radio-card__text b {
+  display: block;
+  font-weight: 580;
+  color: var(--fg);
+}
+
+.radio-card__text span {
+  font-size: 11px;
+  color: var(--fg-2);
+}
+
+/* -------------------------------------------------------------------- toggle */
+
+.toggle {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  padding: 5px 0;
+  cursor: pointer;
+}
+
+.toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle__box {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  margin-top: 1px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  display: grid;
+  place-items: center;
+  transition:
+    background-color 0.16s var(--ease),
+    box-shadow 0.16s var(--ease);
+}
+
+.toggle__box svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: #16182a;
+  stroke-width: 2.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity 0.16s var(--ease),
+    transform 0.2s var(--ease);
+}
+
+.toggle input:checked + .toggle__box {
+  background: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.toggle input:checked + .toggle__box svg {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.toggle input:focus-visible + .toggle__box {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.toggle:hover .toggle__box {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.26);
+}
+
+.toggle input:checked + .toggle__box:hover {
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.toggle__text {
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.toggle__text b {
+  display: block;
+  font-weight: 560;
+  color: var(--fg);
+}
+
+.toggle__text span {
+  color: var(--fg-2);
+  font-size: 11px;
+}
+
+.footnote {
+  margin-top: 12px;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--fg-3);
+}

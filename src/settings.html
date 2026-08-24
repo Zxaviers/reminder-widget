@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Reminder Widget Settings</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="settings.css" />
+  </head>
+  <body class="settings-body">
+    <main class="panel sheet">
+      <header class="bar sheet__bar">
+        <div class="bar__id">
+          <h1 class="bar__title">Pengaturan Widget</h1>
+          <p class="bar__status" id="sub">Status kalender tugas</p>
+        </div>
+        <div class="bar__actions">
+          <button type="button" class="icon-btn icon-btn--close" id="close" aria-label="Close">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M4.2 4.2l7.6 7.6M11.8 4.2l-7.6 7.6" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="sheet__body">
+        <!-- Safe Official Sync Box -->
+        <section class="auth-box">
+          <div class="auth-box__header">
+            <div class="auth-box__title">
+              <svg viewBox="0 0 16 16" aria-hidden="true" class="icon-key">
+                <path d="M14 2H2a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1zM2 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2H2z" />
+                <path d="M3.5 0a.5.5 0 0 1 .5.5V3a.5.5 0 0 1-1 0V.5a.5.5 0 0 1 .5-.5zm9 0a.5.5 0 0 1 .5.5V3a.5.5 0 0 1-1 0V.5a.5.5 0 0 1 .5-.5z" />
+              </svg>
+              <span>Hubungkan Kalender BRONE UB</span>
+            </div>
+            <p class="auth-box__desc">
+              100% Aman & Resmi (menggunakan fitur ekspor kalender iCal bawaan Moodle kampus, tanpa risiko banned).
+            </p>
+          </div>
+
+          <div class="step-guide">
+            <div class="step-item">
+              <span class="step-num">1</span>
+              <div class="step-content">
+                <button type="button" class="btn btn--primary btn--full" id="btn-open-browser-main">
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm6.9 7H10.8a12.8 12.8 0 0 0-1-5.1A6.9 6.9 0 0 1 14.9 7zM8 1.1c.9 1.4 1.7 3.5 1.8 5.9H6.2C6.3 4.6 7.1 2.5 8 1.1zm-3.8.8A12.8 12.8 0 0 0 3.2 7H1.1a6.9 6.9 0 0 1 3.1-5.1zM1.1 9h2.1c.2 1.9.5 3.8 1 5.1A6.9 6.9 0 0 1 1.1 9zm5.1 0h3.6c-.1 2.4-.9 4.5-1.8 5.9-.9-1.4-1.7-3.5-1.8-5.9zm4.6 5.1c.5-1.3.8-3.2 1-5.1h2.1a6.9 6.9 0 0 1-3.1 5.1z" />
+                  </svg>
+                  <span>1. Buka Halaman Ekspor di Browser</span>
+                </button>
+                <p class="step-note">
+                  Di halaman yang terbuka, klik <b>"Semua Acara"</b> &amp; <b>"Bulan ini / Mendatang"</b>, lalu klik tombol <b>"Dapatkan URL Kalender"</b> dan <b>Salin (Copy)</b> linknya.
+                </p>
+              </div>
+            </div>
+
+            <div class="step-item">
+              <span class="step-num">2</span>
+              <div class="step-content">
+                <button type="button" class="btn btn--accent btn--full" id="btn-paste-clipboard">
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z" />
+                    <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z" />
+                  </svg>
+                  <span>2. Tempel Otomatis &amp; Hubungkan</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Feedback Result Banner -->
+        <div class="result" id="result" hidden>
+          <svg class="result__icon" viewBox="0 0 16 16" aria-hidden="true"></svg>
+          <div class="result__text">
+            <b id="result-title"></b>
+            <span id="result-note"></span>
+          </div>
+        </div>
+
+        <!-- Manual Input (Collapsible) -->
+        <details class="manual-section" id="manual-details">
+          <summary class="manual-summary">
+            <span>Opsi Manual / Masukkan URL Teks</span>
+            <svg viewBox="0 0 16 16" class="chevron"><path d="M4 6.25 8 10.25l4-4" /></svg>
+          </summary>
+          <div class="manual-content">
+            <label class="field">
+              <span class="field__label">Calendar Feed URL (.ics)</span>
+              <textarea
+                id="url"
+                class="field__input"
+                rows="3"
+                spellcheck="false"
+                autocomplete="off"
+                placeholder="https://brone.ub.ac.id/calendar/export_execute.php?userid=…&amp;authtoken=…"
+              ></textarea>
+            </label>
+
+            <div class="actions">
+              <button type="button" class="btn" id="test">Test Koneksi</button>
+              <button type="button" class="btn btn--primary" id="save">Simpan URL</button>
+            </div>
+          </div>
+        </details>
+
+        <hr class="rule" />
+
+        <!-- Display Mode Settings -->
+        <div class="section-title">Mode Tampilan Widget</div>
+        <div class="mode-options">
+          <label class="radio-card">
+            <input type="radio" name="displayMode" value="alwaysOnTop" id="mode-always-top" checked />
+            <span class="radio-card__dot"></span>
+            <span class="radio-card__text">
+              <b>Always on Top (Rekomendasi)</b>
+              <span>Widget mengambang di pojok layar dan selalu terlihat.</span>
+            </span>
+          </label>
+
+          <label class="radio-card">
+            <input type="radio" name="displayMode" value="desktop" id="mode-desktop" />
+            <span class="radio-card__dot"></span>
+            <span class="radio-card__text">
+              <b>Desktop Layer (Wallpaper)</b>
+              <span>Widget menempel di wallpaper desktop (di balik jendela kerja).</span>
+            </span>
+          </label>
+        </div>
+
+        <hr class="rule" />
+
+        <!-- Windows & Notification Toggles -->
+        <label class="toggle">
+          <input type="checkbox" id="autostart" />
+          <span class="toggle__box" aria-hidden="true">
+            <svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5" /></svg>
+          </span>
+          <span class="toggle__text">
+            <b>Jalankan saat Windows Startup</b>
+            <span>Otomatis terbuka ketika Anda menyalakan atau login ke Windows.</span>
+          </span>
+        </label>
+
+        <label class="toggle">
+          <input type="checkbox" id="notify" />
+          <span class="toggle__box" aria-hidden="true">
+            <svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5" /></svg>
+          </span>
+          <span class="toggle__text">
+            <b>Notifikasi Pengingat Deadline (Toast)</b>
+            <span>Munculkan pemberitahuan Windows pada 24 jam, 6 jam, dan 1 jam sebelum tugas berakhir.</span>
+          </span>
+        </label>
+
+        <p class="footnote" id="footnote"></p>
+      </div>
+    </main>
+
+    <script type="module" src="settings.js"></script>
+  </body>
+</html>
