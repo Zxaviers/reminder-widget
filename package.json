@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "tauri": "tauri",
-    "test": "node --test"
+    "test": "node --test",
+    "dist": "tauri build && node scripts/collect-dist.js"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"
