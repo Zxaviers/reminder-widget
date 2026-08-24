@@ -1,14 +1,262 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+//! App shell: plugin registration, the frameless widget window, display
+//! modes (floating vs pinned-to-wallpaper), and window-event plumbing.
+//!
+//! The renderer owns feed fetching/parsing/notification thresholds; this side
+//! owns everything native.
+
+mod brone_login;
+mod commands;
+mod secret;
+mod settings;
+mod tray;
+#[cfg(windows)]
+mod win32;
+
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::time::{Duration, Instant};
+
+use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+
+const WIDGET_LABEL: &str = "widget";
+
+/// Desktop-pin mode active? Read by the guard thread and event handlers.
+static PIN_TO_DESKTOP: AtomicBool = AtomicBool::new(false);
+/// Set by hide_widget so toggle/show logic mirrors v1's `isExplicitlyHidden`.
+static EXPLICITLY_HIDDEN: AtomicBool = AtomicBool::new(false);
+/// Debounce clock for tray double-clicks, in millis since boot.
+static LAST_TOGGLE_MS: AtomicU64 = AtomicU64::new(0);
+
+// ------------------------------------------------------------- display modes
+
+pub fn apply_display_mode(app: &AppHandle) {
+    let Some(win) = app.get_webview_window(WIDGET_LABEL) else { return };
+    if settings::load(app).is_desktop_mode() {
+        PIN_TO_DESKTOP.store(true, Ordering::SeqCst);
+        let _ = win.set_always_on_top(false);
+        #[cfg(windows)]
+        win32::send_to_bottom(&win);
+    } else {
+        PIN_TO_DESKTOP.store(false, Ordering::SeqCst);
+        #[cfg(windows)]
+        win32::make_tool_window(&win);
+        let _ = win.set_always_on_top(true);
+    }
 }
+
+// ------------------------------------------------------------ show/hide/toggle
+
+pub fn show_widget(app: &AppHandle) {
+    EXPLICITLY_HIDDEN.store(false, Ordering::SeqCst);
+    let Some(win) = app.get_webview_window(WIDGET_LABEL) else {
+        let _ = create_widget(app);
+        return;
+    };
+    // Win+D can minimize despite WS_EX_TOOLWINDOW; a minimized window still
+    // reports is_visible()==true on Windows, so both flags are checked (v1 note).
+    let needs_restore = !win.is_visible().unwrap_or(true) || win.is_minimized().unwrap_or(false);
+    if needs_restore {
+        let _ = win.show();
+    }
+    // Exactly one z-order call per mode: raising then sinking a desktop-pin
+    // widget is the "jump flicker" v1 documented.
+    if settings::load(app).is_desktop_mode() {
+        #[cfg(windows)]
+        win32::send_to_bottom(&win);
+    } else {
+        #[cfg(windows)]
+        win32::bring_to_top(&win);
+    }
+    tray::update_menu(app);
+}
+
+pub fn hide_widget(app: &AppHandle) {
+    EXPLICITLY_HIDDEN.store(true, Ordering::SeqCst);
+    if let Some(win) = app.get_webview_window(WIDGET_LABEL) {
+        let _ = win.hide();
+    }
+    tray::update_menu(app);
+}
+
+pub fn toggle_widget(app: &AppHandle) {
+    let now_ms = Instant::now().elapsed().as_millis() as u64;
+    let last = LAST_TOGGLE_MS.load(Ordering::SeqCst);
+    if now_ms.wrapping_sub(last) < 250 {
+        return;
+    }
+    LAST_TOGGLE_MS.store(now_ms, Ordering::SeqCst);
+
+    let hidden = EXPLICITLY_HIDDEN.load(Ordering::SeqCst)
+        || app
+            .get_webview_window(WIDGET_LABEL)
+            .map(|w| !w.is_visible().unwrap_or(true) || w.is_minimized().unwrap_or(false))
+            .unwrap_or(true);
+
+    if hidden {
+        show_widget(app);
+    } else {
+        hide_widget(app);
+    }
+}
+
+// -------------------------------------------------------------- window setup
+
+fn create_widget(app: &AppHandle) -> tauri::Result<tauri::WebviewWindow> {
+    let s = settings::load(app);
+    let bounds = match s.bounds {
+        Some(saved) => commands::clamp_bounds(app, saved),
+        None => {
+            let (x, y) = commands::default_bounds(app);
+            settings::Bounds { x, y, width: commands::WINDOW_WIDTH, height: commands::DEFAULT_HEIGHT }
+        }
+    };
+
+    let win = WebviewWindowBuilder::new(
+        app,
+        WIDGET_LABEL,
+        WebviewUrl::App("index.html".into()),
+    )
+    .title("Reminder Widget")
+    .inner_size(bounds.width, bounds.height)
+    .position(bounds.x as f64, bounds.y as f64)
+    .decorations(false)
+    .transparent(true)
+    .shadow(false)
+    .resizable(false)
+    .maximizable(false)
+    .minimizable(false)
+    .skip_taskbar(true)
+    .always_on_top(!s.is_desktop_mode())
+    .focused(false)
+    .visible(false)
+    .build()?;
+
+    let _ = win.show();
+    if s.is_desktop_mode() {
+        apply_display_mode(app);
+    }
+    Ok(win)
+}
+
+fn persist_bounds(app: &AppHandle) {
+    let Some(win) = app.get_webview_window(WIDGET_LABEL) else { return };
+    if !win.is_visible().unwrap_or(false) {
+        return;
+    }
+    let (Ok(pos), Ok(size)) = (win.outer_position(), win.outer_size()) else { return };
+    if let Ok(scale) = win.scale_factor() {
+        let mut s = settings::load(app);
+        s.bounds = Some(settings::Bounds {
+            x: pos.x,
+            y: pos.y,
+            width: size.width as f64 / scale,
+            height: size.height as f64 / scale,
+        });
+        let _ = settings::save(app, &s);
+    }
+}
+
+// ------------------------------------------------------------------- startup
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec![]),
+        ))
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            show_widget(app);
+        }))
+        .invoke_handler(tauri::generate_handler![
+            commands::widget_autosize,
+            commands::widget_hide,
+            commands::widget_show,
+            commands::app_quit,
+            commands::open_external,
+            commands::open_config_folder,
+            commands::settings_read,
+            commands::settings_write,
+            commands::settings_changed,
+            commands::reset_position,
+            commands::feed_url_get,
+            commands::feed_url_get_full,
+            commands::feed_url_set,
+            commands::set_display_mode,
+            commands::notify,
+            commands::tray_tooltip,
+            commands::open_settings,
+            commands::settings_close,
+            commands::auth_brone_login,
+            commands::autostart_get,
+            commands::autostart_set,
+            commands::window_metrics,
+        ])
+        .setup(move |app| {
+            let handle = app.handle().clone();
+
+            create_widget(&handle)?;
+            tray::create(&handle)?;
+            apply_display_mode(&handle);
+
+            // Guard thread: re-assert the wallpaper layer every few seconds in
+            // case another program raised above us. Cheap no-op when already
+            // at the bottom (v1 parity).
+            {
+                let handle = handle.clone();
+                std::thread::spawn(move || loop {
+                    std::thread::sleep(Duration::from_secs(4));
+                    if !PIN_TO_DESKTOP.load(Ordering::Relaxed) {
+                        continue;
+                    }
+                    if let Some(win) = handle.get_webview_window(WIDGET_LABEL) {
+                        if win.is_visible().unwrap_or(false) {
+                            #[cfg(windows)]
+                            win32::send_to_bottom(&win);
+                        }
+                    }
+                });
+            }
+
+            // First run: no feed configured yet -> open Settings directly to
+            // guide the user (v1 parity).
+            if crate::secret::get()?.is_none() && std::env::var_os("CALENDAR_FEED_URL").is_none() && std::env::var_os("BRONE_ICS_URL").is_none() {
+                commands::open_settings(handle.clone());
+            }
+
+            Ok(())
+        })
+        .on_window_event(|window, event| {
+            let is_widget = window.label() == WIDGET_LABEL;
+            match event {
+                WindowEvent::CloseRequested { api, .. } if is_widget => {
+                    // Closing the widget hides it; only Quit exits (v1 parity).
+                    api.prevent_close();
+                    hide_widget(window.app_handle());
+                }
+                WindowEvent::Moved(_) | WindowEvent::Resized(_) if is_widget => {
+                    let app = window.app_handle();
+                    persist_bounds(app);
+                    if PIN_TO_DESKTOP.load(Ordering::Relaxed) {
+                        #[cfg(windows)]
+                        if let Some(w) = app.get_webview_window(WIDGET_LABEL) {
+                            win32::send_to_bottom(&w);
+                        }
+                    }
+                }
+                WindowEvent::Focused(false) if is_widget => {
+                    if PIN_TO_DESKTOP.load(Ordering::Relaxed) {
+                        #[cfg(windows)]
+                        if let Some(w) = window.app_handle().get_webview_window(WIDGET_LABEL) {
+                            win32::send_to_bottom(&w);
+                        }
+                    }
+                }
+                _ => {}
+            }
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
