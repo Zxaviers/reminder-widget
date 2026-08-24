@@ -8,11 +8,9 @@
     {
       "identifier": "http:default",
       "allow": [
-        { "url": "https://brone.ub.ac.id/calendar/export_execute.php*" },
-        { "url": "https://brone.ub.ac.id/calendar/export_execute.php?*" },
-        { "url": "https://brone.ub.ac.id/calendar/export.php*" },
-        { "url": "https://brone.ub.ac.id/calendar/export.php?*" }
-      ]
+        { "url": "https://brone.ub.ac.id/*" }
+      ],
+      "description": "App code only ever requests the calendar feed URL; domain-wide allow because URLPattern query matching is unreliable. Spec constraint (feed-only endpoint) is enforced in code, not here."
     }
   ]
 }

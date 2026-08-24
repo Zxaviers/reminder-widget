@@ -110,32 +110,42 @@ pub async fn start(app: AppHandle) -> LoginOutcome {
 
     let nav_shared = shared.clone();
     let nav_app = app.clone();
-    let build_result = WebviewWindowBuilder::new(
-        &app,
-        LABEL,
-        WebviewUrl::External(LOGIN_URL.parse().unwrap()),
-    )
-    .title("Memuat Login BRONE - Universitas Brawijaya...")
-    .inner_size(700.0, 760.0)
-    .min_inner_size(520.0, 600.0)
-    .always_on_top(true)
-    .user_agent(CHROME_USER_AGENT)
-    .on_navigation(move |url| {
-        // Only the first navigation past /login/ kicks off extraction.
-        let past_login = url.host_str() == Some(HOST) && !url.path().contains("/login/");
-        if !past_login || TRIGGERED.swap(true, Ordering::SeqCst) {
-            return true;
-        }
-        let app = nav_app.clone();
-        let shared = nav_shared.clone();
-        let on_export = url.as_str().contains("/calendar/export.php");
-        tauri::async_runtime::spawn(async move { run_extraction(app, shared, on_export).await });
-        true
-    })
-    .build();
+    // Window creation must happen on the main thread (async commands run on
+    // worker threads; building a webview off-main deadlocks on Windows).
+    let build_app = app.clone();
+    let (tx, rx) = std::sync::mpsc::channel::<Result<(), String>>();
+    let _ = app.run_on_main_thread(move || {
+        let result = WebviewWindowBuilder::new(
+            &build_app,
+            LABEL,
+            WebviewUrl::External(LOGIN_URL.parse().unwrap()),
+        )
+        .title("Memuat Login BRONE - Universitas Brawijaya...")
+        .inner_size(700.0, 760.0)
+        .min_inner_size(520.0, 600.0)
+        .always_on_top(true)
+        .user_agent(CHROME_USER_AGENT)
+        .on_navigation(move |url| {
+            // Only the first navigation past /login/ kicks off extraction.
+            let past_login = url.host_str() == Some(HOST) && !url.path().contains("/login/");
+            if !past_login || TRIGGERED.swap(true, Ordering::SeqCst) {
+                return true;
+            }
+            let app = nav_app.clone();
+            let shared = nav_shared.clone();
+            let on_export = url.as_str().contains("/calendar/export.php");
+            tauri::async_runtime::spawn(async move { run_extraction(app, shared, on_export).await });
+            true
+        })
+        .build()
+        .map(|_| ())
+        .map_err(|e| e.to_string());
+        let _ = tx.send(result);
+    });
 
-    if build_result.is_err() {
-        return LoginOutcome::failed("Gagal membuka jendela login.");
+    let build_result = rx.recv().unwrap_or_else(|_| Err("main thread unavailable".into()));
+    if let Err(message) = build_result {
+        return LoginOutcome::failed(&format!("Gagal membuka jendela login: {message}"));
     }
 
     // Wait for capture / manual close / timeout. Order matters: extraction
