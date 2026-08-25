@@ -3,7 +3,7 @@
 //! notifications) — same approach as v1's updateTrayMenu.
 
 use tauri::menu::{CheckMenuItem, MenuItem, PredefinedMenuItem};
-use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri::tray::{MouseButton, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager};
 
 pub const TRAY_ID: &str = "rw-tray";

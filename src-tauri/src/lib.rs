@@ -13,7 +13,7 @@ mod tray;
 mod win32;
 
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::time::{Duration, Instant};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 
@@ -84,7 +84,12 @@ pub fn hide_widget(app: &AppHandle) {
 }
 
 pub fn toggle_widget(app: &AppHandle) {
-    let now_ms = Instant::now().elapsed().as_millis() as u64;
+    // Real epoch millis: Instant::now().elapsed() would always read ~0 and
+    // permanently gate the toggle behind its own debounce (the tray-hide bug).
+    let now_ms = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64)
+        .unwrap_or(0);
     let last = LAST_TOGGLE_MS.load(Ordering::SeqCst);
     if now_ms.wrapping_sub(last) < 250 {
         return;
