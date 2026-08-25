@@ -766,6 +766,221 @@ body {
   }
 }
 
+/* ------------------------------------------------------------------ done section */
+
+.done-section {
+  border-top: 1px solid var(--hairline);
+}
+
+.done-section__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 9px var(--pad) 3px;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+
+.done-section__title {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+}
+
+.done-section__toggle {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin: 0 -2px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--fg-2);
+  cursor: pointer;
+  transition:
+    background-color 0.16s var(--ease),
+    color 0.16s var(--ease);
+}
+
+.done-section__toggle svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.26s var(--ease);
+}
+
+.done-section__toggle:hover {
+  background: var(--hover);
+  color: var(--fg);
+}
+
+.done-section[aria-expanded="true"] .done-section__toggle .icon-chevron {
+  transform: rotate(180deg);
+}
+
+.done-section__list {
+  list-style: none;
+  padding: 0 var(--pad) 7px;
+}
+
+.done-task {
+  display: grid;
+  grid-template-columns: var(--gutter) 1fr 22px;
+  align-items: center;
+  gap: 10px;
+  padding: 7px var(--pad);
+  border-radius: 9px;
+  transition: background-color 0.14s var(--ease);
+  opacity: 0.6;
+}
+
+.done-task:hover {
+  background: var(--hover);
+  opacity: 1;
+}
+
+.done-task__when {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.done-task__value {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 640;
+  letter-spacing: -0.022em;
+  line-height: 1.1;
+  color: var(--fg-3);
+}
+
+.done-task__at {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.014em;
+  color: var(--fg-3);
+  margin-top: 1px;
+}
+
+.done-task__meat {
+  min-width: 0;
+}
+
+.done-task__title {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 520;
+  letter-spacing: -0.006em;
+  color: var(--fg-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.done-task__course {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+  font-size: 10.5px;
+  color: var(--fg-3);
+  min-width: 0;
+}
+
+.done-task__phase {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: rgba(130, 150, 255, 0.12);
+  padding: 1px 4px;
+  border-radius: 4px;
+  flex: none;
+}
+
+.done-task__course-name {
+  color: var(--fg-3);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 105px;
+  flex: none;
+}
+
+.done-task__duedate {
+  display: inline-flex;
+  align-items: center;
+  color: var(--fg-3);
+  font-size: 10px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1px 5px;
+  border-radius: 4px;
+  flex: none;
+}
+
+.done-task__restore-btn {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgb(var(--fg-rgb, 228 231 245) / 0.35);
+  cursor: pointer;
+  transition: background-color 0.14s var(--ease), color 0.14s var(--ease), transform 0.14s var(--ease);
+}
+
+.done-task__restore-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.done-task__restore-btn:hover,
+.done-task__restore-btn:focus-visible {
+  color: #7ee787;
+  background: rgb(126 231 135 / 0.12);
+  transform: scale(1.08);
+  outline: none;
+}
+
+.done-task__restore-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Restore button uses a rotate icon */
+.restore-icon {
+  transform: rotate(-90deg);
+}
+
 /* Respect the OS setting; the widget is on screen all day. */
 @media (prefers-reduced-motion: reduce) {
   *,

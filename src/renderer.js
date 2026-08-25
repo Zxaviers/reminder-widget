@@ -31,6 +31,9 @@ const el = {
   undoText: document.getElementById('undo-text'),
   btnUndo: document.getElementById('btn-undo'),
   btnCollapse: document.getElementById('btn-collapse'),
+  doneSection: document.getElementById('done-section'),
+  doneList: document.getElementById('done-list'),
+  btnDoneToggle: document.getElementById('btn-done-toggle'),
   placeholders: {
     loading: document.getElementById('ph-loading'),
     empty: document.getElementById('ph-empty'),
@@ -204,6 +207,7 @@ function svg (paths, viewBox = '0 0 16 16') {
 }
 
 const CHECK_ICON = ['M3.5 8.5 6.5 11.5 12.5 5']
+const RESTORE_ICON = ['M13.5 8.5 6.5 5.5 2.5 8.5']
 
 /**
  * Builds one row. Uses textContent throughout: feed values are untrusted
@@ -361,8 +365,117 @@ function renderList (animate) {
   renderDigest(now)
 }
 
-/** Collapsed mode shows exactly one thing: the next undone deadline. */
-function renderDigest (now) {
+renderDigest(now)
+}
+
+/**
+ * Builds one row for a done task with a restore button.
+ */
+function doneTaskRow (task, now) {
+  const delta = task.dueMs - now
+  const overdue = delta < 0
+  const dueDate = new Date(task.dueMs)
+
+  const row = document.createElement('li')
+  row.className = 'done-task'
+  if (overdue) row.classList.add('task--overdue')
+
+  // -- countdown gutter (countdown + time)
+  const when = document.createElement('div')
+  when.className = 'done-task__when'
+
+  const value = document.createElement('span')
+  value.className = 'done-task__value'
+  value.textContent = countdown(delta)
+
+  const at = document.createElement('span')
+  at.className = 'done-task__at'
+  at.textContent = task.allDay ? 'sepanjang hari' : timeFmt.format(dueDate)
+
+  when.append(value, at)
+
+  // -- title + course & exact due date
+  const meat = document.createElement('div')
+  meat.className = 'done-task__meat'
+
+  const title = document.createElement('span')
+  title.className = 'done-task__title'
+  title.textContent = task.title
+
+  const course = document.createElement('div')
+  course.className = 'done-task__course'
+
+  const phase = PHASE_LABEL[task.phase]
+  if (phase) {
+    const phaseNode = document.createElement('span')
+    phaseNode.className = 'done-task__phase'
+    phaseNode.textContent = phase
+    course.appendChild(phaseNode)
+  }
+
+  if (task.course) {
+    const courseNode = document.createElement('span')
+    courseNode.className = 'done-task__course-name'
+    courseNode.textContent = task.course
+    course.appendChild(courseNode)
+  }
+
+  const dueSpan = document.createElement('span')
+  dueSpan.className = 'done-task__duedate'
+  dueSpan.textContent = task.allDay ? dateFmt.format(dueDate) : fullDateFmt.format(dueDate)
+  course.appendChild(dueSpan)
+
+  meat.append(title, course)
+
+  // -- restore button
+  const restoreBtn = document.createElement('button')
+  restoreBtn.type = 'button'
+  restoreBtn.className = 'done-task__restore-btn'
+  restoreBtn.title = 'Kembalikan ke daftar tugas'
+  restoreBtn.setAttribute('aria-label', `Kembalikan ${task.title} ke daftar tugas`)
+  restoreBtn.appendChild(svg(RESTORE_ICON))
+  restoreBtn.addEventListener('click', (event) => {
+    event.stopPropagation()
+    restoreTask(task)
+  })
+
+  row.append(when, meat, restoreBtn)
+
+  const spoken = [
+    task.title,
+    task.course,
+    `Deadline: ${fullDateFmt.format(dueDate)}`,
+    overdue ? `Terlewat ${countdown(-delta)}` : `Selesai ${countdown(-delta)}`
+  ]
+    .filter(Boolean)
+    .join(', ')
+  row.setAttribute('aria-label', spoken)
+  row.title = spoken
+
+  return row
+}
+
+function renderDoneList () {
+  const now = Date.now()
+  const doneTasks = state._allTasks.filter(task => done.isDone(task.id))
+  if (doneTasks.length === 0) {
+    el.doneSection.hidden = true
+    return
+  }
+
+  el.doneSection.hidden = false
+  el.doneList.replaceChildren()
+
+  for (const task of doneTasks) {
+    el.doneList.appendChild(doneTaskRow(task, now))
+  }
+}
+
+function restoreTask (task) {
+  done.unmark(task.id)
+  applyVisibleTasks()
+  schedulePersist()
+}
   el.digest.replaceChildren()
   const next = state.tasks.find((task) => task.dueMs >= now) ?? state.tasks[0]
   if (!next) {
@@ -541,6 +654,7 @@ function applyVisibleTasks ({ animate = false } = {}) {
   state.tasks = done.visible(tasksAll)
   renderPlaceholders()
   renderList(animate && signatureChanged())
+  renderDoneList()
   renderStatus()
   updateTrayTooltip()
   requestAnimationFrame(autosize)
@@ -670,6 +784,12 @@ document.getElementById('btn-collapse').addEventListener('click', async () => {
   settingsDoc.collapsed = collapsed
   await api.settingsWrite({ collapsed })
   await api.settingsChanged()
+})
+
+el.btnDoneToggle?.addEventListener('click', () => {
+  const expanded = el.doneSection.getAttribute('aria-expanded') === 'true'
+  el.doneSection.setAttribute('aria-expanded', String(!expanded))
+  el.btnDoneToggle.setAttribute('aria-expanded', String(!expanded))
 })
 
 document.addEventListener('contextmenu', (event) => event.preventDefault())

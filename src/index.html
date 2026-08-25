@@ -42,6 +42,21 @@
         <div class="body" id="body">
           <div class="groups" id="groups"></div>
 
+          <!-- Done tasks section -->
+          <section class="done-section" id="done-section" hidden>
+            <header class="done-section__header">
+              <h2 class="done-section__title">Selesai</h2>
+              <button type="button" class="icon-btn done-section__toggle" id="btn-done-toggle" title="Tampilkan/Sembunyikan tugas selesai" aria-label="Tampilkan/Sembunyikan tugas selesai" aria-expanded="false">
+                <svg viewBox="0 0 16 16" aria-hidden="true" class="icon-chevron">
+                  <path d="M4 6.25 8 10.25l4-4" />
+                </svg>
+              </button>
+            </header>
+            <ul class="done-section__list" id="done-list"></ul>
+          </section>
+
+          <div class="groups" id="groups"></div>
+
           <!-- Loading -->
           <section class="placeholder" id="ph-loading" hidden>
             <div class="skeleton" aria-hidden="true">
