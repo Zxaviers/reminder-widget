@@ -66,7 +66,9 @@ pub fn create(app: &AppHandle) -> tauri::Result<()> {
         })
         .on_tray_icon_event(|tray, event| {
             // Left click toggles visibility; right click opens the menu.
-            if matches!(event, TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. }) {
+            // Handle both Up and Down states for better compatibility with
+            // overflow area clicks which may send different event sequences.
+            if matches!(event, TrayIconEvent::Click { button: MouseButton::Left, .. }) {
                 super::toggle_widget(tray.app_handle());
             }
         });
