@@ -674,6 +674,12 @@ document.getElementById('btn-collapse').addEventListener('click', async () => {
 
 document.addEventListener('contextmenu', (event) => event.preventDefault())
 
+// Esc hides to tray (README parity). The widget takes focus when clicked,
+// so key events do reach it — unlike v1's always-unfocused window.
+window.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') api.hide()
+})
+
 api.listen('tray-command', async (command) => {
   if (command === 'refresh') await refreshNow()
 })

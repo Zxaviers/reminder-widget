@@ -75,7 +75,10 @@ pub fn show_widget(app: &AppHandle) {
 pub fn hide_widget(app: &AppHandle) {
     EXPLICITLY_HIDDEN.store(true, Ordering::SeqCst);
     if let Some(win) = app.get_webview_window(WIDGET_LABEL) {
-        let _ = win.hide();
+        let result = win.hide();
+        #[cfg(debug_assertions)]
+        eprintln!("[hide] hide() result: {:?}", result.as_ref().map(|_| "ok").map_err(|e| e.to_string()));
+        let _ = result;
     }
     tray::update_menu(app);
 }

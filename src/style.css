@@ -148,8 +148,11 @@ body {
 .icon-btn {
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  /* 24px visual + 2px transparent halo each side: near-miss clicks still
+     land on the button instead of starting a window drag. */
+  width: 28px;
+  height: 28px;
+  margin: 0 -2px;
   border: 0;
   border-radius: 7px;
   background: transparent;
