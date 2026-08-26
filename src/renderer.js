@@ -171,7 +171,7 @@ function evaluateNotifications (tasksAll) {
   for (const task of tasksAll) {
     if (done.isDone(task.id)) continue
     const remaining = task.dueMs - now
-    if (remaining < 0 || remaining > NOTIFY_THRESHOLDS_MS[0]) continue
+    if (remaining < 0 || remaining > notifyThresholdsMs[0]) continue
 
     const already = notified.get(task.id) ?? []
     const threshold = notifyThresholdsMs.filter((t) => remaining <= t).sort((a, b) => a - b)[0]
@@ -758,9 +758,15 @@ async function startFeed () {
           state.meta.parseError = { code: error.code ?? 'PARSE_FAILED', message: error.message }
           state._allTasks = []
         }
-        // Retire done-entries for events Moodle removed long ago.
+        // Retire done-entries for events Moodle removed long ago. The
+        // post-parse steps are UI-side concerns: a bug here must never surface
+        // as a feed error (fetchCalendar's catch would mark the feed stale).
         done.prune(state._allTasks, DEFAULT_KEEP_OVERDUE_MS, Date.now())
-        evaluateNotifications(state._allTasks)
+        try {
+          evaluateNotifications(state._allTasks)
+        } catch (error) {
+          console.error('[notify]', error)
+        }
         applyVisibleTasks({ animate: true })
         schedulePersist()
         void maybeRunSubmissionCheck()
