@@ -34,6 +34,8 @@ pub struct Settings {
     pub bounds: Option<Bounds>,
     /// "alwaysOnTop" | "desktop"
     pub display_mode: String,
+    /// Renderer-owned: is the "✓ Selesai" (done tasks) section expanded.
+    pub show_done: bool,
     /// taskId -> already-fired notification thresholds (ms remaining).
     pub notified: BTreeMap<String, Vec<f64>>,
     /// taskId -> ISO timestamp when the user marked it done.
@@ -49,6 +51,7 @@ impl Default for Settings {
             opacity: 1.0,
             bounds: None,
             display_mode: "alwaysOnTop".into(),
+            show_done: false,
             notified: BTreeMap::new(),
             done: BTreeMap::new(),
         }

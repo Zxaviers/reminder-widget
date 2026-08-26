@@ -33,6 +33,7 @@ const el = {
   btnCollapse: document.getElementById('btn-collapse'),
   doneSection: document.getElementById('done-section'),
   doneList: document.getElementById('done-list'),
+  doneTitle: document.querySelector('.done-section__title'),
   btnDoneToggle: document.getElementById('btn-done-toggle'),
   placeholders: {
     loading: document.getElementById('ph-loading'),
@@ -365,9 +366,6 @@ function renderList (animate) {
   renderDigest(now)
 }
 
-renderDigest(now)
-}
-
 /**
  * Builds one row for a done task with a restore button.
  */
@@ -457,7 +455,8 @@ function doneTaskRow (task, now) {
 
 function renderDoneList () {
   const now = Date.now()
-  const doneTasks = state._allTasks.filter(task => done.isDone(task.id))
+  const tasksAll = Array.isArray(state._allTasks) ? state._allTasks : []
+  const doneTasks = done.doneList(tasksAll)
   if (doneTasks.length === 0) {
     el.doneSection.hidden = true
     return
@@ -469,6 +468,14 @@ function renderDoneList () {
   for (const task of doneTasks) {
     el.doneList.appendChild(doneTaskRow(task, now))
   }
+
+  // Expansion state lives in settings (showDone) so it survives restarts.
+  // Collapsed by default: the section is secondary until it is needed.
+  const expanded = settingsDoc.showDone === true
+  el.doneSection.setAttribute('aria-expanded', String(expanded))
+  el.btnDoneToggle?.setAttribute('aria-expanded', String(expanded))
+  el.doneList.hidden = !expanded
+  if (el.doneTitle) el.doneTitle.textContent = `Selesai (${doneTasks.length})`
 }
 
 function restoreTask (task) {
@@ -476,6 +483,9 @@ function restoreTask (task) {
   applyVisibleTasks()
   schedulePersist()
 }
+
+/** Collapsed mode shows exactly one thing: the next undone deadline. */
+function renderDigest (now) {
   el.digest.replaceChildren()
   const next = state.tasks.find((task) => task.dueMs >= now) ?? state.tasks[0]
   if (!next) {
@@ -633,10 +643,14 @@ function undoLastMark () {
 function renderPlaceholders () {
   const meta = state.meta ?? {}
   const count = state.tasks.length
+  const tasksAll = Array.isArray(state._allTasks) ? state._allTasks : []
+  const doneCount = done.doneList(tasksAll).length
 
   if (!meta.configured) {
     showPlaceholder('setup')
-  } else if (count > 0) {
+  } else if (count > 0 || doneCount > 0) {
+    // Done tasks still render (the Selesai section), so the list stays up
+    // even when every task in the feed is marked done.
     showPlaceholder(null)
   } else if (meta.parseError || (meta.error && !meta.hasData)) {
     showPlaceholder('error')
@@ -787,9 +801,10 @@ document.getElementById('btn-collapse').addEventListener('click', async () => {
 })
 
 el.btnDoneToggle?.addEventListener('click', () => {
-  const expanded = el.doneSection.getAttribute('aria-expanded') === 'true'
-  el.doneSection.setAttribute('aria-expanded', String(!expanded))
-  el.btnDoneToggle.setAttribute('aria-expanded', String(!expanded))
+  settingsDoc.showDone = !(settingsDoc.showDone === true)
+  renderDoneList()
+  api.settingsWrite({ showDone: settingsDoc.showDone }).catch(() => {})
+  requestAnimationFrame(autosize)
 })
 
 document.addEventListener('contextmenu', (event) => event.preventDefault())

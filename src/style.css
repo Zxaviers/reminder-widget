@@ -826,6 +826,11 @@ body {
   transform: rotate(180deg);
 }
 
+/* Collapsed: keep the header (with count) but hide the rows. */
+.done-section[aria-expanded="false"] .done-section__list {
+  display: none;
+}
+
 .done-section__list {
   list-style: none;
   padding: 0 var(--pad) 7px;

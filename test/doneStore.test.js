@@ -94,3 +94,37 @@ test('lastAction supports undo of the most recent mark or unmark', () => {
   store.undo()
   assert.equal(store.isDone(t.id), true)
 })
+
+test('doneList returns marked tasks from the feed, feed order preserved', () => {
+  const store = createDoneStore({
+    'b::2': '2026-08-24T00:00:00.000Z',
+    'c::3': '2026-08-24T00:00:00.000Z'
+  })
+  const feed = [
+    task('a::1', NOW + DAY),
+    task('b::2', NOW + 2 * DAY),
+    task('c::3', NOW + 3 * DAY)
+  ]
+
+  const list = store.doneList(feed)
+
+  // Only done ones, in the feed's ascending-deadline order.
+  assert.deepEqual(list.map((t) => t.id), ['b::2', 'c::3'])
+})
+
+test('doneList is empty when nothing is marked or feed is empty', () => {
+  assert.deepEqual(createDoneStore({}).doneList([task('a::1', NOW)]), [])
+  assert.deepEqual(createDoneStore({ 'x::9': '2026-08-24T00:00:00.000Z' }).doneList([]), [])
+})
+
+test('unmark restores the task into visible() (accidental mark-done recovery)', () => {
+  const store = createDoneStore({})
+  const t = task('accident::7', NOW + DAY)
+  store.mark(t.id, '2026-08-25T09:00:00.000Z')
+  assert.deepEqual(store.visible([t]), [])
+
+  store.unmark(t.id)
+
+  assert.deepEqual(store.visible([t]), [t])
+  assert.deepEqual(store.doneList([t]), [], 'restored task leaves the done list')
+})

@@ -54,6 +54,15 @@ export function createDoneStore (initial = {}) {
   }
 
   /**
+   * Marked tasks that are still present in the feed, feed order preserved.
+   * Powers the "Selesai" section: these are the reminders the user can
+   * restore with one click (e.g. after an accidental mark-done).
+   */
+  function doneList (tasks) {
+    return tasks.filter((task) => done.has(task.id))
+  }
+
+  /**
    * Forget entries that can never hide anything again: the task left the feed
    * AND its deadline fell out of the keep-overdue window. Entries for live
    * tasks are always retained — they are doing their job right now. Malformed
@@ -88,5 +97,5 @@ export function createDoneStore (initial = {}) {
     return Object.fromEntries(done)
   }
 
-  return { isDone, mark, unmark, visible, prune, lastAction, undo, toJSON }
+  return { isDone, mark, unmark, visible, doneList, prune, lastAction, undo, toJSON }
 }
