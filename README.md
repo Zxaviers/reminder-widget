@@ -1,11 +1,11 @@
-# 📅 BRONE Reminder Widget v2
+# 📅 BRONE Reminder Widget
 
 > **Compact always-on-top desktop widget for Moodle / BRONE (UB) assignment
-> deadlines — rebuilt on Tauri v2.**
+> deadlines — built on Tauri v2.**
 
-Same widget you know from v1, at a fraction of the size:
+Same widget, at a fraction of the size:
 
-| | v1 (Electron) | **v2 (Tauri)** |
+| | Old (Electron) | **Current (Tauri)** |
 |---|---|---|
 | Installer | 79 MB | **~4 MB** |
 | Standalone exe | ~180 MB installed | **~16 MB** |
@@ -16,7 +16,7 @@ Same widget you know from v1, at a fraction of the size:
 
 ## ✨ Features
 
-Everything from v1, plus the new **mark-done** feature:
+Everything you need, plus the **mark-done** feature:
 
 - **✅ Mark done (NEW)** — submitted an assignment on BRONE but the deadline still
   shows? Click the ✓ button on the task row: it disappears instantly, with a
@@ -54,9 +54,9 @@ Everything from v1, plus the new **mark-done** feature:
 
 ## 📥 Install
 
-Build it yourself (see below) or grab `Reminder Widget_2.0.0_x64-setup.exe`
+Build it yourself (see below) or grab `Reminder Widget_1.0.0_x64-setup.exe`
 from the build output (`src-tauri/target/release/bundle/nsis/`). The bare
-`reminder-widget-v2.exe` in `target/release/` runs standalone without install.
+`reminder-widget.exe` in `target/release/` runs standalone without install.
 
 ## ⚙️ Connect your calendar
 
@@ -78,7 +78,7 @@ WebView2 Runtime (preinstalled on updated Windows).
 ```bash
 npm install
 npm run tauri dev      # run with hot reload
-npm test               # node --test (27 tests: parser + doneStore)
+npm test               # node --test (42 tests: parser + doneStore + queue + notify)
 npm run tauri build    # release exe + NSIS installer
 ```
 

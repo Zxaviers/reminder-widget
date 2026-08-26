@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    reminder_widget_v2_lib::run()
+    reminder_widget_lib::run()
 }

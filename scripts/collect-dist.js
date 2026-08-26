@@ -28,7 +28,7 @@ const artifacts = [
     to: path.join(outDir, `Reminder Widget ${version} Setup.exe`)
   },
   {
-    from: path.join(src, 'reminder-widget-v2.exe'),
+    from: path.join(src, 'reminder-widget.exe'),
     to: path.join(outDir, `Reminder Widget ${version}.exe`)
   }
 ]
