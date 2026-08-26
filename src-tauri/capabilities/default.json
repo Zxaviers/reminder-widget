@@ -2,7 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capabilities for the widget, settings and BRONE login windows",
-  "windows": ["widget", "settings", "brone-login"],
+  "windows": ["widget", "settings", "brone-login", "checker"],
   "permissions": [
     "core:default",
     {

@@ -74,6 +74,11 @@ export const api = {
   // ---- BRONE assisted login
   loginBrone: () => cmd('auth_brone_login'),
 
+  // ---- submission auto-detection (opt-in)
+  /** Hidden checker webview visits each URL with the user's session; results
+   *  arrive as `submission-checked` events ({url, status}). */
+  submissionCheck: (urls) => cmd('submission_check', { urls: Array.isArray(urls) ? urls : [] }),
+
   // ---- autostart
   autostartGet: () => cmd('autostart_get'),
   autostartSet: (enabled) => cmd('autostart_set', { enabled: Boolean(enabled) }),
@@ -97,7 +102,12 @@ export const api = {
       notifications: doc.notifications !== false,
       collapsed: Boolean(doc.collapsed),
       opacity: typeof doc.opacity === 'number' ? doc.opacity : 1,
-      displayMode: doc.displayMode || 'alwaysOnTop'
+      displayMode: doc.displayMode || 'alwaysOnTop',
+      autoDetect: doc.autoDetect === true,
+      refreshMinutes: Number(doc.refreshMinutes) || 20,
+      notifyThresholdsHours: Array.isArray(doc.notifyThresholdsHours)
+        ? doc.notifyThresholdsHours
+        : [24, 6, 1]
     }
   },
 
@@ -114,11 +124,9 @@ export const api = {
       try { return await navigator.clipboard.readText() } catch { return '' }
     }
   },
-  /** Tell every window the saved feed URL changed (widget rebuilds fetcher). */
-  emitFeedChanged: () => window.__TAURI__.event.emit('feed-changed'),
   /**
    * Global events: 'tray-command', 'settings-changed', 'feed-changed'.
-   * @returns {Promise<() => void>} unsubscribe
+ * @returns {Promise<() => void>} unsubscribe
    */
   listen: (event, handler) =>
     window.__TAURI__.event.listen(event, (e) => handler(e.payload))

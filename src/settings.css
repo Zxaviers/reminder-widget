@@ -499,3 +499,50 @@
   line-height: 1.5;
   color: var(--fg-3);
 }
+
+/* --------------------------------------------------- sync & notify controls */
+
+.field-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px var(--pad, 12px);
+  font-size: 12px;
+  color: var(--fg-2);
+}
+
+.field-inline__label {
+  flex: 1;
+  min-width: 0;
+}
+
+.input-select,
+.input-num {
+  background: rgb(255 255 255 / 0.06);
+  border: 1px solid var(--hairline);
+  border-radius: 7px;
+  color: var(--fg);
+  font: inherit;
+  padding: 5px 8px;
+}
+
+.input-select { min-width: 110px; }
+.input-num { width: 58px; text-align: center; }
+
+.th-group {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+input[type='range']#opacity {
+  flex: 0 1 150px;
+  accent-color: #7b8cff;
+}
+
+.opacity-val {
+  min-width: 42px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-3);
+}

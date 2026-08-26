@@ -6,6 +6,7 @@
 
 mod brone_login;
 mod commands;
+mod detect;
 mod secret;
 mod settings;
 mod tray;
@@ -202,6 +203,7 @@ pub fn run() {
             commands::open_settings,
             commands::settings_close,
             commands::auth_brone_login,
+            commands::submission_check,
             commands::autostart_get,
             commands::autostart_set,
             commands::window_metrics,

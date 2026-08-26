@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install frontend deps
+        run: npm ci
+
+      - name: Unit tests (parser + doneStore + queue + notify)
+        run: npm test
+
+      - name: Syntax check frontend
+        run: |
+          node --check src/renderer.js
+          node --check src/settings.js
+          node --check src/api.js
+          node --check src/parseTasks.js
+          node --check src/fetchCalendar.js
+          node --check src/doneStore.js
+          node --check src/submissionQueue.js
+          node --check src/notifyConfig.js
+
+      - name: Clippy (deny warnings)
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+
+      - name: Cargo check
+        run: cargo check --manifest-path src-tauri/Cargo.toml

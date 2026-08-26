@@ -153,6 +153,46 @@
           </span>
         </label>
 
+        <hr class="rule" />
+
+        <div class="section-title">Notifikasi &amp; Sinkronisasi</div>
+
+        <label class="toggle">
+          <input type="checkbox" id="auto-detect" />
+          <span class="toggle__box" aria-hidden="true">
+            <svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5" /></svg>
+          </span>
+          <span class="toggle__text">
+            <b>Tandai otomatis saat tugas sudah dikumpul</b>
+            <span>Memeriksa halaman tugas di BRONE lewat sesi login Anda (akses /mod/assign). Butuh login BRONE aktif; tugas yang sudah terkumpul otomatis ditandai selesai.</span>
+          </span>
+        </label>
+
+        <div class="field-inline">
+          <span class="field-inline__label">Refresh feed tiap</span>
+          <select id="refresh-minutes" class="input-select">
+            <option value="15">15 menit</option>
+            <option value="20">20 menit</option>
+            <option value="25">25 menit</option>
+            <option value="30">30 menit</option>
+          </select>
+        </div>
+
+        <div class="field-inline">
+          <span class="field-inline__label">Notifikasi (jam sebelum deadline)</span>
+          <span class="th-group">
+            <input type="number" id="th-a" class="input-num" min="1" max="336" />
+            <input type="number" id="th-b" class="input-num" min="1" max="336" />
+            <input type="number" id="th-c" class="input-num" min="1" max="336" />
+          </span>
+        </div>
+
+        <div class="field-inline">
+          <span class="field-inline__label">Opasitas widget</span>
+          <input type="range" id="opacity" min="35" max="100" value="100" />
+          <span id="opacity-val" class="opacity-val">100%</span>
+        </div>
+
         <p class="footnote" id="footnote"></p>
       </div>
     </main>

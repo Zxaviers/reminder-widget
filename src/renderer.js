@@ -15,6 +15,8 @@ import { api } from './api.js'
 import { CalendarFetcher } from './fetchCalendar.js'
 import { parseTasks, DAY_MS, DEFAULT_KEEP_OVERDUE_MS } from './parseTasks.js'
 import { createDoneStore } from './doneStore.js'
+import { selectForCheck } from './submissionQueue.js'
+import { thresholdsToMs } from './notifyConfig.js'
 
 const el = {
   panel: document.getElementById('panel'),
@@ -49,8 +51,9 @@ const DAY = 24 * HOUR
 const SOON_MS = DAY // the 24-hour highlight window
 const TICK_MS = 30 * 1000
 
-/** Notify once per task as it crosses each of these remaining-time marks. */
-const NOTIFY_THRESHOLDS_MS = [24 * HOUR, 6 * HOUR, HOUR]
+/** Notify once per task as it crosses each of these remaining-time marks.
+ *  User-configurable (hours) via Settings; normalised by notifyConfig. */
+let notifyThresholdsMs = thresholdsToMs([24, 6, 1])
 
 let state = { tasks: [], meta: { configured: false, status: 'idle' }, settings: {} }
 let settingsDoc = {}
@@ -64,6 +67,12 @@ let notified = new Map()
 let done = createDoneStore({})
 let undoTimer = null
 let persistTimer = null
+
+/** taskId -> epoch ms of the last auto-detect check (rate limiting). */
+let lastChecked = new Map()
+let checkInFlight = false
+/** Currently applied refresh interval, so settings-changed can restart the feed. */
+let currentRefreshMinutes = 20
 
 // ------------------------------------------------------------------ formatting
 
@@ -118,7 +127,11 @@ function schedulePersist () {
     try {
       // Both maps go over as plain objects: serde BTreeMap round-trips
       // objects, not array-of-pairs.
-      await api.settingsWrite({ done: done.toJSON(), notified: Object.fromEntries(notified) })
+      await api.settingsWrite({
+        done: done.toJSON(),
+        notified: Object.fromEntries(notified),
+        lastChecked: Object.fromEntries(lastChecked)
+      })
     } catch { /* best effort */ }
   }, 400)
 }
@@ -128,6 +141,15 @@ function toMap (value) {
   if (Array.isArray(value)) return new Map(value)
   if (value && typeof value === 'object') {
     return new Map(Object.entries(value).map(([k, v]) => [k, Array.isArray(v) ? v : []]))
+  }
+  return new Map()
+}
+
+/** Same shape tolerance for plain-number maps (lastChecked). */
+function toNumberMap (value) {
+  if (Array.isArray(value)) return new Map(value)
+  if (value && typeof value === 'object') {
+    return new Map(Object.entries(value).map(([k, v]) => [k, Number(v) || 0]))
   }
   return new Map()
 }
@@ -150,7 +172,7 @@ function evaluateNotifications (tasksAll) {
     if (remaining < 0 || remaining > NOTIFY_THRESHOLDS_MS[0]) continue
 
     const already = notified.get(task.id) ?? []
-    const threshold = NOTIFY_THRESHOLDS_MS.filter((t) => remaining <= t).sort((a, b) => a - b)[0]
+    const threshold = notifyThresholdsMs.filter((t) => remaining <= t).sort((a, b) => a - b)[0]
     if (threshold === undefined || already.includes(threshold)) continue
 
     notified.set(task.id, [...already, threshold])
@@ -707,6 +729,7 @@ async function startFeed () {
   fetcher?.stop()
   const url = await api.feedUrlGetFull().catch(() => null)
 
+  currentRefreshMinutes = Number(settingsDoc.refreshMinutes) || 20
   state.meta = {
     ...(state.meta ?? {}),
     configured: Boolean(url),
@@ -717,6 +740,7 @@ async function startFeed () {
 
   fetcher = new CalendarFetcher({
     url,
+    refreshMs: currentRefreshMinutes * MINUTE,
     handlers: {
       onUpdate: ({ ics, meta }) => {
         state.meta = { ...meta, configured: true }
@@ -732,6 +756,7 @@ async function startFeed () {
         evaluateNotifications(state._allTasks)
         applyVisibleTasks({ animate: true })
         schedulePersist()
+        void maybeRunSubmissionCheck()
       },
       onStatus: (meta) => {
         state.meta = { ...state.meta, ...meta }
@@ -749,6 +774,55 @@ async function startFeed () {
   })
 
   await fetcher.start().catch(() => {})
+}
+
+// -------------------------------------------------- submission auto-detect
+
+/**
+ * Opt-in: ask the hidden checker webview to peek at undone future tasks'
+ * BRONE pages. The queue module rate-limits (per task interval + batch cap);
+ * results arrive as 'submission-checked' events below.
+ */
+async function maybeRunSubmissionCheck () {
+  if (!settingsDoc.autoDetect || checkInFlight) return
+  const now = Date.now()
+  const candidates = (state._allTasks ?? [])
+    .filter((t) => t.url && !done.isDone(t.id) && t.dueMs > now)
+    .map((t) => ({ id: t.id, url: t.url, dueMs: t.dueMs }))
+
+  const picks = selectForCheck({
+    candidates,
+    lastChecked: Object.fromEntries(lastChecked),
+    now,
+    intervalMs: 6 * HOUR,
+    maxPerCycle: 8
+  })
+  if (picks.length === 0) return
+
+  checkInFlight = true
+  try {
+    await api.submissionCheck(picks.map((p) => p.url))
+  } catch { /* checker busy or failed; the next feed update retries */ } finally {
+    checkInFlight = false
+  }
+}
+
+api.listen('submission-checked', (result) => {
+  if (!result || typeof result.url !== 'string') return
+  const task = (state._allTasks ?? []).find((t) => t.url === result.url)
+  if (task) lastChecked.set(task.id, Date.now())
+  if (task && result.status === 'yes' && !done.isDone(task.id)) {
+    done.mark(task.id, new Date().toISOString())
+    applyVisibleTasks({ animate: true })
+  }
+  schedulePersist()
+})
+
+// --------------------------------------------------------------- opacity
+
+function applyOpacity () {
+  const o = Number(settingsDoc.opacity)
+  document.body.style.opacity = Number.isFinite(o) ? String(Math.min(1, Math.max(0.35, o))) : '1'
 }
 
 // ------------------------------------------------------------------ rendering
@@ -823,8 +897,15 @@ api.listen('settings-changed', async () => {
   const doc = await api.settingsRead().catch(() => ({}))
   settingsDoc = { ...settingsDoc, ...doc }
   notified = toMap(doc.notified)
+  lastChecked = toNumberMap(doc.lastChecked)
+  notifyThresholdsMs = thresholdsToMs(settingsDoc.notifyThresholdsHours)
   applyCollapsed(Boolean(settingsDoc.collapsed))
+  applyOpacity()
   applyVisibleTasks()
+
+  // A changed refresh interval needs a fetcher rebuild.
+  const newRefresh = Number(settingsDoc.refreshMinutes) || 20
+  if (newRefresh !== currentRefreshMinutes) await startFeed()
 })
 
 api.listen('feed-changed', () => startFeed())
@@ -841,9 +922,13 @@ api.listen('widget-shown', () => {
   const doc = await api.settingsRead().catch(() => ({}))
   settingsDoc = { ...doc }
   notified = toMap(doc.notified)
+  lastChecked = toNumberMap(doc.lastChecked)
+  notifyThresholdsMs = thresholdsToMs(settingsDoc.notifyThresholdsHours)
   done = createDoneStore(doc.done ?? {})
   applyCollapsed(Boolean(settingsDoc.collapsed))
+  applyOpacity()
 
   await startFeed()
   setInterval(tick, TICK_MS)
+  void maybeRunSubmissionCheck()
 })()

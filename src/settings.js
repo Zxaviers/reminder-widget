@@ -29,6 +29,15 @@ const el = {
   sub: document.getElementById('sub'),
   autostart: document.getElementById('autostart'),
   notify: document.getElementById('notify'),
+  autoDetect: document.getElementById('auto-detect'),
+  refreshMinutes: document.getElementById('refresh-minutes'),
+  thInputs: [
+    document.getElementById('th-a'),
+    document.getElementById('th-b'),
+    document.getElementById('th-c')
+  ],
+  opacity: document.getElementById('opacity'),
+  opacityVal: document.getElementById('opacity-val'),
   footnote: document.getElementById('footnote')
 }
 
@@ -139,10 +148,10 @@ async function test () {
   return result
 }
 
-/** Persist the feed URL and tell the widget page to rebuild its fetcher. */
+/** Persist the feed URL and tell the widget page to rebuild its fetcher.
+ *  (feed_url_set broadcasts 'feed-changed' from Rust — single source.) */
 async function commitFeed (rawUrl) {
   await api.feedUrlSet(rawUrl === '' ? null : rawUrl)
-  await api.emitFeedChanged()
 }
 
 async function save () {
@@ -178,6 +187,21 @@ async function load () {
   if (el.url) el.url.value = config.feedUrl ?? ''
   if (el.autostart) el.autostart.checked = Boolean(config.openAtLogin)
   if (el.notify) el.notify.checked = Boolean(config.notifications)
+  if (el.autoDetect) el.autoDetect.checked = Boolean(config.autoDetect)
+
+  if (el.refreshMinutes) el.refreshMinutes.value = String(config.refreshMinutes ?? 20)
+
+  if (el.thInputs) {
+    const hours = [...(config.notifyThresholdsHours ?? [24, 6, 1])]
+    while (hours.length < el.thInputs.length) hours.push('')
+    el.thInputs.forEach((input, i) => { if (input) input.value = hours[i] })
+  }
+
+  if (el.opacity) {
+    const pct = Math.round((Number(config.opacity) || 1) * 100)
+    el.opacity.value = String(pct)
+    if (el.opacityVal) el.opacityVal.textContent = `${pct}%`
+  }
 
   const mode = config.displayMode || 'alwaysOnTop'
   if (mode === 'desktop') {
@@ -256,6 +280,46 @@ if (el.autostart) {
 if (el.notify) {
   el.notify.addEventListener('change', async () => {
     await api.settingsWrite({ notifications: el.notify.checked })
+    await api.settingsChanged()
+  })
+}
+
+// ---- Notifikasi & Sinkronisasi section
+
+if (el.autoDetect) {
+  el.autoDetect.addEventListener('change', async () => {
+    await api.settingsWrite({ autoDetect: el.autoDetect.checked })
+    await api.settingsChanged()
+  })
+}
+
+if (el.refreshMinutes) {
+  el.refreshMinutes.addEventListener('change', async () => {
+    await api.settingsWrite({ refreshMinutes: Number(el.refreshMinutes.value) || 20 })
+    await api.settingsChanged()
+  })
+}
+
+if (el.thInputs) {
+  const commitThresholds = async () => {
+    const hours = el.thInputs
+      .map((input) => Number(input.value))
+      .filter((n) => Number.isFinite(n) && n > 0)
+    await api.settingsWrite({ notifyThresholdsHours: hours })
+    await api.settingsChanged()
+  }
+  el.thInputs.forEach((input) => {
+    input?.addEventListener('change', commitThresholds)
+  })
+}
+
+if (el.opacity) {
+  el.opacity.addEventListener('input', () => {
+    if (el.opacityVal) el.opacityVal.textContent = `${el.opacity.value}%`
+  })
+  el.opacity.addEventListener('change', async () => {
+    const value = Number(el.opacity.value) / 100
+    await api.settingsWrite({ opacity: value })
     await api.settingsChanged()
   })
 }

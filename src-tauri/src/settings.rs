@@ -36,6 +36,15 @@ pub struct Settings {
     pub display_mode: String,
     /// Renderer-owned: is the "✓ Selesai" (done tasks) section expanded.
     pub show_done: bool,
+    /// Opt-in: peek at BRONE assign pages (logged-in session) to auto-mark
+    /// submitted tasks as done. Off by default — it accesses /mod/assign URLs.
+    pub auto_detect: bool,
+    /// taskId -> epoch ms of the last auto-detect check (rate limiting).
+    pub last_checked: BTreeMap<String, i64>,
+    /// Feed refresh interval in minutes (renderer clamps to 15..=30).
+    pub refresh_minutes: i64,
+    /// Notification thresholds in hours before deadline, e.g. [24, 6, 1].
+    pub notify_thresholds_hours: Vec<f64>,
     /// taskId -> already-fired notification thresholds (ms remaining).
     pub notified: BTreeMap<String, Vec<f64>>,
     /// taskId -> ISO timestamp when the user marked it done.
@@ -52,6 +61,10 @@ impl Default for Settings {
             bounds: None,
             display_mode: "alwaysOnTop".into(),
             show_done: false,
+            auto_detect: false,
+            last_checked: BTreeMap::new(),
+            refresh_minutes: 20,
+            notify_thresholds_hours: vec![24.0, 6.0, 1.0],
             notified: BTreeMap::new(),
             done: BTreeMap::new(),
         }

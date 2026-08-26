@@ -177,7 +177,7 @@ pub fn settings_write(app: AppHandle, patch: Value) -> Value {
 #[tauri::command]
 pub fn settings_changed(app: AppHandle) {
     // Rebuild tray checkboxes + reapply layering, then tell every window
-    // (including the widget) that settings moved.
+    // (including the widget) that settings moved. Opacity is renderer-owned.
     super::tray::update_menu(&app);
     crate::apply_display_mode(&app);
     let _ = app.emit("settings-changed", ());
@@ -346,6 +346,15 @@ pub fn settings_close(app: AppHandle) {
 #[tauri::command]
 pub async fn auth_brone_login(app: AppHandle) -> brone_login::LoginOutcome {
     brone_login::start(app).await
+}
+
+// ------------------------------------------------- submission auto-detection
+
+/// Opt-in batch check: the hidden checker webview visits each URL with the
+/// user's session and emits `submission-checked` events per result.
+#[tauri::command]
+pub async fn submission_check(app: AppHandle, urls: Vec<String>) -> Result<(), String> {
+    crate::detect::run_check(app, urls).await
 }
 
 // ---------------------------------------------------------------- autostart
