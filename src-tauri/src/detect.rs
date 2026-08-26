@@ -23,6 +23,11 @@ const RESULT_PREFIX: &str = "RWCHK:";
 const PAGE_TIMEOUT: Duration = Duration::from_secs(12);
 const BETWEEN_PAGES: Duration = Duration::from_millis(400);
 
+/// Same reason brone_login spoofs it: SSO/Cloudflare bounces the plain
+/// WebView2 UA, which would turn every check into a login redirect.
+const CHROME_USER_AGENT: &str =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
 static RUNNING: AtomicBool = AtomicBool::new(false);
 
 #[derive(Debug, Clone, Serialize)]
@@ -67,10 +72,10 @@ async fn run_inner(app: AppHandle, urls: Vec<String>) -> Result<(), String> {
     // Window creation must happen on the main thread (see brone_login).
     let build_app = app.clone();
     let (tx, rx) = std::sync::mpsc::channel::<Result<(), String>>();
-    let _ = app.run_on_main_thread(move || {
+    let send_result = app.run_on_main_thread(move || {
         let result = (|| -> Result<(), String> {
-            if let Some(existing) = build_app.get_webview_window(LABEL) {
-                let _ = existing.show();
+            // Reuse silently: the checker must stay invisible, so no show().
+            if let Some(_existing) = build_app.get_webview_window(LABEL) {
                 return Ok(());
             }
             WebviewWindowBuilder::new(
@@ -82,12 +87,16 @@ async fn run_inner(app: AppHandle, urls: Vec<String>) -> Result<(), String> {
             .inner_size(420.0, 320.0)
             .visible(false)
             .skip_taskbar(true)
+            .user_agent(CHROME_USER_AGENT)
             .build()
             .map(|_| ())
             .map_err(|e| e.to_string())
         })();
         let _ = tx.send(result);
     });
+    if let Err(e) = send_result {
+        return Err(format!("main thread unavailable: {e}"));
+    }
     rx.recv().map_err(|_| "main thread unavailable".to_string())??;
 
     for url in urls {
@@ -102,24 +111,19 @@ async fn run_inner(app: AppHandle, urls: Vec<String>) -> Result<(), String> {
 
         let deadline = Instant::now() + PAGE_TIMEOUT;
         let mut status = "unknown".to_string();
-        loop {
+        'poll: while Instant::now() < deadline {
             tokio::time::sleep(Duration::from_millis(600)).await;
             let Some(win) = app.get_webview_window(LABEL) else { return Ok(()) };
             let _ = win.eval(CHECK_JS);
             if let Ok(title) = win.title() {
                 if let Some(verdict) = title.strip_prefix(RESULT_PREFIX) {
                     let verdict = verdict.trim();
-                    if verdict == "loading" {
-                        if Instant::now() >= deadline {
-                            break;
-                        }
-                        continue;
+                    if verdict != "loading" {
+                        // Final verdict for this page — stop burning the timeout.
+                        status = verdict.to_string();
+                        break 'poll;
                     }
-                    status = verdict.to_string();
                 }
-            }
-            if Instant::now() >= deadline {
-                break;
             }
         }
 

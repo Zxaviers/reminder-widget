@@ -73,6 +73,8 @@ let lastChecked = new Map()
 let checkInFlight = false
 /** Currently applied refresh interval, so settings-changed can restart the feed. */
 let currentRefreshMinutes = 20
+/** Monotonic token: handlers from a superseded startFeed are ignored. */
+let startSeq = 0
 
 // ------------------------------------------------------------------ formatting
 
@@ -726,8 +728,12 @@ async function refreshNow () {
 }
 
 async function startFeed () {
+  // Serialize: a superseded run's handlers must not apply stale state after a
+  // newer startFeed has built a fresh fetcher (double-emit guard).
+  const seq = ++startSeq
   fetcher?.stop()
   const url = await api.feedUrlGetFull().catch(() => null)
+  if (seq !== startSeq) return
 
   currentRefreshMinutes = Number(settingsDoc.refreshMinutes) || 20
   state.meta = {
@@ -743,6 +749,7 @@ async function startFeed () {
     refreshMs: currentRefreshMinutes * MINUTE,
     handlers: {
       onUpdate: ({ ics, meta }) => {
+        if (seq !== startSeq) return
         state.meta = { ...meta, configured: true }
         try {
           state._allTasks = parseTasks(ics)
@@ -759,6 +766,7 @@ async function startFeed () {
         void maybeRunSubmissionCheck()
       },
       onStatus: (meta) => {
+        if (seq !== startSeq) return
         state.meta = { ...state.meta, ...meta }
         renderPlaceholders()
         renderStatus()
@@ -766,6 +774,7 @@ async function startFeed () {
         requestAnimationFrame(autosize)
       },
       onError: (error) => {
+        if (seq !== startSeq) return
         state.meta.error = { code: error?.code, message: error?.message }
         renderPlaceholders()
         renderStatus()
@@ -809,13 +818,28 @@ async function maybeRunSubmissionCheck () {
 
 api.listen('submission-checked', (result) => {
   if (!result || typeof result.url !== 'string') return
-  const task = (state._allTasks ?? []).find((t) => t.url === result.url)
-  if (task) lastChecked.set(task.id, Date.now())
-  if (task && result.status === 'yes' && !done.isDone(task.id)) {
-    done.mark(task.id, new Date().toISOString())
-    applyVisibleTasks({ animate: true })
+  const matches = (state._allTasks ?? []).filter((t) => t.url === result.url)
+  if (matches.length === 0) return
+
+  // Only definitive verdicts count toward the rate limit; "unknown" retries
+  // on the next feed update (bounded by the batch cap).
+  if (result.status === 'yes' || result.status === 'no' || result.status === 'login') {
+    for (const t of matches) lastChecked.set(t.id, Date.now())
   }
-  schedulePersist()
+  if (result.status === 'yes') {
+    // Same assignment page = same submission state: mark every task sharing it.
+    let changed = false
+    for (const t of matches) {
+      if (!done.isDone(t.id)) {
+        done.mark(t.id, new Date().toISOString())
+        changed = true
+      }
+    }
+    if (changed) {
+      applyVisibleTasks({ animate: true })
+      schedulePersist()
+    }
+  }
 })
 
 // --------------------------------------------------------------- opacity
@@ -906,6 +930,10 @@ api.listen('settings-changed', async () => {
   // A changed refresh interval needs a fetcher rebuild.
   const newRefresh = Number(settingsDoc.refreshMinutes) || 20
   if (newRefresh !== currentRefreshMinutes) await startFeed()
+
+  // Turning auto-detect on should produce a first batch immediately, not wait
+  // a full refresh cycle.
+  void maybeRunSubmissionCheck()
 })
 
 api.listen('feed-changed', () => startFeed())

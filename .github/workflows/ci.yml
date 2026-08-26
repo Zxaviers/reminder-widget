@@ -41,8 +41,5 @@ jobs:
           node --check src/submissionQueue.js
           node --check src/notifyConfig.js
 
-      - name: Clippy (deny warnings)
+      - name: Clippy (deny warnings; implies cargo check)
         run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
-
-      - name: Cargo check
-        run: cargo check --manifest-path src-tauri/Cargo.toml

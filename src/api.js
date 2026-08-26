@@ -125,8 +125,9 @@ export const api = {
     }
   },
   /**
-   * Global events: 'tray-command', 'settings-changed', 'feed-changed'.
- * @returns {Promise<() => void>} unsubscribe
+   * Global events: 'tray-command', 'settings-changed', 'feed-changed',
+   * 'widget-shown', 'submission-checked'.
+   * @returns {Promise<() => void>} unsubscribe
    */
   listen: (event, handler) =>
     window.__TAURI__.event.listen(event, (e) => handler(e.payload))
