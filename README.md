@@ -2,11 +2,11 @@
 
 > **Compact, always-on-top desktop reminder widget for Moodle / BRONE (UB) assignment deadlines from iCalendar (.ics) feed.**
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-blue.svg)
-![Build](https://img.shields.io/github/actions/workflow/status/Zxaviers/reminder-widget/ci.yml?branch=main)
-![Release](https://img.shields.io/github/v/release/Zxaviers/reminder-widget)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Zxaviers/reminder-widget/releases/tag/v1.0.0)
+[![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-blue.svg)](https://github.com/Zxaviers/reminder-widget)
+[![Build](https://img.shields.io/github/actions/workflow/status/Zxaviers/reminder-widget/ci.yml?branch=main)](https://github.com/Zxaviers/reminder-widget/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Zxaviers/reminder-widget)](https://github.com/Zxaviers/reminder-widget/releases/latest)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 A sleek Windows desktop widget designed to keep students on track with upcoming course deadlines. Deadlines are sorted nearest-first with a high-visibility live countdown.
 
