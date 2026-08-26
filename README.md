@@ -24,13 +24,24 @@ Everything from v1, plus the new **mark-done** feature:
   skipped by notifications, the collapsed digest, and the tray's *next*
   tooltip. Entries for tasks that leave the feed are auto-pruned once their
   deadline falls out of the 3-day overdue window.
+- **↺ Restore + "Selesai" section** — accidentally marked a task done? Open the
+  **Selesai** section at the bottom of the list and click ↺ to bring the
+  reminder back.
+- **🤖 Auto-detect submission (opt-in)** — with "Tandai otomatis saat tugas
+  sudah dikumpul" enabled, a hidden checker window visits each task's BRONE
+  page through your logged-in session and auto-marks it done when it detects
+  "Submitted for grading". Rate-limited (each task at most once per 6 hours,
+  max 8 per batch) to stay polite to the campus server. Requires an active
+  BRONE login; off by default.
 - 🚀 **Live countdown** — nearest-first list, amber inside 24h, red when overdue.
 - 🖥️ **Dual display modes** — floating always-on-top, or pinned behind all
   windows on the wallpaper layer (Win32 `HWND_BOTTOM` + `WS_EX_TOOLWINDOW`).
-- 🔔 **Toast notifications** at 24h / 6h / 1h before each deadline (once per
-  task per threshold).
+- 🔔 **Configurable toasts** — notification thresholds (default 24h/6h/1h) are
+  editable in Settings; fired once per task per threshold.
 - 🔄 **Polite sync** — conditional GET (ETag / If-Modified-Since), 15-minute
-  minimum refresh floor, offline retry ladder, instant render from cache.
+  minimum refresh floor (interval configurable 15–30 min), offline retry
+  ladder, instant render from cache.
+- 🌓 **Widget opacity slider** — 35–100%, applied live from Settings.
 - 🔐 **Private & secure** — the feed URL (which carries your personal Moodle
   token) lives in **Windows Credential Manager**, never plaintext.
 - 🪟 **Tray integration** — toggle, settings, refresh, display-mode,
