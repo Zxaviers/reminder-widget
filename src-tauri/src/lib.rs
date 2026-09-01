@@ -4,17 +4,22 @@
 //! The renderer owns feed fetching/parsing/notification thresholds; this side
 //! owns everything native.
 
+#[cfg(desktop)]
 mod brone_login;
 mod commands;
+#[cfg(desktop)]
 mod detect;
 mod secret;
 mod settings;
+#[cfg(desktop)]
 mod tray;
 #[cfg(windows)]
 mod win32;
 
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+#[cfg(desktop)]
+use std::time::Duration;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 
@@ -70,6 +75,7 @@ pub fn show_widget(app: &AppHandle) {
     // Safety net: if a feed save's broadcast was ever missed (e.g. saved while
     // the widget page was reloading), the widget re-checks on every show.
     let _ = app.emit("widget-shown", ());
+    #[cfg(desktop)]
     tray::update_menu(app);
 }
 
@@ -81,12 +87,11 @@ pub fn hide_widget(app: &AppHandle) {
         eprintln!("[hide] hide() result: {:?}", result.as_ref().map(|_| "ok").map_err(|e| e.to_string()));
         let _ = result;
     }
+    #[cfg(desktop)]
     tray::update_menu(app);
 }
 
 pub fn toggle_widget(app: &AppHandle) {
-    // Real epoch millis: Instant::now().elapsed() would always read ~0 and
-    // permanently gate the toggle behind its own debounce (the tray-hide bug).
     let now_ms = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map(|d| d.as_millis() as u64)
@@ -114,35 +119,40 @@ pub fn toggle_widget(app: &AppHandle) {
 
 fn create_widget(app: &AppHandle) -> tauri::Result<tauri::WebviewWindow> {
     let s = settings::load(app);
-    let bounds = match s.bounds {
-        Some(saved) => commands::clamp_bounds(app, saved),
-        None => {
-            let (x, y) = commands::default_bounds(app);
-            settings::Bounds { x, y, width: commands::WINDOW_WIDTH, height: commands::DEFAULT_HEIGHT }
-        }
-    };
-
-    let win = WebviewWindowBuilder::new(
+    let builder = WebviewWindowBuilder::new(
         app,
         WIDGET_LABEL,
         WebviewUrl::App("index.html".into()),
     )
-    .title("Reminder Widget")
-    .inner_size(bounds.width, bounds.height)
-    .position(bounds.x as f64, bounds.y as f64)
-    .decorations(false)
-    .transparent(true)
-    .shadow(false)
-    .resizable(false)
-    .maximizable(false)
-    .minimizable(false)
-    .skip_taskbar(true)
-    .always_on_top(!s.is_desktop_mode())
-    .focused(false)
-    .visible(false)
-    .build()?;
+    .title("Reminder Widget");
 
+    #[cfg(desktop)]
+    let builder = {
+        let bounds = match s.bounds {
+            Some(saved) => commands::clamp_bounds(app, saved),
+            None => {
+                let (x, y) = commands::default_bounds(app);
+                settings::Bounds { x, y, width: commands::WINDOW_WIDTH, height: commands::DEFAULT_HEIGHT }
+            }
+        };
+        builder
+            .inner_size(bounds.width, bounds.height)
+            .position(bounds.x as f64, bounds.y as f64)
+            .decorations(false)
+            .transparent(true)
+            .shadow(false)
+            .resizable(false)
+            .maximizable(false)
+            .minimizable(false)
+            .skip_taskbar(true)
+            .always_on_top(!s.is_desktop_mode())
+            .focused(false)
+            .visible(false)
+    };
+
+    let win = builder.build()?;
     let _ = win.show();
+    #[cfg(desktop)]
     if s.is_desktop_mode() {
         apply_display_mode(app);
     }
@@ -171,18 +181,23 @@ fn persist_bounds(app: &AppHandle) {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_clipboard_manager::init());
+
+    #[cfg(desktop)]
+    let builder = builder
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec![]),
         ))
-        .plugin(tauri_plugin_http::init())
-        .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             show_widget(app);
-        }))
+        }));
+
+    builder
         .invoke_handler(tauri::generate_handler![
             commands::widget_autosize,
             commands::widget_hide,
@@ -206,18 +221,24 @@ pub fn run() {
             commands::submission_check,
             commands::autostart_get,
             commands::autostart_set,
+            commands::platform,
             commands::window_metrics,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();
 
+            #[cfg(not(windows))]
+            if let Ok(dir) = handle.path().app_config_dir() {
+                secret::init_config_dir(dir);
+            }
+
             create_widget(&handle)?;
+            #[cfg(desktop)]
             tray::create(&handle)?;
             apply_display_mode(&handle);
 
-            // Guard thread: re-assert the wallpaper layer every few seconds in
-            // case another program raised above us. Cheap no-op when already
-            // at the bottom (v1 parity).
+            // Guard thread: re-assert the wallpaper layer on desktop
+            #[cfg(desktop)]
             {
                 let handle = handle.clone();
                 std::thread::spawn(move || loop {
@@ -234,8 +255,7 @@ pub fn run() {
                 });
             }
 
-            // First run: no feed configured yet -> open Settings directly to
-            // guide the user (v1 parity).
+            // First run: no feed configured yet -> open Settings directly
             if crate::secret::get()?.is_none() && commands::env_feed_url_for_setup() {
                 commands::open_settings(handle.clone());
             }
@@ -246,7 +266,6 @@ pub fn run() {
             let is_widget = window.label() == WIDGET_LABEL;
             match event {
                 WindowEvent::CloseRequested { api, .. } if is_widget => {
-                    // Closing the widget hides it; only Quit exits (v1 parity).
                     api.prevent_close();
                     hide_widget(window.app_handle());
                 }

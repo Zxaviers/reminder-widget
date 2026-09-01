@@ -7,13 +7,24 @@ use serde::Serialize;
 use serde_json::Value;
 use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, WebviewUrl, WebviewWindowBuilder};
 
-use crate::{brone_login, settings};
+#[cfg(desktop)]
+use crate::brone_login;
+use crate::settings;
 
 pub const WINDOW_WIDTH: f64 = 360.0;
 pub const WINDOW_MIN_HEIGHT: f64 = 132.0;
 pub const WINDOW_MAX_HEIGHT: f64 = 720.0;
 pub const SCREEN_MARGIN: f64 = 16.0;
 pub const DEFAULT_HEIGHT: f64 = 420.0;
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LoginOutcome {
+    pub ok: bool,
+    pub url: Option<String>,
+    pub canceled: bool,
+    pub message: Option<String>,
+}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -42,12 +53,8 @@ pub fn env_feed_url_for_setup() -> bool {
 
 /// Default spot: top-right corner of the primary work area (matches v1).
 pub fn default_bounds(app: &AppHandle) -> (i32, i32) {
-    // Only the top-left anchor is needed: the widget sits at the work area's
-    // top-right corner and its own size comes from saved/default bounds.
     let (mut x, mut y, mut width) = (0i32, 0i32, 1280i32);
     if let Ok(monitors) = app.available_monitors() {
-        // Monitor names are unreliable across drivers; the first entry is the
-        // primary on every Windows setup we target.
         if let Some(primary) = monitors.first() {
             let pos = primary.position();
             let size = primary.size();
@@ -176,8 +183,7 @@ pub fn settings_write(app: AppHandle, patch: Value) -> Value {
 
 #[tauri::command]
 pub fn settings_changed(app: AppHandle) {
-    // Rebuild tray checkboxes + reapply layering, then tell every window
-    // (including the widget) that settings moved. Opacity is renderer-owned.
+    #[cfg(desktop)]
     super::tray::update_menu(&app);
     crate::apply_display_mode(&app);
     let _ = app.emit("settings-changed", ());
@@ -190,7 +196,6 @@ pub fn reset_position(app: AppHandle) {
     let _ = settings::save(&app, &s);
     if let Some(win) = app.get_webview_window("widget") {
         let (x, y) = default_bounds(&app);
-        // Keep the user's current height; only the spot resets (v1 parity).
         let height = win.outer_size().map(|sz| sz.height).unwrap_or(DEFAULT_HEIGHT as u32);
         let _ = win.set_position(PhysicalPosition::new(x, y));
         if let Ok(scale) = win.scale_factor() {
@@ -235,8 +240,6 @@ pub fn feed_url_set(app: AppHandle, url: Option<String>) -> Result<(), String> {
         None => crate::secret::clear(),
     };
     if result.is_ok() {
-        // Broadcast from Rust: JS-to-JS events between webviews are not
-        // dependable here, and the widget MUST re-read after a save.
         let _ = app.emit("feed-changed", ());
     }
     result
@@ -277,6 +280,7 @@ pub fn set_display_mode(app: AppHandle, mode: String) -> String {
     s.display_mode = chosen.clone();
     let _ = settings::save(&app, &s);
     crate::apply_display_mode(&app);
+    #[cfg(desktop)]
     super::tray::update_menu(&app);
     chosen
 }
@@ -296,46 +300,63 @@ pub fn notify(app: AppHandle, title: String, body: String) {
 
 #[tauri::command]
 pub fn tray_tooltip(app: AppHandle, text: String) {
+    #[cfg(desktop)]
     if let Some(tray) = app.tray_by_id(super::tray::TRAY_ID) {
         let _ = tray.set_tooltip(Some(text));
     }
+    #[cfg(not(desktop))]
+    let _ = (app, text);
 }
 
 // ----------------------------------------------------------------- settings ui
 
 #[tauri::command]
 pub fn open_settings(app: AppHandle) {
-    match app.get_webview_window("settings") {
-        Some(win) => {
-            let _ = win.show();
-            let _ = win.set_focus();
+    #[cfg(desktop)]
+    {
+        match app.get_webview_window("settings") {
+            Some(win) => {
+                let _ = win.show();
+                let _ = win.set_focus();
+            }
+            None => {
+                let _ = WebviewWindowBuilder::new(
+                    &app,
+                    "settings",
+                    WebviewUrl::App("settings.html".into()),
+                )
+                .title("Reminder Widget Settings")
+                .inner_size(480.0, 556.0)
+                .decorations(false)
+                .transparent(true)
+                .shadow(false)
+                .resizable(false)
+                .maximizable(false)
+                .minimizable(false)
+                .skip_taskbar(false)
+                .always_on_top(true)
+                .center()
+                .build();
+            }
         }
-        None => {
-            let _ = WebviewWindowBuilder::new(
-                &app,
-                "settings",
-                WebviewUrl::App("settings.html".into()),
-            )
-            .title("Reminder Widget Settings")
-            .inner_size(480.0, 556.0)
-            .decorations(false)
-            .transparent(true)
-            .shadow(false)
-            .resizable(false)
-            .maximizable(false)
-            .minimizable(false)
-            .skip_taskbar(false)
-            .always_on_top(true)
-            .center()
-            .build();
-        }
+    }
+    #[cfg(mobile)]
+    {
+        let _ = app.emit_to("widget", "navigate", "settings.html");
     }
 }
 
 #[tauri::command]
 pub fn settings_close(app: AppHandle) {
-    if let Some(win) = app.get_webview_window("settings") {
-        let _ = win.close();
+    #[cfg(desktop)]
+    {
+        if let Some(win) = app.get_webview_window("settings") {
+            let _ = win.close();
+        }
+    }
+    #[cfg(mobile)]
+    {
+        let _ = app.emit_to("widget", "navigate", "index.html");
     }
 }
 
@@ -344,8 +365,21 @@ pub fn settings_close(app: AppHandle) {
 /// Runs the interactive login flow; resolves once a URL was captured, the
 /// window closed, or the flow timed out (~3 min).
 #[tauri::command]
-pub async fn auth_brone_login(app: AppHandle) -> brone_login::LoginOutcome {
-    brone_login::start(app).await
+pub async fn auth_brone_login(app: AppHandle) -> LoginOutcome {
+    #[cfg(desktop)]
+    {
+        brone_login::start(app).await
+    }
+    #[cfg(mobile)]
+    {
+        let _ = app;
+        LoginOutcome {
+            ok: false,
+            url: None,
+            canceled: false,
+            message: Some("Login terbantu hanya tersedia di desktop. Di HP: buka widget di PC -> Settings -> copy feed URL, lalu paste di sini.".into()),
+        }
+    }
 }
 
 // ------------------------------------------------- submission auto-detection
@@ -354,26 +388,62 @@ pub async fn auth_brone_login(app: AppHandle) -> brone_login::LoginOutcome {
 /// user's session and emits `submission-checked` events per result.
 #[tauri::command]
 pub async fn submission_check(app: AppHandle, urls: Vec<String>) -> Result<(), String> {
-    crate::detect::run_check(app, urls).await
+    #[cfg(desktop)]
+    {
+        crate::detect::run_check(app, urls).await
+    }
+    #[cfg(mobile)]
+    {
+        let _ = (app, urls);
+        Ok(())
+    }
 }
 
 // ---------------------------------------------------------------- autostart
 
 #[tauri::command]
 pub fn autostart_get(app: AppHandle) -> bool {
-    use tauri_plugin_autostart::ManagerExt;
-    app.autolaunch().is_enabled().unwrap_or(false)
+    #[cfg(desktop)]
+    {
+        use tauri_plugin_autostart::ManagerExt;
+        app.autolaunch().is_enabled().unwrap_or(false)
+    }
+    #[cfg(mobile)]
+    {
+        let _ = app;
+        false
+    }
 }
 
 #[tauri::command]
 pub fn autostart_set(app: AppHandle, enabled: bool) -> bool {
-    use tauri_plugin_autostart::ManagerExt;
-    let launcher = app.autolaunch();
-    let result = if enabled { launcher.enable() } else { launcher.disable() };
-    result.is_ok()
+    #[cfg(desktop)]
+    {
+        use tauri_plugin_autostart::ManagerExt;
+        let launcher = app.autolaunch();
+        let result = if enabled { launcher.enable() } else { launcher.disable() };
+        result.is_ok()
+    }
+    #[cfg(mobile)]
+    {
+        let _ = (app, enabled);
+        false
+    }
 }
 
 // ------------------------------------------------------------------ helpers
+
+#[tauri::command]
+pub fn platform() -> &'static str {
+    #[cfg(mobile)]
+    {
+        "mobile"
+    }
+    #[cfg(desktop)]
+    {
+        "desktop"
+    }
+}
 
 /// Used by lib.rs when applying collapsed/opacity etc. is renderer-owned; here
 /// we only expose the sizing constants for the shim.

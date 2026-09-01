@@ -9,7 +9,6 @@
 //! cannot return values, so the injected script reports its finding through
 //! `document.title` (`RW_RESULT:<url>`), which this module polls.
 
-use serde::Serialize;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
@@ -59,14 +58,7 @@ const EXTRACT_JS: &str = r#"
 })();
 "#;
 
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct LoginOutcome {
-    pub ok: bool,
-    pub url: Option<String>,
-    pub canceled: bool,
-    pub message: Option<String>,
-}
+use crate::commands::LoginOutcome;
 
 impl LoginOutcome {
     fn success(url: String) -> Self {
