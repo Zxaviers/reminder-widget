@@ -35,18 +35,23 @@ static LAST_TOGGLE_MS: AtomicU64 = AtomicU64::new(0);
 // ------------------------------------------------------------- display modes
 
 pub fn apply_display_mode(app: &AppHandle) {
-    let Some(win) = app.get_webview_window(WIDGET_LABEL) else { return };
-    if settings::load(app).is_desktop_mode() {
-        PIN_TO_DESKTOP.store(true, Ordering::SeqCst);
-        let _ = win.set_always_on_top(false);
-        #[cfg(windows)]
-        win32::send_to_bottom(&win);
-    } else {
-        PIN_TO_DESKTOP.store(false, Ordering::SeqCst);
-        #[cfg(windows)]
-        win32::make_tool_window(&win);
-        let _ = win.set_always_on_top(true);
+    #[cfg(desktop)]
+    {
+        let Some(win) = app.get_webview_window(WIDGET_LABEL) else { return };
+        if settings::load(app).is_desktop_mode() {
+            PIN_TO_DESKTOP.store(true, Ordering::SeqCst);
+            let _ = win.set_always_on_top(false);
+            #[cfg(windows)]
+            win32::send_to_bottom(&win);
+        } else {
+            PIN_TO_DESKTOP.store(false, Ordering::SeqCst);
+            #[cfg(windows)]
+            win32::make_tool_window(&win);
+            let _ = win.set_always_on_top(true);
+        }
     }
+    #[cfg(not(desktop))]
+    let _ = app;
 }
 
 // ------------------------------------------------------------ show/hide/toggle
@@ -118,7 +123,6 @@ pub fn toggle_widget(app: &AppHandle) {
 // -------------------------------------------------------------- window setup
 
 fn create_widget(app: &AppHandle) -> tauri::Result<tauri::WebviewWindow> {
-    let s = settings::load(app);
     let builder = WebviewWindowBuilder::new(
         app,
         WIDGET_LABEL,
@@ -127,7 +131,8 @@ fn create_widget(app: &AppHandle) -> tauri::Result<tauri::WebviewWindow> {
     .title("Reminder Widget");
 
     #[cfg(desktop)]
-    let builder = {
+    let (builder, is_desktop) = {
+        let s = settings::load(app);
         let bounds = match s.bounds {
             Some(saved) => commands::clamp_bounds(app, saved),
             None => {
@@ -135,25 +140,28 @@ fn create_widget(app: &AppHandle) -> tauri::Result<tauri::WebviewWindow> {
                 settings::Bounds { x, y, width: commands::WINDOW_WIDTH, height: commands::DEFAULT_HEIGHT }
             }
         };
-        builder
-            .inner_size(bounds.width, bounds.height)
-            .position(bounds.x as f64, bounds.y as f64)
-            .decorations(false)
-            .transparent(true)
-            .shadow(false)
-            .resizable(false)
-            .maximizable(false)
-            .minimizable(false)
-            .skip_taskbar(true)
-            .always_on_top(!s.is_desktop_mode())
-            .focused(false)
-            .visible(false)
+        (
+            builder
+                .inner_size(bounds.width, bounds.height)
+                .position(bounds.x as f64, bounds.y as f64)
+                .decorations(false)
+                .transparent(true)
+                .shadow(false)
+                .resizable(false)
+                .maximizable(false)
+                .minimizable(false)
+                .skip_taskbar(true)
+                .always_on_top(!s.is_desktop_mode())
+                .focused(false)
+                .visible(false),
+            s.is_desktop_mode(),
+        )
     };
 
     let win = builder.build()?;
     let _ = win.show();
     #[cfg(desktop)]
-    if s.is_desktop_mode() {
+    if is_desktop {
         apply_display_mode(app);
     }
     Ok(win)

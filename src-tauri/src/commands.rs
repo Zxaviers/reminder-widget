@@ -5,7 +5,9 @@
 
 use serde::Serialize;
 use serde_json::Value;
-use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize};
+#[cfg(desktop)]
+use tauri::{WebviewUrl, WebviewWindowBuilder};
 
 #[cfg(desktop)]
 use crate::brone_login;
