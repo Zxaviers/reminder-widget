@@ -6,7 +6,9 @@
   "scripts": {
     "tauri": "tauri",
     "test": "node --test",
-    "dist": "tauri build && node scripts/collect-dist.js"
+    "dist": "tauri build && node scripts/collect-dist.js",
+    "android:build": "tauri android build --apk --target aarch64",
+    "android:dev": "tauri android dev"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"
