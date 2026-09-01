@@ -220,7 +220,29 @@ async function load () {
     el.sub.textContent = 'Belum Terhubung'
   }
 
-  if (el.footnote) {
+  const isMob = await api.isMobile()
+  if (isMob) {
+    if (el.manualDetails) el.manualDetails.open = true
+    const stepGuide = document.querySelector('.step-guide')
+    if (stepGuide) stepGuide.hidden = true
+    const modeSection = document.querySelector('.mode-options')
+    if (modeSection) {
+      modeSection.hidden = true
+      if (modeSection.previousElementSibling) modeSection.previousElementSibling.hidden = true
+    }
+    if (el.autostart) {
+      const parentLabel = el.autostart.closest('.toggle')
+      if (parentLabel) parentLabel.hidden = true
+    }
+    if (el.autoDetect) {
+      const parentLabel = el.autoDetect.closest('.toggle')
+      if (parentLabel) parentLabel.hidden = true
+    }
+    if (el.footnote) {
+      el.footnote.textContent =
+        'URL kalender tersimpan privat di aplikasi ini. Pengingat deadline dijadwalkan otomatis.'
+    }
+  } else if (el.footnote) {
     el.footnote.textContent =
       'URL kalender tersimpan aman di Windows Credential Manager. Refresh otomatis tiap 20 menit.'
   }

@@ -996,3 +996,28 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Mobile responsive adjustments */
+@media (max-width: 480px) {
+  html,
+  body {
+    overflow-y: auto;
+    background: #11131d;
+  }
+  .stage {
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    height: auto;
+    min-height: 100%;
+  }
+  .panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: var(--radius);
+  }
+  .icon-btn,
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+

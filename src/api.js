@@ -13,6 +13,27 @@ import { parseTasks } from './parseTasks.js'
 
 const cmd = (name, args) => window.__TAURI__.core.invoke(name, args)
 
+let cachedPlatform = null
+async function getPlatform () {
+  if (!cachedPlatform) {
+    try {
+      cachedPlatform = await cmd('platform')
+    } catch {
+      cachedPlatform = 'desktop'
+    }
+  }
+  return cachedPlatform
+}
+
+// Global navigate listener for mobile single-window navigation
+if (window.__TAURI__?.event?.listen) {
+  window.__TAURI__.event.listen('navigate', (e) => {
+    if (e?.payload && typeof e.payload === 'string') {
+      window.location.href = e.payload
+    }
+  })
+}
+
 /** Probe a candidate feed URL without saving it (v1 settings:test parity). */
 async function testFeed (rawUrl) {
   let url
@@ -40,6 +61,10 @@ async function testFeed (rawUrl) {
 }
 
 export const api = {
+  // ---- platform check
+  platform: getPlatform,
+  isMobile: async () => (await getPlatform()) === 'mobile',
+
   // ---- lifecycle
   hide: () => cmd('widget_hide'),
   quit: () => cmd('app_quit'),
@@ -67,9 +92,44 @@ export const api = {
 
   // ---- native surfaces
   notify: (title, body) => cmd('notify', { title: String(title ?? ''), body: String(body ?? '') }),
+  scheduleNotification: async ({ id, title, body, at }) => {
+    try {
+      if (window.__TAURI__?.notification?.sendNotification) {
+        return await window.__TAURI__.notification.sendNotification({
+          id,
+          title,
+          body,
+          schedule: { at: at instanceof Date ? at : new Date(at) }
+        })
+      }
+    } catch (e) {
+      console.warn('[notification] schedule failed', e)
+    }
+  },
+  cancelNotification: async (id) => {
+    try {
+      if (window.__TAURI__?.notification?.cancel) {
+        return await window.__TAURI__.notification.cancel([id])
+      }
+    } catch {}
+  },
   trayTooltip: (text) => cmd('tray_tooltip', { text: String(text ?? '') }),
-  openSettings: () => cmd('open_settings'),
-  closeSettings: () => cmd('settings_close'),
+  openSettings: async () => {
+    const isMob = await api.isMobile()
+    if (isMob) {
+      window.location.href = 'settings.html'
+    } else {
+      return cmd('open_settings')
+    }
+  },
+  closeSettings: async () => {
+    const isMob = await api.isMobile()
+    if (isMob) {
+      window.location.href = 'index.html'
+    } else {
+      return cmd('settings_close')
+    }
+  },
 
   // ---- BRONE assisted login
   loginBrone: () => cmd('auth_brone_login'),

@@ -17,6 +17,7 @@ import { parseTasks, DAY_MS, DEFAULT_KEEP_OVERDUE_MS } from './parseTasks.js'
 import { createDoneStore } from './doneStore.js'
 import { selectForCheck } from './submissionQueue.js'
 import { thresholdsToMs } from './notifyConfig.js'
+import { planSchedules } from './schedulePlan.js'
 
 const el = {
   panel: document.getElementById('panel'),
@@ -162,8 +163,27 @@ function toNumberMap (value) {
  * Fires at most once per (task, threshold) as deadlines approach.
  * Done tasks never notify — that is the point of marking them.
  */
-function evaluateNotifications (tasksAll) {
+async function evaluateNotifications (tasksAll) {
   if (!settingsDoc.notifications) return
+
+  const isMob = await api.isMobile()
+  if (isMob) {
+    const thresholds = Array.isArray(settingsDoc.notifyThresholdsHours)
+      ? settingsDoc.notifyThresholdsHours
+      : [24, 6, 1]
+    const plans = planSchedules(tasksAll, thresholds, Date.now(), Object.fromEntries(notified))
+    for (const p of plans) {
+      const already = notified.get(p.taskId) ?? []
+      notified.set(p.taskId, [...already, p.thresholdHours])
+      if (p.kind === 'instant') {
+        api.notify(p.title, p.body)
+      } else if (p.kind === 'scheduled') {
+        await api.scheduleNotification({ id: p.id, title: p.title, body: p.body, at: p.atMs })
+      }
+    }
+    if (plans.length > 0) schedulePersist()
+    return
+  }
 
   const now = Date.now()
   const crossed = []
@@ -953,6 +973,21 @@ api.listen('widget-shown', () => {
 // ---------------------------------------------------------------------- boot
 
 ;(async () => {
+  const isMob = await api.isMobile()
+  if (isMob) {
+    if (el.btnHide) el.btnHide.hidden = true
+    try {
+      if (window.__TAURI__?.notification?.isPermissionGranted) {
+        const granted = await window.__TAURI__.notification.isPermissionGranted()
+        if (!granted && window.__TAURI__.notification.requestPermission) {
+          await window.__TAURI__.notification.requestPermission()
+        }
+      }
+    } catch (e) {
+      console.warn('[notification] permission check failed', e)
+    }
+  }
+
   const doc = await api.settingsRead().catch(() => ({}))
   settingsDoc = { ...doc }
   notified = toMap(doc.notified)
