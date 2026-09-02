@@ -1,9 +1,11 @@
 # 📅 BRONE Reminder Widget
 
 > **Compact, always-on-top desktop reminder widget for Moodle / BRONE (UB) assignment deadlines from iCalendar (.ics) feed.**
+>
+> **Now also available on Android** 📱 — scheduled notifications keep you on track even when the app is closed.
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Zxaviers/reminder-widget/releases/tag/v1.0.0)
-[![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11-blue.svg)](https://github.com/Zxaviers/reminder-widget)
+[![Platform](https://img.shields.io/badge/platform-Windows%20|%20Android-blue.svg)](https://github.com/Zxaviers/reminder-widget)
 [![Build](https://img.shields.io/github/actions/workflow/status/Zxaviers/reminder-widget/ci.yml?branch=main)](https://github.com/Zxaviers/reminder-widget/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/Zxaviers/reminder-widget)](https://github.com/Zxaviers/reminder-widget/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -110,6 +112,51 @@ A sleek Windows desktop widget designed to keep students on track with upcoming 
 
 ---
 
+## 📱 Mobile (Android)
+
+The same codebase compiles to a native Android app via Tauri 2. The mobile experience adapts automatically:
+
+- **Scheduled notifications** replace the always-on-top widget — deadline reminders at H-24, H-6, and H-1 fire via Android's AlarmManager even when the app is closed.
+- **Single-window navigation** — Settings opens inside the same screen instead of a separate window.
+- **Paste URL flow** — copy your feed URL from the desktop widget's Settings, then paste it on your phone.
+- Desktop-only features (tray icon, wallpaper mode, auto-start, auto-detect submission, BRONE login assist) are automatically hidden.
+
+### 📲 Install APK
+
+```bash
+# Transfer the pre-built APK to your phone, or use USB Debugging:
+adb install src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
+```
+
+### 🔨 Build from Source
+
+**Prerequisites:** JDK 17, Android SDK (API 36), NDK 27.3, Rust with `aarch64-linux-android` target.
+
+```bash
+# 1. Install Rust target (one-time)
+rustup target add aarch64-linux-android
+
+# 2. Initialize Android project (one-time)
+npx tauri android init
+
+# 3. Build release APK
+npm run android:build
+
+# 4. Live development on connected device
+npm run android:dev
+```
+
+### ⚡ Known Limitations (v1 Mobile)
+
+| Limitation | Workaround |
+|-----------|------------|
+| **No background refresh** — new deadlines only appear after opening the app | Open the app periodically; scheduled notifications from the last sync still fire on time |
+| **Some vendors restrict exact alarms** (MIUI, Samsung battery saver) | Add the app to "Unrestricted" in your phone's battery settings |
+| **No 1-click BRONE login** — hidden-webview polling is unreliable on Android | Copy the feed URL from the desktop widget and paste it on mobile |
+| **No auto-detect submission** — hidden webview per-task is too risky on mobile | Mark tasks done manually |
+
+---
+
 ## 🏗️ For Developers
 
 ### Prerequisites
@@ -117,6 +164,7 @@ A sleek Windows desktop widget designed to keep students on track with upcoming 
 - **Node.js 18+** & **npm**
 - **Rust stable (MSVC toolchain)** + VS Build Tools (C++ workload)
 - WebView2 Runtime (pre-installed on Windows 10/11)
+- *(Android builds only)* JDK 17, Android SDK/NDK (see `docs/PLAN-ANDROID-PORT.md` §4)
 
 ### Quick Start
 
@@ -156,7 +204,8 @@ reminder-widget/
 │   ├── parseTasks.js        # Zero-dep RFC 5545 iCal parser
 │   ├── doneStore.js         # Pure mark-done & restore state machine
 │   ├── submissionQueue.js   # Rate-limited auto-detect queue
-│   └── notifyConfig.js      # Notification threshold helpers
+│   ├── notifyConfig.js      # Notification threshold helpers
+│   └── schedulePlan.js      # Mobile notification scheduling planner
 ├── src-tauri/               # Rust native backend
 │   ├── src/
 │   │   ├── main.rs          # Entry point
@@ -172,11 +221,13 @@ reminder-widget/
 │   └── tauri.conf.json      # Tauri app & bundle configuration
 ├── scripts/
 │   └── collect-dist.js      # Post-build artifact collector
-└── test/                    # Node test suite (node:test)
-    ├── parseTasks.test.js
-    ├── doneStore.test.js
-    ├── submissionQueue.test.js
-    └── notifyConfig.test.js
+├── test/                    # Node test suite (node:test)
+│   ├── parseTasks.test.js
+│   ├── doneStore.test.js
+│   ├── submissionQueue.test.js
+│   ├── notifyConfig.test.js
+│   └── schedulePlan.test.js # Mobile notification scheduling tests
+└── src-tauri/gen/android/   # Generated Android project (Gradle)
 ```
 
 ---
@@ -184,7 +235,7 @@ reminder-widget/
 ## 🧪 Testing
 
 ```bash
-# Run all unit tests (42 tests: parser, doneStore, queue, notify)
+# Run all unit tests (47 tests: parser, doneStore, queue, notify, schedulePlan)
 npm test
 
 # Syntax check frontend files
