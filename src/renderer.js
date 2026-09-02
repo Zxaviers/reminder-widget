@@ -715,7 +715,22 @@ function applyVisibleTasks ({ animate = false } = {}) {
   renderDoneList()
   renderStatus()
   updateTrayTooltip()
+  syncHomeScreenWidget()
   requestAnimationFrame(autosize)
+}
+
+function syncHomeScreenWidget () {
+  try {
+    const tasks = (state.tasks || []).slice(0, 5).map((t) => ({
+      id: t.id,
+      title: t.title,
+      course: t.course || '',
+      dueMs: t.dueMs
+    }))
+    api.syncWidgetData(tasks).catch(() => {})
+  } catch (e) {
+    console.warn('[widget] sync failed', e)
+  }
 }
 
 function signatureChanged () {

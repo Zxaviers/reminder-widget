@@ -231,6 +231,7 @@ pub fn run() {
             commands::autostart_set,
             commands::platform,
             commands::window_metrics,
+            commands::sync_widget_data,
         ])
         .setup(move |app| {
             let handle = app.handle().clone();

@@ -143,6 +143,9 @@ export const api = {
   autostartGet: () => cmd('autostart_get'),
   autostartSet: (enabled) => cmd('autostart_set', { enabled: Boolean(enabled) }),
 
+  // ---- home screen widget sync (mobile)
+  syncWidgetData: (tasks) => cmd('sync_widget_data', { tasks: Array.isArray(tasks) ? tasks : [] }),
+
   /**
    * Configuration snapshot for the Settings form (v1 `settings:get` parity).
    */

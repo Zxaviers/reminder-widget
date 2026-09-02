@@ -8,4 +8,15 @@ class MainActivity : TauriActivity() {
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
   }
+
+  override fun onResume() {
+    super.onResume()
+    ReminderAppWidgetProvider.updateAllWidgets(this)
+  }
+
+  override fun onPause() {
+    super.onPause()
+    ReminderAppWidgetProvider.updateAllWidgets(this)
+  }
 }
+

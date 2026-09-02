@@ -457,3 +457,40 @@ pub fn window_metrics() -> Value {
         "maxHeight": WINDOW_MAX_HEIGHT
     })
 }
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WidgetTaskItem {
+    pub id: String,
+    pub title: String,
+    #[serde(default)]
+    pub course: String,
+    pub due_ms: i64,
+}
+
+/// Syncs top upcoming deadlines to Android home screen widget storage.
+#[tauri::command]
+pub fn sync_widget_data(app: AppHandle, tasks: Vec<WidgetTaskItem>) -> Result<(), String> {
+    #[cfg(target_os = "android")]
+    {
+        if let Ok(dir) = app.path().app_config_dir() {
+            let path = dir.join("widget_tasks.json");
+            if let Some(parent) = path.parent() {
+                let _ = std::fs::create_dir_all(parent);
+            }
+            if let Ok(json) = serde_json::to_string(&tasks) {
+                let tmp = path.with_extension("json.tmp");
+                if std::fs::write(&tmp, json).is_ok() {
+                    let _ = std::fs::remove_file(&path);
+                    let _ = std::fs::rename(&tmp, &path);
+                }
+            }
+        }
+    }
+    #[cfg(not(target_os = "android"))]
+    {
+        let _ = (app, tasks);
+    }
+    Ok(())
+}
+
