@@ -5,6 +5,7 @@
   "windows": ["widget", "settings", "brone-login", "checker"],
   "permissions": [
     "core:default",
+    "core:window:allow-start-dragging",
     {
       "identifier": "http:default",
       "allow": [
