@@ -18,6 +18,7 @@ import { createDoneStore } from './doneStore.js'
 import { selectForCheck } from './submissionQueue.js'
 import { thresholdsToMs } from './notifyConfig.js'
 import { planSchedules } from './schedulePlan.js'
+import { normalizeLocalEvent, withLocalTasks } from './localEvents.js'
 
 const el = {
   panel: document.getElementById('panel'),
@@ -38,6 +39,15 @@ const el = {
   doneList: document.getElementById('done-list'),
   doneTitle: document.querySelector('.done-section__title'),
   btnDoneToggle: document.getElementById('btn-done-toggle'),
+  btnAddLocal: document.getElementById('btn-add-local'),
+  localPanel: document.getElementById('local-panel'),
+  localList: document.getElementById('local-list'),
+  localTitle: document.getElementById('local-title'),
+  localDate: document.getElementById('local-date'),
+  localTime: document.getElementById('local-time'),
+  localSave: document.getElementById('local-save'),
+  localCancel: document.getElementById('local-cancel'),
+  localNote: document.getElementById('local-note'),
   placeholders: {
     loading: document.getElementById('ph-loading'),
     empty: document.getElementById('ph-empty'),
@@ -76,6 +86,8 @@ let checkInFlight = false
 let currentRefreshMinutes = 20
 /** Monotonic token: handlers from a superseded startFeed are ignored. */
 let startSeq = 0
+/** Manual events persisted in settings.json (`localEvents`), merged into tasks. */
+let localEvents = []
 
 // ------------------------------------------------------------------ formatting
 
@@ -300,11 +312,19 @@ function taskRow (task, now, { animate, index }) {
   course.className = 'task__course'
 
   const phase = PHASE_LABEL[task.phase]
-  if (phase) {
+  if (phase && task.source !== 'local') {
     const phaseNode = document.createElement('span')
     phaseNode.className = 'task__phase'
     phaseNode.textContent = phase
     course.appendChild(phaseNode)
+  }
+
+  // Manual events carry no course: the source tag fills the mono code slot.
+  if (task.source === 'local') {
+    const srcNode = document.createElement('span')
+    srcNode.className = 'task__phase task__phase--local'
+    srcNode.textContent = 'LOCAL'
+    course.appendChild(srcNode)
   }
 
   if (task.course) {
@@ -787,11 +807,13 @@ async function startFeed () {
         if (seq !== startSeq) return
         state.meta = { ...meta, configured: true }
         try {
-          state._allTasks = parseTasks(ics)
+          state._feedTasks = parseTasks(ics)
+          state._allTasks = withLocalTasks(state._feedTasks, localEvents, Date.now())
           delete state.meta.parseError
         } catch (error) {
           state.meta.parseError = { code: error.code ?? 'PARSE_FAILED', message: error.message }
-          state._allTasks = []
+          state._feedTasks = []
+          state._allTasks = withLocalTasks([], localEvents, Date.now())
         }
         // Retire done-entries for events Moodle removed long ago. The
         // post-parse steps are UI-side concerns: a bug here must never surface
@@ -961,12 +983,15 @@ api.listen('tray-command', async (command) => {
 api.listen('settings-changed', async () => {
   const doc = await api.settingsRead().catch(() => ({}))
   settingsDoc = { ...settingsDoc, ...doc }
+  localEvents = Array.isArray(doc.localEvents) ? doc.localEvents : []
   notified = toMap(doc.notified)
   lastChecked = toNumberMap(doc.lastChecked)
   notifyThresholdsMs = thresholdsToMs(settingsDoc.notifyThresholdsHours)
   applyCollapsed(Boolean(settingsDoc.collapsed))
   applyOpacity()
+  state._allTasks = withLocalTasks(Array.isArray(state._feedTasks) ? state._feedTasks : [], localEvents, Date.now())
   applyVisibleTasks()
+  renderLocalList()
 
   // A changed refresh interval needs a fetcher rebuild.
   const newRefresh = Number(settingsDoc.refreshMinutes) || 20
@@ -984,6 +1009,87 @@ api.listen('feed-changed', () => startFeed())
 api.listen('widget-shown', () => {
   if (!state.meta.configured) startFeed()
 })
+
+// ---------------------------------------------------- local (manual) events
+
+function localPanelOpen (open) {
+  if (!el.localPanel) return
+  el.localPanel.hidden = !open
+  el.btnAddLocal?.setAttribute('aria-expanded', String(open))
+  if (open) el.localTitle?.focus()
+  requestAnimationFrame(autosize)
+}
+
+function renderLocalList () {
+  if (!el.localList) return
+  el.localList.replaceChildren()
+  for (const ev of localEvents) {
+    const li = document.createElement('li')
+    li.className = 'local-item'
+
+    const label = document.createElement('span')
+    label.className = 'local-item__label'
+    label.textContent = `${ev.title} · ${fullDateFmt.format(new Date(ev.dueMs))}`
+
+    const rm = document.createElement('button')
+    rm.type = 'button'
+    rm.className = 'local-item__remove'
+    rm.setAttribute('aria-label', `Hapus event ${ev.title}`)
+    rm.textContent = 'Hapus'
+    rm.addEventListener('click', () => removeLocalEvent(ev.id))
+
+    li.append(label, rm)
+    el.localList.appendChild(li)
+  }
+  requestAnimationFrame(autosize)
+}
+
+/** Re-merge feed + local events after a local add/remove, then re-render. */
+function refreshLocalMerge () {
+  state._allTasks = withLocalTasks(
+    Array.isArray(state._feedTasks) ? state._feedTasks : [],
+    localEvents,
+    Date.now()
+  )
+  try {
+    evaluateNotifications(state._allTasks)
+  } catch (error) {
+    console.error('[notify]', error)
+  }
+  applyVisibleTasks()
+  renderLocalList()
+  schedulePersist()
+}
+
+async function addLocalEvent () {
+  const result = normalizeLocalEvent({
+    title: el.localTitle?.value ?? '',
+    date: el.localDate?.value ?? '',
+    time: el.localTime?.value ?? ''
+  }, Date.now())
+  if (!result.ok) {
+    if (el.localNote) el.localNote.textContent = result.error
+    requestAnimationFrame(autosize)
+    return
+  }
+  if (el.localNote) el.localNote.textContent = ''
+  localEvents = [...localEvents, result.event]
+  if (el.localTitle) el.localTitle.value = ''
+  if (el.localDate) el.localDate.value = ''
+  if (el.localTime) el.localTime.value = ''
+  await api.settingsWrite({ localEvents }).catch(() => {})
+  refreshLocalMerge()
+}
+
+async function removeLocalEvent (id) {
+  localEvents = localEvents.filter((ev) => ev.id !== id)
+  await api.settingsWrite({ localEvents }).catch(() => {})
+  refreshLocalMerge()
+}
+
+el.btnAddLocal?.addEventListener('click', () => localPanelOpen(el.localPanel.hidden))
+el.localCancel?.addEventListener('click', () => localPanelOpen(false))
+el.localSave?.addEventListener('click', addLocalEvent)
 
 // ---------------------------------------------------------------------- boot
 
@@ -1005,6 +1111,7 @@ api.listen('widget-shown', () => {
 
   const doc = await api.settingsRead().catch(() => ({}))
   settingsDoc = { ...doc }
+  localEvents = Array.isArray(doc.localEvents) ? doc.localEvents : []
   notified = toMap(doc.notified)
   lastChecked = toNumberMap(doc.lastChecked)
   notifyThresholdsMs = thresholdsToMs(settingsDoc.notifyThresholdsHours)

@@ -23,6 +23,12 @@
               </svg>
             </button>
 
+            <button type="button" class="icon-btn" id="btn-add-local" title="Tambah event manual" aria-label="Tambah event manual" aria-expanded="false">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M8 3.2v9.6M3.2 8h9.6" />
+              </svg>
+            </button>
+
             <button type="button" class="icon-btn" id="btn-collapse" title="Collapse" aria-label="Collapse" aria-expanded="true">
               <svg viewBox="0 0 16 16" aria-hidden="true" class="icon-chevron">
                 <path d="M4 6.25 8 10.25l4-4" />
@@ -41,6 +47,21 @@
         <div class="digest" id="digest" aria-hidden="true"></div>
 
         <div class="body" id="body">
+          <!-- Manual events: local deadlines no calendar feed knows about -->
+          <section class="local-panel" id="local-panel" hidden>
+            <div class="local-panel__fields">
+              <input type="text" id="local-title" class="local-input" placeholder="Judul event (mis. Meeting himpunan)" aria-label="Judul event" />
+              <input type="date" id="local-date" class="local-input" aria-label="Tanggal" />
+              <input type="time" id="local-time" class="local-input" aria-label="Jam (opsional)" />
+            </div>
+            <p class="local-panel__note" id="local-note" aria-live="polite"></p>
+            <div class="local-panel__actions">
+              <button type="button" class="btn" id="local-cancel">Batal</button>
+              <button type="button" class="btn btn--primary" id="local-save">Simpan event</button>
+            </div>
+            <ul class="local-list" id="local-list"></ul>
+          </section>
+
           <div class="groups" id="groups"></div>
 
           <!-- Done tasks section -->
