@@ -94,6 +94,8 @@ export const api = {
   feedSet: ({ id, kind, url, label, enabled }) =>
     cmd('feed_set', { id, kind, url, label: label ?? null, enabled: enabled ?? null }),
   feedRemove: (id) => cmd('feed_remove', { id }),
+  /** Enabled feeds with secret URLs for fetching [{id, kind, label, url}]. */
+  feedsGetFull: () => cmd('feeds_get_full'),
 
   // ---- display mode
   setDisplayMode: (mode) => cmd('set_display_mode', { mode: String(mode ?? '') }),

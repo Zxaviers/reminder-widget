@@ -373,6 +373,73 @@ pub fn feed_remove(app: AppHandle, id: String) -> Result<(), String> {
     Ok(())
 }
 
+/// Full URLs for every enabled feed, so the renderer can fetch each source.
+/// Same exposure rule as `feed_url_get_full`: the widget process already holds
+/// the secret to fetch; metadata-only readers use `feeds_list`.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FeedWithUrl {
+    id: String,
+    kind: String,
+    label: String,
+    enabled: bool,
+    url: String,
+}
+
+#[tauri::command]
+pub fn feeds_get_full(app: AppHandle) -> Result<Vec<FeedWithUrl>, String> {
+    let s = settings::load(&app);
+    let mut out = Vec::new();
+    for meta in &s.feeds {
+        if !meta.enabled {
+            continue;
+        }
+        if crate::secret::validate_feed_id(&meta.id).is_err() {
+            continue;
+        }
+        let url = crate::secret::get_feed(&meta.id)?.or_else(|| {
+            if meta.id == "brone" {
+                env_feed_url()
+            } else {
+                None
+            }
+        });
+        if let Some(url) = url {
+            out.push(FeedWithUrl {
+                id: meta.id.clone(),
+                kind: meta.kind.clone(),
+                label: meta.label.clone(),
+                enabled: true,
+                url,
+            });
+        }
+    }
+    // Legacy fallback: a BRONE secret with no metadata row yet.
+    if out.is_empty() {
+        match crate::secret::get()? {
+            Some(url) => out.push(FeedWithUrl {
+                id: "brone".into(),
+                kind: "brone".into(),
+                label: "BRONE".into(),
+                enabled: true,
+                url,
+            }),
+            None => {
+                if let Some(url) = env_feed_url() {
+                    out.push(FeedWithUrl {
+                        id: "brone".into(),
+                        kind: "brone".into(),
+                        label: "BRONE".into(),
+                        enabled: true,
+                        url,
+                    });
+                }
+            }
+        }
+    }
+    Ok(out)
+}
+
 /// Token params must never appear in logs or screenshots.
 fn mask(raw: &str) -> String {
     const SENSITIVE: [&str; 6] = ["token", "auth", "secret", "key", "password", "passwd"];

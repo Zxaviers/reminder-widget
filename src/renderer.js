@@ -19,6 +19,7 @@ import { selectForCheck } from './submissionQueue.js'
 import { thresholdsToMs } from './notifyConfig.js'
 import { planSchedules } from './schedulePlan.js'
 import { normalizeLocalEvent, withLocalTasks } from './localEvents.js'
+import { mergeFeedTasks } from './multiFetch.js'
 
 const el = {
   panel: document.getElementById('panel'),
@@ -70,7 +71,12 @@ let state = { tasks: [], meta: { configured: false, status: 'idle' }, settings: 
 let settingsDoc = {}
 let lastSignature = ''
 let busy = false
-let fetcher = null
+/** One CalendarFetcher per enabled feed; empty when unconfigured. */
+let fetchers = []
+/** feedId -> {feed, tasks} last parsed output per feed. */
+let feedTasksById = new Map()
+/** feedId -> {code, message} last error per feed. */
+let feedErrors = new Map()
 
 /** taskId -> fired thresholds. Persisted inside settings.json (v1 parity). */
 let notified = new Map()
@@ -772,80 +778,137 @@ function updateTrayTooltip () {
 }
 
 async function refreshNow () {
-  if (!fetcher || busy) return
+  if (fetchers.length === 0 || busy) return
   busy = true
   el.panel.dataset.busy = 'true'
   try {
-    await fetcher.refresh({ force: true })
+    await Promise.all(fetchers.map((one) => one.refresh({ force: true }).catch(() => {})))
   } finally {
     busy = false
   }
 }
 
+/** Aggregate per-feed states into one widget status. One failing feed never
+ *  hides healthy feeds: the error screen shows only when no feed has data. */
+function aggregateFeedStatus (seq) {
+  if (seq !== startSeq) return
+  const anyData = fetchers.some((one) => {
+    try { return one.getState().hasData } catch { return false }
+  })
+  const firstError = [...feedErrors.values()][0]
+  if (anyData) {
+    state.meta = { ...state.meta, configured: true, status: 'ready', feedCount: fetchers.length }
+    if (firstError) {
+      state.meta.partialError = { code: firstError.code, message: firstError.message }
+    } else {
+      delete state.meta.partialError
+    }
+  } else if (fetchers.length > 0 && feedErrors.size >= fetchers.length && firstError) {
+    state.meta = {
+      ...state.meta,
+      configured: true,
+      status: 'error',
+      error: { code: firstError.code, message: firstError.message }
+    }
+  } else {
+    state.meta = {
+      ...state.meta,
+      configured: fetchers.length > 0,
+      status: fetchers.length > 0 ? 'loading' : 'unconfigured'
+    }
+  }
+  renderPlaceholders()
+  renderStatus()
+  updateTrayTooltip()
+  requestAnimationFrame(autosize)
+}
+
+/** Re-merge all feeds + local events after one feed delivered an update. */
+function afterFeedUpdate (seq) {
+  if (seq !== startSeq) return
+  state._feedTasks = mergeFeedTasks([...feedTasksById.values()])
+  state._allTasks = withLocalTasks(state._feedTasks, localEvents, Date.now())
+  // Retire done-entries for events feeds removed long ago. The post-parse
+  // steps are UI-side concerns: a bug here must never surface as a feed
+  // error (fetchCalendar's catch would mark the feed stale).
+  done.prune(state._allTasks, DEFAULT_KEEP_OVERDUE_MS, Date.now())
+  try {
+    evaluateNotifications(state._allTasks)
+  } catch (error) {
+    console.error('[notify]', error)
+  }
+  applyVisibleTasks({ animate: true })
+  schedulePersist()
+  aggregateFeedStatus(seq)
+  void maybeRunSubmissionCheck()
+}
+
 async function startFeed () {
   // Serialize: a superseded run's handlers must not apply stale state after a
-  // newer startFeed has built a fresh fetcher (double-emit guard).
+  // newer startFeed has built fresh fetchers (double-emit guard).
   const seq = ++startSeq
-  fetcher?.stop()
-  const url = await api.feedUrlGetFull().catch(() => null)
+  for (const one of fetchers) one.stop()
+  fetchers = []
+  feedTasksById = new Map()
+  feedErrors = new Map()
+
+  let feeds = await api.feedsGetFull().catch(() => [])
+  if (seq !== startSeq) return
+  if (!Array.isArray(feeds) || feeds.length === 0) {
+    // Legacy fallback: a BRONE secret with no metadata row yet.
+    const legacy = await api.feedUrlGetFull().catch(() => null)
+    if (seq !== startSeq) return
+    feeds = legacy ? [{ id: 'brone', kind: 'brone', label: 'BRONE', enabled: true, url: legacy }] : []
+  }
   if (seq !== startSeq) return
 
   currentRefreshMinutes = Number(settingsDoc.refreshMinutes) || 20
   state.meta = {
     ...(state.meta ?? {}),
-    configured: Boolean(url),
-    status: url ? 'loading' : 'unconfigured'
+    configured: feeds.length > 0,
+    status: feeds.length > 0 ? 'loading' : 'unconfigured',
+    feedCount: feeds.length
   }
   state.tasks = []
+  state._feedTasks = []
+  state._allTasks = withLocalTasks([], localEvents, Date.now())
   lastSignature = ''
+  if (feeds.length === 0) {
+    applyVisibleTasks()
+    return
+  }
 
-  fetcher = new CalendarFetcher({
-    url,
-    refreshMs: currentRefreshMinutes * MINUTE,
-    handlers: {
-      onUpdate: ({ ics, meta }) => {
-        if (seq !== startSeq) return
-        state.meta = { ...meta, configured: true }
-        try {
-          state._feedTasks = parseTasks(ics)
-          state._allTasks = withLocalTasks(state._feedTasks, localEvents, Date.now())
-          delete state.meta.parseError
-        } catch (error) {
-          state.meta.parseError = { code: error.code ?? 'PARSE_FAILED', message: error.message }
-          state._feedTasks = []
-          state._allTasks = withLocalTasks([], localEvents, Date.now())
+  for (const feed of feeds) {
+    const one = new CalendarFetcher({
+      url: feed.url,
+      cacheKey: `feed-cache:${feed.id}`,
+      refreshMs: currentRefreshMinutes * MINUTE,
+      handlers: {
+        onUpdate: ({ ics }) => {
+          if (seq !== startSeq) return
+          let tasks = []
+          try {
+            tasks = parseTasks(ics)
+            feedErrors.delete(feed.id)
+            delete state.meta.parseError
+          } catch (error) {
+            state.meta.parseError = { code: error.code ?? 'PARSE_FAILED', message: error.message }
+          }
+          feedTasksById.set(feed.id, { feed, tasks })
+          afterFeedUpdate(seq)
+        },
+        onStatus: () => aggregateFeedStatus(seq),
+        onError: (error) => {
+          if (seq !== startSeq) return
+          feedErrors.set(feed.id, { code: error?.code, message: error?.message })
+          aggregateFeedStatus(seq)
         }
-        // Retire done-entries for events Moodle removed long ago. The
-        // post-parse steps are UI-side concerns: a bug here must never surface
-        // as a feed error (fetchCalendar's catch would mark the feed stale).
-        done.prune(state._allTasks, DEFAULT_KEEP_OVERDUE_MS, Date.now())
-        try {
-          evaluateNotifications(state._allTasks)
-        } catch (error) {
-          console.error('[notify]', error)
-        }
-        applyVisibleTasks({ animate: true })
-        schedulePersist()
-        void maybeRunSubmissionCheck()
-      },
-      onStatus: (meta) => {
-        if (seq !== startSeq) return
-        state.meta = { ...state.meta, ...meta }
-        renderPlaceholders()
-        renderStatus()
-        updateTrayTooltip()
-        requestAnimationFrame(autosize)
-      },
-      onError: (error) => {
-        if (seq !== startSeq) return
-        state.meta.error = { code: error?.code, message: error?.message }
-        renderPlaceholders()
-        renderStatus()
       }
-    }
-  })
+    })
+    fetchers.push(one)
+  }
 
-  await fetcher.start().catch(() => {})
+  await Promise.all(fetchers.map((one) => one.start().catch(() => {})))
 }
 
 // -------------------------------------------------- submission auto-detect

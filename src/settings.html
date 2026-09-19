@@ -105,6 +105,49 @@
           </div>
         </details>
 
+        <!-- Additional feeds: Google Calendar / generic ICS -->
+        <details class="manual-section" id="feeds-details">
+          <summary class="manual-summary">
+            <span>Feed Tambahan Google / ICS</span>
+            <svg viewBox="0 0 16 16" class="chevron"><path d="M4 6.25 8 10.25l4-4" /></svg>
+          </summary>
+          <div class="manual-content">
+            <ul class="feed-list" id="feed-list"></ul>
+            <label class="field">
+              <span class="field__label">Nama feed</span>
+              <input
+                type="text"
+                id="feed-label"
+                class="field__input field__input--text"
+                autocomplete="off"
+                placeholder="Mis. Kelas Matematika"
+              />
+            </label>
+            <div class="field-inline">
+              <span class="field-inline__label">Jenis</span>
+              <select id="feed-kind" class="input-select">
+                <option value="google">Google Calendar</option>
+                <option value="ics">ICS umum</option>
+              </select>
+            </div>
+            <label class="field">
+              <span class="field__label">URL feed .ics rahasia</span>
+              <textarea
+                id="feed-url"
+                class="field__input"
+                rows="2"
+                spellcheck="false"
+                autocomplete="off"
+                placeholder="https://calendar.google.com/calendar/ical/…/basic.ics"
+              ></textarea>
+            </label>
+            <div class="actions">
+              <button type="button" class="btn" id="feed-test">Test Koneksi</button>
+              <button type="button" class="btn btn--primary" id="feed-save">Tambah Feed</button>
+            </div>
+          </div>
+        </details>
+
         <hr class="rule" />
 
         <!-- Display Mode Settings -->

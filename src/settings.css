@@ -285,6 +285,59 @@
   color: var(--fg-2);
 }
 
+/* -------------------------------------------------------------- feed list */
+
+.feed-list {
+  list-style: none;
+  margin: 6px 0 4px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feed-list:empty {
+  display: none;
+}
+
+.feed-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 11.5px;
+}
+
+.feed-item__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--fg);
+}
+
+.feed-item__remove {
+  flex: none;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 7px;
+  background: rgba(255, 107, 114, 0.14);
+  color: var(--danger);
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.field__input--text {
+  font-family: var(--font);
+  word-break: normal;
+}
+
 /* ------------------------------------------------------------------- actions */
 
 .actions {

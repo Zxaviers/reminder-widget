@@ -137,18 +137,19 @@ async function defaultTransport (url, init) {
   return doFetch(url, init)
 }
 
-/** localStorage-backed cache with an in-memory fallback for tests/Node. */
-function defaultStore () {
+/** localStorage-backed cache with an in-memory fallback for tests/Node.
+ *  `key` namespaces the slot so each feed keeps its own cache. */
+function defaultStore (key = 'feed-cache') {
   if (typeof localStorage !== 'undefined') {
     return {
       async load () {
-        try { return JSON.parse(localStorage.getItem('feed-cache')) } catch { return null }
+        try { return JSON.parse(localStorage.getItem(key)) } catch { return null }
       },
       async save (payload) {
-        try { localStorage.setItem('feed-cache', JSON.stringify(payload)) } catch { /* quota */ }
+        try { localStorage.setItem(key, JSON.stringify(payload)) } catch { /* quota */ }
       },
       async clear () {
-        try { localStorage.removeItem('feed-cache') } catch { /* noop */ }
+        try { localStorage.removeItem(key) } catch { /* noop */ }
       }
     }
   }
@@ -182,6 +183,7 @@ export class CalendarFetcher {
    * @param {object} options
    * @param {string}   options.url          feed URL (kept private)
    * @param {number}   [options.refreshMs]  clamped into [15min, 30min]
+   * @param {string}   [options.cacheKey]   cache slot; one per feed id
    * @param {Function} [options.transport]  (url, init) => fetch-like Response
    * @param {{load:Function,save:Function,clear:Function}} [options.store]
    * @param {{onUpdate?:Function,onError?:Function,onStatus?:Function}} [options.handlers]
@@ -189,10 +191,12 @@ export class CalendarFetcher {
   constructor ({
     url,
     refreshMs = DEFAULT_REFRESH_MS,
+    cacheKey = 'feed-cache',
     transport = defaultTransport,
-    store = defaultStore(),
+    store = null,
     handlers = {}
   } = {}) {
+    if (!store) store = defaultStore(cacheKey)
     this.refreshMs = clampInterval(refreshMs)
     this.transport = transport
     this.store = store

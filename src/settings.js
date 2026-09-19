@@ -11,6 +11,7 @@
  */
 
 import { api } from './api.js'
+import { normalizeFeed } from './feeds.js'
 
 const el = {
   url: document.getElementById('url'),
@@ -22,6 +23,13 @@ const el = {
   modeAlwaysTop: document.getElementById('mode-always-top'),
   modeDesktop: document.getElementById('mode-desktop'),
   manualDetails: document.getElementById('manual-details'),
+  feedsDetails: document.getElementById('feeds-details'),
+  feedList: document.getElementById('feed-list'),
+  feedLabel: document.getElementById('feed-label'),
+  feedKind: document.getElementById('feed-kind'),
+  feedUrl: document.getElementById('feed-url'),
+  feedTest: document.getElementById('feed-test'),
+  feedSave: document.getElementById('feed-save'),
   result: document.getElementById('result'),
   resultIcon: document.querySelector('.result__icon'),
   resultTitle: document.getElementById('result-title'),
@@ -154,6 +162,106 @@ async function commitFeed (rawUrl) {
   await api.feedUrlSet(rawUrl === '' ? null : rawUrl)
 }
 
+// ---- Additional feeds (Google Calendar / generic ICS, Slice 3)
+
+function nextFeedId (kind) {
+  const prefix = kind === 'google' ? 'google' : 'ics'
+  return `${prefix}-${Date.now().toString(36)}`
+}
+
+async function refreshFeedList () {
+  if (!el.feedList) return
+  el.feedList.replaceChildren()
+  let feeds = []
+  try {
+    feeds = await api.feedsList()
+  } catch {
+    feeds = []
+  }
+  for (const feed of feeds) {
+    if (!feed || feed.id === 'brone') continue
+    const li = document.createElement('li')
+    li.className = 'feed-item'
+
+    const label = document.createElement('span')
+    label.className = 'feed-item__label'
+    const state = feed.hasSecret ? 'terhubung' : 'tanpa URL'
+    label.textContent = `${feed.label || feed.id} · ${state}`
+
+    const rm = document.createElement('button')
+    rm.type = 'button'
+    rm.className = 'feed-item__remove'
+    rm.setAttribute('aria-label', `Hapus feed ${feed.label || feed.id}`)
+    rm.textContent = 'Hapus'
+    rm.addEventListener('click', async () => {
+      setBusy(true, 'Menghapus feed…')
+      try {
+        await api.feedRemove(feed.id)
+        await refreshFeedList()
+        setBusy(false)
+        showResult('ok', 'Feed Dihapus', `${feed.label || feed.id} tidak lagi disinkronkan.`)
+      } catch (err) {
+        setBusy(false)
+        showResult('bad', 'Gagal Menghapus', err.message || String(err))
+      }
+    })
+
+    li.append(label, rm)
+    el.feedList.appendChild(li)
+  }
+}
+
+async function testExtraFeed () {
+  const url = el.feedUrl?.value.trim() ?? ''
+  if (url === '') {
+    showResult('bad', 'URL Kosong', 'Tempelkan URL feed Google atau ICS terlebih dahulu.')
+    return null
+  }
+  setBusy(true, 'Menghubungi server feed…')
+  const result = await api.testFeed(url)
+  setBusy(false)
+  if (result.ok) {
+    const count = result.count === 1 ? '1 tugas ditemukan' : `${result.count} tugas ditemukan`
+    showResult('ok', `Feed valid — ${count}`, describeNext(result.next))
+  } else {
+    showResult('bad', 'Koneksi Gagal', result.message)
+  }
+  return result
+}
+
+async function saveExtraFeed () {
+  const kind = el.feedKind?.value === 'ics' ? 'ics' : 'google'
+  const checked = normalizeFeed({
+    id: nextFeedId(kind),
+    kind,
+    label: el.feedLabel?.value ?? '',
+    url: el.feedUrl?.value ?? ''
+  })
+  if (!checked.ok) {
+    showResult('bad', 'Belum Bisa Disimpan', checked.error)
+    return
+  }
+  setBusy(true, 'Memverifikasi & menyimpan feed…')
+  const probe = await api.testFeed(checked.feed.url)
+  if (!probe || !probe.ok) {
+    setBusy(false)
+    showResult('bad', 'Koneksi Gagal', probe?.message || 'Tidak dapat memuat feed kalender.')
+    return
+  }
+  try {
+    await api.feedSet(checked.feed)
+  } catch (err) {
+    setBusy(false)
+    showResult('bad', 'Gagal Menyimpan', err.message || String(err))
+    return
+  }
+  if (el.feedLabel) el.feedLabel.value = ''
+  if (el.feedUrl) el.feedUrl.value = ''
+  await refreshFeedList()
+  setBusy(false)
+  showResult('ok', `Feed Ditambahkan (${probe.count} tugas)`, 'Widget mengambil feed ini tiap refresh.')
+}
+
 async function save () {
   const url = el.url.value.trim()
 
@@ -183,6 +291,7 @@ async function save () {
 
 async function load () {
   const config = await api.getSettings()
+  refreshFeedList().catch(() => {})
 
   if (el.url) el.url.value = config.feedUrl ?? ''
   if (el.autostart) el.autostart.checked = Boolean(config.openAtLogin)
@@ -261,6 +370,9 @@ if (el.btnPasteClipboard) {
 
 if (el.test) el.test.addEventListener('click', test)
 if (el.save) el.save.addEventListener('click', save)
+if (el.feedTest) el.feedTest.addEventListener('click', testExtraFeed)
+if (el.feedSave) el.feedSave.addEventListener('click', saveExtraFeed)
+if (el.feedUrl) el.feedUrl.addEventListener('input', clearResult)
 if (el.close) el.close.addEventListener('click', () => api.closeSettings())
 
 if (el.modeAlwaysTop) {
