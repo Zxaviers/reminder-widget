@@ -87,6 +87,14 @@ export const api = {
   feedUrlGetFull: () => cmd('feed_url_get_full'),
   feedUrlSet: (url) => cmd('feed_url_set', { url }),
 
+  // ---- multi-feed secret store (Slice 2)
+  /** Non-secret rows [{id, kind, label, enabled, hasSecret, source}]. */
+  feedsList: () => cmd('feeds_list'),
+  /** URL goes to the secret store; metadata upserted to settings.json. */
+  feedSet: ({ id, kind, url, label, enabled }) =>
+    cmd('feed_set', { id, kind, url, label: label ?? null, enabled: enabled ?? null }),
+  feedRemove: (id) => cmd('feed_remove', { id }),
+
   // ---- display mode
   setDisplayMode: (mode) => cmd('set_display_mode', { mode: String(mode ?? '') }),
 

@@ -36,6 +36,20 @@ pub struct FeedUrlInfo {
     source: &'static str,
 }
 
+/// Non-secret feed row for the renderer. The URL itself never leaves Rust
+/// except via `feed_url_get_full` (form prefill) or masked display.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FeedInfo {
+    id: String,
+    kind: String,
+    label: String,
+    enabled: bool,
+    has_secret: bool,
+    /// "secret" | "env-var" | "none"
+    source: &'static str,
+}
+
 fn env_feed_url() -> Option<String> {
     std::env::var("CALENDAR_FEED_URL")
         .ok()
@@ -228,23 +242,135 @@ pub fn feed_url_get_full() -> Result<Option<String>, String> {
     Ok(crate::secret::get()?.or_else(env_feed_url))
 }
 
+fn validate_feed_url(raw: &str) -> Result<String, String> {
+    let trimmed = raw.trim();
+    let parsed = tauri::Url::parse(trimmed).map_err(|_| "URL_INVALID")?;
+    if parsed.scheme() != "https" && parsed.scheme() != "http" {
+        return Err("URL_PROTOCOL".into());
+    }
+    Ok(trimmed.to_string())
+}
+
+fn validate_feed_kind(raw: &str) -> Result<String, String> {
+    match raw.trim() {
+        "brone" => Ok("brone".into()),
+        "google" => Ok("google".into()),
+        "ics" => Ok("ics".into()),
+        _ => Err("FEED_KIND_INVALID".into()),
+    }
+}
+
+fn upsert_feed_meta(app: &AppHandle, id: &str, kind: &str, label: &str, enabled: bool) {
+    let mut s = settings::load(app);
+    if let Some(existing) = s.feeds.iter_mut().find(|f| f.id == id) {
+        existing.kind = kind.to_string();
+        if !label.is_empty() {
+            existing.label = label.to_string();
+        }
+        existing.enabled = enabled;
+    } else {
+        s.feeds.push(settings::FeedMeta {
+            id: id.to_string(),
+            kind: kind.to_string(),
+            label: if label.is_empty() { id.to_string() } else { label.to_string() },
+            enabled,
+        });
+    }
+    let _ = settings::save(app, &s);
+}
+
+fn drop_feed_meta(app: &AppHandle, id: &str) {
+    let mut s = settings::load(app);
+    s.feeds.retain(|f| f.id != id);
+    let _ = settings::save(app, &s);
+}
+
+/// Legacy single-feed setter, kept as the `feed/brone` alias so the existing
+/// settings form keeps working while multi-feed lands.
 #[tauri::command]
 pub fn feed_url_set(app: AppHandle, url: Option<String>) -> Result<(), String> {
     let result = match url {
         Some(raw) => {
-            let trimmed = raw.trim();
-            let parsed = tauri::Url::parse(trimmed).map_err(|_| "URL_INVALID")?;
-            if parsed.scheme() != "https" && parsed.scheme() != "http" {
-                return Err("URL_PROTOCOL".into());
-            }
-            crate::secret::set(trimmed)
+            let trimmed = validate_feed_url(&raw)?;
+            crate::secret::set(&trimmed)?;
+            upsert_feed_meta(&app, "brone", "brone", "BRONE", true);
+            Ok(())
         }
-        None => crate::secret::clear(),
+        None => {
+            crate::secret::clear()?;
+            drop_feed_meta(&app, "brone");
+            Ok(())
+        }
     };
     if result.is_ok() {
         let _ = app.emit("feed-changed", ());
     }
     result
+}
+
+/// Multi-feed list: metadata from settings.json + presence from the secret
+/// store. Env-var fallback only applies to the BRONE feed.
+#[tauri::command]
+pub fn feeds_list(app: AppHandle) -> Result<Vec<FeedInfo>, String> {
+    let s = settings::load(&app);
+    let mut out = Vec::with_capacity(s.feeds.len());
+    for meta in &s.feeds {
+        let has = crate::secret::get_feed(&meta.id)?.is_some()
+            || (meta.id == "brone" && env_feed_url().is_some());
+        let source = if crate::secret::get_feed(&meta.id)?.is_some() {
+            "secret"
+        } else if meta.id == "brone" && env_feed_url().is_some() {
+            "env-var"
+        } else {
+            "none"
+        };
+        out.push(FeedInfo {
+            id: meta.id.clone(),
+            kind: meta.kind.clone(),
+            label: meta.label.clone(),
+            enabled: meta.enabled,
+            has_secret: has,
+            source,
+        });
+    }
+    Ok(out)
+}
+
+/// Store a feed URL in the secret store and upsert its metadata row.
+#[tauri::command]
+pub fn feed_set(
+    app: AppHandle,
+    id: String,
+    kind: String,
+    url: String,
+    label: Option<String>,
+    enabled: Option<bool>,
+) -> Result<FeedInfo, String> {
+    let id = crate::secret::validate_feed_id(&id)?;
+    let kind = validate_feed_kind(&kind)?;
+    let trimmed = validate_feed_url(&url)?;
+    let label = label.unwrap_or_default().trim().to_string();
+    let enabled = enabled.unwrap_or(true);
+    crate::secret::set_feed(&id, &trimmed)?;
+    upsert_feed_meta(&app, &id, &kind, &label, enabled);
+    let _ = app.emit("feed-changed", ());
+    Ok(FeedInfo {
+        id: id.clone(),
+        kind,
+        label: if label.is_empty() { id } else { label },
+        enabled,
+        has_secret: true,
+        source: "secret",
+    })
+}
+
+#[tauri::command]
+pub fn feed_remove(app: AppHandle, id: String) -> Result<(), String> {
+    let id = crate::secret::validate_feed_id(&id)?;
+    crate::secret::remove_feed(&id)?;
+    drop_feed_meta(&app, &id);
+    let _ = app.emit("feed-changed", ());
+    Ok(())
 }
 
 /// Token params must never appear in logs or screenshots.

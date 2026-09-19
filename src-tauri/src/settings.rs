@@ -21,6 +21,36 @@ impl Default for Bounds {
     }
 }
 
+/// Feed metadata (non-secret). The URL/token/address itself lives only in
+/// the secret store (see secret.rs); settings.json keeps id/kind/label/enabled
+/// so a leaked settings file reveals no credentials.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", default)]
+pub struct FeedMeta {
+    pub id: String,
+    /// "brone" | "google" | "ics"
+    pub kind: String,
+    pub label: String,
+    pub enabled: bool,
+}
+
+impl Default for FeedMeta {
+    fn default() -> Self {
+        Self { id: String::new(), kind: "ics".into(), label: String::new(), enabled: true }
+    }
+}
+
+/// Manual event persisted in settings.json. Titles are user-typed plain text,
+/// not credentials, so plain storage here is intended.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", default)]
+pub struct LocalEvent {
+    pub id: String,
+    pub title: String,
+    pub due_ms: i64,
+    pub all_day: bool,
+}
+
 /// Mirror of the v1 settings.json so a user upgrading keeps their
 /// configuration. `feed` is no longer written (the URL lives in Windows
 /// Credential Manager); the field stays tolerated for forward compatibility.
@@ -49,6 +79,10 @@ pub struct Settings {
     pub notified: BTreeMap<String, Vec<f64>>,
     /// taskId -> ISO timestamp when the user marked it done.
     pub done: BTreeMap<String, String>,
+    /// Multi-feed metadata (URLs stay in the secret store).
+    pub feeds: Vec<FeedMeta>,
+    /// Manual events (Slice 1). Plain text, persisted across restarts.
+    pub local_events: Vec<LocalEvent>,
 }
 
 impl Default for Settings {
@@ -67,6 +101,8 @@ impl Default for Settings {
             notify_thresholds_hours: vec![24.0, 6.0, 1.0],
             notified: BTreeMap::new(),
             done: BTreeMap::new(),
+            feeds: Vec::new(),
+            local_events: Vec::new(),
         }
     }
 }

@@ -9,9 +9,11 @@
     {
       "identifier": "http:default",
       "allow": [
-        { "url": "https://brone.ub.ac.id/*" }
+        { "url": "https://brone.ub.ac.id/*" },
+        { "url": "https://calendar.google.com/*" },
+        { "url": "https://*.googleapis.com/*" }
       ],
-      "description": "App code only ever requests the calendar feed URL; domain-wide allow because URLPattern query matching is unreliable. Spec constraint (feed-only endpoint) is enforced in code, not here."
+      "description": "Calendar feeds only: BRONE Moodle + Google Calendar. Domain-wide allow because URLPattern query matching is unreliable. Feed-only endpoints enforced in code, not here."
     }
   ]
 }
