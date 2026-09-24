@@ -332,8 +332,8 @@ async function load () {
   const isMob = await api.isMobile()
   if (isMob) {
     if (el.manualDetails) el.manualDetails.open = true
-    const stepGuide = document.querySelector('.step-guide')
-    if (stepGuide) stepGuide.hidden = true
+    // The 1-tap browser + paste-and-connect flow works on mobile too
+    // (external browser + clipboard plugin), so the step guide stays visible.
     const modeSection = document.querySelector('.mode-options')
     if (modeSection) {
       modeSection.hidden = true

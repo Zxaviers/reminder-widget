@@ -112,13 +112,17 @@ class ReminderAppWidgetProvider : AppWidgetProvider() {
                 }
                 else -> {
                     val days = remainingMs / dayMs
-                    Triple("${days} hari lagi", R.drawable.dot_green, "#38bdf8")
+                    Triple("${days} hari lagi", R.drawable.dot_green, "#7ee787")
                 }
             }
         }
 
         private fun loadWidgetTasks(context: Context): List<TaskItem> {
+            // Rust writes via app_config_dir(), which on Android resolves to
+            // the app data root (Context.dataDir), not filesDir — so dataDir
+            // comes first. The other two stay as legacy fallbacks.
             val files = listOf(
+                File(context.dataDir, "widget_tasks.json"),
                 File(context.filesDir, "widget_tasks.json"),
                 File(context.noBackupFilesDir, "widget_tasks.json")
             )
