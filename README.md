@@ -2,10 +2,10 @@
 
 > **Compact, always-on-top desktop reminder widget for Moodle / BRONE (UB) assignment deadlines from iCalendar (.ics) feed.**
 >
-> **Now also available on Android** 📱 — scheduled notifications keep you on track even when the app is closed.
+> ⚠️ **Penting / Notice:** Versi desktop (Windows) berfungsi penuh & siap dipakai. Versi **Android saat ini masih dalam tahap pengembangan aktif (Work in Progress) dan belum bisa dipakai secara stabil**.
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Zxaviers/reminder-widget/releases/tag/v1.0.0)
-[![Platform](https://img.shields.io/badge/platform-Windows%20|%20Android-blue.svg)](https://github.com/Zxaviers/reminder-widget)
+[![Platform](https://img.shields.io/badge/platform-Windows%20(Stable)%20|%20Android%20(WIP)-orange.svg)](https://github.com/Zxaviers/reminder-widget)
 [![Build](https://img.shields.io/github/actions/workflow/status/Zxaviers/reminder-widget/ci.yml?branch=main)](https://github.com/Zxaviers/reminder-widget/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/Zxaviers/reminder-widget)](https://github.com/Zxaviers/reminder-widget/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -114,6 +114,13 @@ A sleek Windows desktop widget designed to keep students on track with upcoming 
 
 ## 📱 Mobile (Android)
 
+> [!WARNING]
+> ### ⚠️ Status: Dalam Pengembangan (Under Active Development)
+> Versi Android saat ini **masih dalam tahap eksperimen & pengembangan aktif dan BELUM BISA DIPAKAI** untuk penggunaan harian.
+> - **Jangan gunakan versi Android untuk pengingat tugas penting saat ini.** Fitur sinkronisasi latar belakang, alarm manager, dan widget layar utama masih dalam tahap pengujian intensif dan belum terjamin keandalannya.
+> - Pengguna disarankan untuk tetap menggunakan **versi Desktop (Windows)** yang sudah stabil 100%.
+> - Bagian dokumentasi di bawah ini ditujukan khusus untuk keperluan riset & pengujian oleh developer (developer preview only).
+
 The same codebase compiles to a native Android app via Tauri 2. The mobile experience adapts automatically:
 
 - **Scheduled notifications** replace the always-on-top widget — deadline reminders at H-24, H-6, and H-1 fire via Android's AlarmManager even when the app is closed.
@@ -121,7 +128,7 @@ The same codebase compiles to a native Android app via Tauri 2. The mobile exper
 - **Paste URL flow** — copy your feed URL from the desktop widget's Settings, then paste it on your phone.
 - Desktop-only features (tray icon, wallpaper mode, auto-start, auto-detect submission, BRONE login assist) are automatically hidden.
 
-### 📲 Install APK
+### 📲 Install APK (Developer Preview Only)
 
 ```bash
 # Transfer the pre-built APK to your phone, or use USB Debugging:
