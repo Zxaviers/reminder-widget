@@ -14,22 +14,18 @@ import { api } from './api.js'
 import { normalizeFeed } from './feeds.js'
 
 const el = {
-  url: document.getElementById('url'),
-  test: document.getElementById('test'),
-  save: document.getElementById('save'),
   close: document.getElementById('close'),
   btnOpenBrowserMain: document.getElementById('btn-open-browser-main'),
   btnPasteClipboard: document.getElementById('btn-paste-clipboard'),
   modeAlwaysTop: document.getElementById('mode-always-top'),
   modeDesktop: document.getElementById('mode-desktop'),
-  manualDetails: document.getElementById('manual-details'),
-  feedsDetails: document.getElementById('feeds-details'),
   feedList: document.getElementById('feed-list'),
-  feedLabel: document.getElementById('feed-label'),
-  feedKind: document.getElementById('feed-kind'),
   feedUrl: document.getElementById('feed-url'),
-  feedTest: document.getElementById('feed-test'),
   feedSave: document.getElementById('feed-save'),
+  thChips: document.getElementById('th-chips'),
+  refreshChips: document.getElementById('refresh-chips'),
+  themeChips: document.getElementById('theme-chips'),
+  desktopOpts: document.getElementById('desktop-opts'),
   result: document.getElementById('result'),
   resultIcon: document.querySelector('.result__icon'),
   resultTitle: document.getElementById('result-title'),
@@ -38,12 +34,6 @@ const el = {
   autostart: document.getElementById('autostart'),
   notify: document.getElementById('notify'),
   autoDetect: document.getElementById('auto-detect'),
-  refreshMinutes: document.getElementById('refresh-minutes'),
-  thInputs: [
-    document.getElementById('th-a'),
-    document.getElementById('th-b'),
-    document.getElementById('th-c')
-  ],
   opacity: document.getElementById('opacity'),
   opacityVal: document.getElementById('opacity-val'),
   footnote: document.getElementById('footnote')
@@ -127,47 +117,64 @@ async function pasteFromClipboardAndConnect () {
       return
     }
 
-    if (el.url) el.url.value = extracted
+    if (el.feedUrl) el.feedUrl.value = extracted
     setBusy(false)
-    await save()
+    await saveExtraFeed()
   } catch (err) {
     setBusy(false)
     showResult('bad', 'Gagal Membaca Clipboard', err.message || 'Izin clipboard ditolak.')
   }
 }
 
-async function test () {
-  const url = el.url.value.trim()
-  if (url === '') {
-    showResult('bad', 'URL Kosong', 'Tempelkan URL feed kalender terlebih dahulu.')
-    return null
-  }
+// ---- Feed sources: kind auto-detected from URL, secrets to Rust store.
 
-  setBusy(true, 'Menghubungi server kampus…')
-  const result = await api.testFeed(url)
-  setBusy(false)
+const KIND_NAME = { brone: 'BRONE', google: 'Google Calendar', ics: 'ICS' }
 
-  if (result.ok) {
-    const count = result.count === 1 ? '1 tugas ditemukan' : `${result.count} tugas ditemukan`
-    showResult('ok', `Feed valid — ${count}`, describeNext(result.next))
-  } else {
-    showResult('bad', 'Koneksi Gagal', result.message)
+function detectFeedKind (rawUrl) {
+  let host = ''
+  let path = ''
+  try {
+    const parsed = new URL(String(rawUrl ?? '').trim())
+    host = parsed.hostname.toLowerCase()
+    path = parsed.pathname.toLowerCase()
+  } catch {
+    return 'ics'
   }
-  return result
+  if (host.includes('brone.ub.ac.id') || path.includes('export_execute.php')) return 'brone'
+  if (host.includes('google.com') || host.includes('googleapis.com')) return 'google'
+  return 'ics'
 }
 
-/** Persist the feed URL and tell the widget page to rebuild its fetcher.
- *  (feed_url_set broadcasts 'feed-changed' from Rust — single source.) */
-async function commitFeed (rawUrl) {
-  await api.feedUrlSet(rawUrl === '' ? null : rawUrl)
+function autoFeedLabel (kind, rawUrl) {
+  if (kind === 'brone') return 'BRONE'
+  if (kind === 'google') return 'Google Calendar'
+  try {
+    return new URL(String(rawUrl).trim()).hostname || 'ICS'
+  } catch {
+    return 'ICS'
+  }
 }
-
-// ---- Additional feeds (Google Calendar / generic ICS, Slice 3)
 
 function nextFeedId (kind) {
+  if (kind === 'brone') return 'brone'
   const prefix = kind === 'google' ? 'google' : 'ics'
   return `${prefix}-${Date.now().toString(36)}`
 }
+
+function svgIcon (paths) {
+  const node = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  node.setAttribute('viewBox', '0 0 16 16')
+  node.setAttribute('aria-hidden', 'true')
+  for (const d of paths) {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+    path.setAttribute('d', d)
+    node.appendChild(path)
+  }
+  return node
+}
+
+const ICON_REFRESH = ['M13.5 8a5.5 5.5 0 1 1-1.9-4.16', 'M13.6 1.9v2.4h-2.4']
+const ICON_TRASH = ['M2.5 4.5h11', 'M6.5 4.5V3a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1.5', 'M4 4.5 4.7 13a1 1 0 0 0 1 .9h4.6a1 1 0 0 0 1-.9L12 4.5', 'M6.8 7v4M9.2 7v4']
 
 async function refreshFeedList () {
   if (!el.feedList) return
@@ -178,21 +185,38 @@ async function refreshFeedList () {
   } catch {
     feeds = []
   }
-  for (const feed of feeds) {
-    if (!feed || feed.id === 'brone') continue
+  const ordered = [...feeds].sort((a, b) => {
+    if (a.id === 'brone') return -1
+    if (b.id === 'brone') return 1
+    return String(a.label || a.id).localeCompare(String(b.label || b.id))
+  })
+  for (const feed of ordered) {
+    if (!feed || !feed.id) continue
     const li = document.createElement('li')
-    li.className = 'feed-item'
+    li.className = 'feed-row'
 
-    const label = document.createElement('span')
-    label.className = 'feed-item__label'
-    const state = feed.hasSecret ? 'terhubung' : 'tanpa URL'
-    label.textContent = `${feed.label || feed.id} · ${state}`
+    const info = document.createElement('div')
+    info.className = 'feed-info'
+    const name = document.createElement('span')
+    name.className = 'feed-name'
+    name.textContent = feed.label || feed.id
+    const meta = document.createElement('span')
+    meta.className = 'feed-meta'
+    meta.textContent = `${KIND_NAME[feed.kind] || feed.kind} · ${feed.hasSecret ? 'terhubung' : 'tanpa URL'}`
+    info.append(name, meta)
+
+    const testBtn = document.createElement('button')
+    testBtn.type = 'button'
+    testBtn.className = 'icon-btn small'
+    testBtn.setAttribute('aria-label', `Uji koneksi ${feed.label || feed.id}`)
+    testBtn.appendChild(svgIcon(ICON_REFRESH))
+    testBtn.addEventListener('click', () => testFeedRow(feed))
 
     const rm = document.createElement('button')
     rm.type = 'button'
-    rm.className = 'feed-item__remove'
+    rm.className = 'icon-btn small'
     rm.setAttribute('aria-label', `Hapus feed ${feed.label || feed.id}`)
-    rm.textContent = 'Hapus'
+    rm.appendChild(svgIcon(ICON_TRASH))
     rm.addEventListener('click', async () => {
       setBusy(true, 'Menghapus feed…')
       try {
@@ -206,19 +230,26 @@ async function refreshFeedList () {
       }
     })
 
-    li.append(label, rm)
+    li.append(info, testBtn, rm)
     el.feedList.appendChild(li)
   }
 }
 
-async function testExtraFeed () {
-  const url = el.feedUrl?.value.trim() ?? ''
-  if (url === '') {
-    showResult('bad', 'URL Kosong', 'Tempelkan URL feed Google atau ICS terlebih dahulu.')
+async function testFeedRow (feed) {
+  setBusy(true, 'Menghubungi server feed…')
+  let full = []
+  try {
+    full = await api.feedsGetFull()
+  } catch {
+    full = []
+  }
+  const match = full.find((f) => f && f.id === feed.id)
+  if (!match) {
+    setBusy(false)
+    showResult('bad', 'Belum Ada URL', 'Feed ini belum menyimpan URL. Tambahkan ulang lewat kolom di bawah.')
     return null
   }
-  setBusy(true, 'Menghubungi server feed…')
-  const result = await api.testFeed(url)
+  const result = await api.testFeed(match.url)
   setBusy(false)
   if (result.ok) {
     const count = result.count === 1 ? '1 tugas ditemukan' : `${result.count} tugas ditemukan`
@@ -230,12 +261,13 @@ async function testExtraFeed () {
 }
 
 async function saveExtraFeed () {
-  const kind = el.feedKind?.value === 'ics' ? 'ics' : 'google'
+  const url = el.feedUrl?.value ?? ''
+  const kind = detectFeedKind(url)
   const checked = normalizeFeed({
     id: nextFeedId(kind),
     kind,
-    label: el.feedLabel?.value ?? '',
-    url: el.feedUrl?.value ?? ''
+    label: autoFeedLabel(kind, url),
+    url
   })
   if (!checked.ok) {
     showResult('bad', 'Belum Bisa Disimpan', checked.error)
@@ -255,56 +287,92 @@ async function saveExtraFeed () {
     showResult('bad', 'Gagal Menyimpan', err.message || String(err))
     return
   }
-  if (el.feedLabel) el.feedLabel.value = ''
   if (el.feedUrl) el.feedUrl.value = ''
   await refreshFeedList()
   setBusy(false)
   showResult('ok', `Feed Ditambahkan (${probe.count} tugas)`, 'Widget mengambil feed ini tiap refresh.')
 }
 
-async function save () {
-  const url = el.url.value.trim()
+// ---- Chips: thresholds (multi), interval + theme (single).
 
-  if (url === '') {
-    setBusy(true, 'Menghapus konfigurasi…')
-    await commitFeed('')
-    setBusy(false)
-    showResult('ok', 'Feed Dihapus', 'Widget kembali ke status belum terhubung.')
-    return
+function renderChips (container, options, selected, { multi, format }) {
+  if (!container) return
+  container.replaceChildren()
+  for (const value of options) {
+    const on = multi ? selected.includes(value) : selected === value
+    const btn = document.createElement('button')
+    btn.type = 'button'
+    btn.className = `chip${on ? ' on' : ''}`
+    btn.textContent = format(value)
+    btn.setAttribute('aria-pressed', String(on))
+    btn.addEventListener('click', () => container.dispatchEvent(
+      new CustomEvent('chip-pick', { detail: value, bubbles: false })
+    ))
+    container.appendChild(btn)
   }
+}
 
-  setBusy(true, 'Memverifikasi & menyimpan feed kalender…')
-  const probe = await api.testFeed(url)
-  if (!probe || !probe.ok) {
-    setBusy(false)
-    showResult('bad', 'Koneksi Gagal', probe?.message || 'Tidak dapat memuat feed kalender.')
-    return
-  }
+const THRESHOLD_CHOICES = [1, 6, 12, 24]
+const REFRESH_CHOICES = [15, 20, 30]
 
-  await commitFeed(url)
-  setBusy(false)
+function currentThresholds () {
+  const raw = settingsCache.notifyThresholdsHours
+  const list = Array.isArray(raw) ? raw.filter((n) => Number.isFinite(n) && n > 0) : [24, 6, 1]
+  return [...new Set(list)].sort((a, b) => a - b)
+}
 
-  const count = probe.count === 1 ? '1 tugas' : `${probe.count} tugas`
-  showResult('ok', `Berhasil Terhubung! (${count})`, 'Widget sedang aktif di desktop.')
-  setTimeout(() => api.closeSettings(), 600)
+function paintThresholdChips () {
+  const selected = currentThresholds()
+  const extra = selected.filter((n) => !THRESHOLD_CHOICES.includes(n))
+  renderChips(el.thChips, [...THRESHOLD_CHOICES, ...extra].sort((a, b) => a - b), selected, {
+    multi: true,
+    format: (n) => `${n}j`
+  })
+}
+
+function paintRefreshChips () {
+  const current = Number(settingsCache.refreshMinutes) || 20
+  const nearest = REFRESH_CHOICES.includes(current)
+    ? current
+    : REFRESH_CHOICES.reduce((a, b) => Math.abs(b - current) < Math.abs(a - current) ? b : a)
+  renderChips(el.refreshChips, REFRESH_CHOICES, nearest, {
+    multi: false,
+    format: (n) => String(n)
+  })
+}
+
+function paintThemeChips () {
+  const current = settingsCache.theme === 'light' ? 'light' : 'dark'
+  renderChips(el.themeChips, ['dark', 'light'], current, {
+    multi: false,
+    format: (v) => v === 'dark' ? 'Gelap' : 'Terang'
+  })
+}
+
+/** Live snapshot of settings for chip painting; refreshed on load + change. */
+let settingsCache = {}
+
+async function commitChips (patch) {
+  Object.assign(settingsCache, patch)
+  await api.settingsWrite(patch)
+  await api.settingsChanged()
+  paintThresholdChips()
+  paintRefreshChips()
+  paintThemeChips()
 }
 
 async function load () {
   const config = await api.getSettings()
+  settingsCache = {
+    notifyThresholdsHours: config.notifyThresholdsHours,
+    refreshMinutes: config.refreshMinutes,
+    theme: config.theme
+  }
   refreshFeedList().catch(() => {})
 
-  if (el.url) el.url.value = config.feedUrl ?? ''
   if (el.autostart) el.autostart.checked = Boolean(config.openAtLogin)
   if (el.notify) el.notify.checked = Boolean(config.notifications)
   if (el.autoDetect) el.autoDetect.checked = Boolean(config.autoDetect)
-
-  if (el.refreshMinutes) el.refreshMinutes.value = String(config.refreshMinutes ?? 20)
-
-  if (el.thInputs) {
-    const hours = [...(config.notifyThresholdsHours ?? [24, 6, 1])]
-    while (hours.length < el.thInputs.length) hours.push('')
-    el.thInputs.forEach((input, i) => { if (input) input.value = hours[i] })
-  }
 
   if (el.opacity) {
     const pct = Math.round((Number(config.opacity) || 1) * 100)
@@ -313,6 +381,9 @@ async function load () {
   }
 
   document.documentElement.dataset.theme = config.theme === 'light' ? 'light' : 'dark'
+  paintThresholdChips()
+  paintRefreshChips()
+  paintThemeChips()
 
   const mode = config.displayMode || 'alwaysOnTop'
   if (mode === 'desktop') {
@@ -325,37 +396,33 @@ async function load () {
     if (el.sub) el.sub.textContent = 'Terhubung'
   } else if (config.envMasked) {
     if (el.sub) el.sub.textContent = 'Menggunakan .env'
-    if (el.manualDetails) el.manualDetails.open = true
-    showResult('ok', 'Menggunakan CALENDAR_FEED_URL', `${config.envMasked} — simpan di sini jika ingin mengganti.`)
+    showResult('ok', 'Menggunakan CALENDAR_FEED_URL', `${config.envMasked} — tambah feed di bawah jika ingin mengganti.`)
   } else if (el.sub) {
     el.sub.textContent = 'Belum Terhubung'
   }
 
   const isMob = await api.isMobile()
   if (isMob) {
-    if (el.manualDetails) el.manualDetails.open = true
-    // The 1-tap browser + paste-and-connect flow works on mobile too
-    // (external browser + clipboard plugin), so the step guide stays visible.
+    // Desktop-only options stay visible but dimmed and disabled.
+    if (el.desktopOpts) el.desktopOpts.classList.add('dim')
+    for (const input of [el.autostart, el.autoDetect]) {
+      if (input) input.disabled = true
+    }
     const modeSection = document.querySelector('.mode-options')
     if (modeSection) {
       modeSection.hidden = true
       if (modeSection.previousElementSibling) modeSection.previousElementSibling.hidden = true
     }
-    if (el.autostart) {
-      const parentLabel = el.autostart.closest('.toggle')
-      if (parentLabel) parentLabel.hidden = true
-    }
-    if (el.autoDetect) {
-      const parentLabel = el.autoDetect.closest('.toggle')
-      if (parentLabel) parentLabel.hidden = true
-    }
     if (el.footnote) {
       el.footnote.textContent =
         'URL kalender tersimpan privat di aplikasi ini. Pengingat deadline dijadwalkan otomatis.'
     }
-  } else if (el.footnote) {
-    el.footnote.textContent =
-      'URL kalender tersimpan aman di Windows Credential Manager. Refresh otomatis tiap 20 menit.'
+  } else {
+    if (el.desktopOpts) el.desktopOpts.classList.remove('dim')
+    if (el.footnote) {
+      el.footnote.textContent =
+        'URL kalender tersimpan aman di Windows Credential Manager. Refresh otomatis tiap 20 menit.'
+    }
   }
 }
 
@@ -370,12 +437,36 @@ if (el.btnPasteClipboard) {
   el.btnPasteClipboard.addEventListener('click', pasteFromClipboardAndConnect)
 }
 
-if (el.test) el.test.addEventListener('click', test)
-if (el.save) el.save.addEventListener('click', save)
-if (el.feedTest) el.feedTest.addEventListener('click', testExtraFeed)
 if (el.feedSave) el.feedSave.addEventListener('click', saveExtraFeed)
 if (el.feedUrl) el.feedUrl.addEventListener('input', clearResult)
 if (el.close) el.close.addEventListener('click', () => api.closeSettings())
+
+if (el.thChips) {
+  el.thChips.addEventListener('chip-pick', (event) => {
+    const value = event.detail
+    const selected = new Set(currentThresholds())
+    if (selected.has(value)) {
+      if (selected.size > 1) selected.delete(value)
+    } else {
+      selected.add(value)
+    }
+    void commitChips({ notifyThresholdsHours: [...selected].sort((a, b) => b - a) })
+  })
+}
+
+if (el.refreshChips) {
+  el.refreshChips.addEventListener('chip-pick', (event) => {
+    void commitChips({ refreshMinutes: Number(event.detail) || 20 })
+  })
+}
+
+if (el.themeChips) {
+  el.themeChips.addEventListener('chip-pick', (event) => {
+    const theme = event.detail === 'light' ? 'light' : 'dark'
+    document.documentElement.dataset.theme = theme
+    void commitChips({ theme })
+  })
+}
 
 if (el.modeAlwaysTop) {
   el.modeAlwaysTop.addEventListener('change', () => {
@@ -389,13 +480,11 @@ if (el.modeDesktop) {
   })
 }
 
-if (el.url) el.url.addEventListener('input', clearResult)
-
-if (el.url) {
-  el.url.addEventListener('keydown', (event) => {
+if (el.feedUrl) {
+  el.feedUrl.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
       event.preventDefault()
-      save()
+      saveExtraFeed()
     }
   })
 }
@@ -429,26 +518,6 @@ if (el.autoDetect) {
   })
 }
 
-if (el.refreshMinutes) {
-  el.refreshMinutes.addEventListener('change', async () => {
-    await api.settingsWrite({ refreshMinutes: Number(el.refreshMinutes.value) || 20 })
-    await api.settingsChanged()
-  })
-}
-
-if (el.thInputs) {
-  const commitThresholds = async () => {
-    const hours = el.thInputs
-      .map((input) => Number(input.value))
-      .filter((n) => Number.isFinite(n) && n > 0)
-    await api.settingsWrite({ notifyThresholdsHours: hours })
-    await api.settingsChanged()
-  }
-  el.thInputs.forEach((input) => {
-    input?.addEventListener('change', commitThresholds)
-  })
-}
-
 if (el.opacity) {
   el.opacity.addEventListener('input', () => {
     if (el.opacityVal) el.opacityVal.textContent = `${el.opacity.value}%`
@@ -461,7 +530,7 @@ if (el.opacity) {
 }
 
 document.addEventListener('contextmenu', (event) => {
-  if (event.target !== el.url) event.preventDefault()
+  if (event.target !== el.feedUrl) event.preventDefault()
 })
 
 load().catch((error) => {

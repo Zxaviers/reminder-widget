@@ -338,6 +338,206 @@
   word-break: normal;
 }
 
+/* ------------------------------------------------------------ ledger cards */
+
+.screen-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink-900);
+  flex: 1;
+  text-align: center;
+}
+
+.bar__spacer {
+  width: 44px;
+  flex-shrink: 0;
+}
+
+.bar__status {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-400);
+  margin: 2px 0 0;
+}
+
+.scroll {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.card {
+  background: var(--raised);
+  border-radius: var(--radius-outer);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.card-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-900);
+}
+
+.card-help {
+  font-size: 11px;
+  color: var(--ink-400);
+  line-height: 1.4;
+}
+
+.dim {
+  opacity: 0.55;
+}
+
+.note {
+  font-size: 11px;
+  color: var(--ink-400);
+  margin-top: 6px;
+}
+
+.feed-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 52px;
+}
+
+.feed-row + .feed-row {
+  border-top: 1px solid var(--divider);
+}
+
+.feed-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.feed-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.feed-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-400);
+}
+
+.feed-meta.err {
+  color: var(--overdue);
+}
+
+.addrow {
+  display: flex;
+  gap: 8px;
+}
+
+.input {
+  height: 44px;
+  width: 100%;
+  min-width: 0;
+  padding: 0 12px;
+  border-radius: var(--radius);
+  background: var(--canvas);
+  border: 1px solid var(--divider);
+  color: var(--ink-900);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.input::placeholder {
+  color: var(--ink-400);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--teal);
+}
+
+.btn-sec {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: var(--radius);
+  flex-shrink: 0;
+  background: var(--raised-2);
+  border: 1px solid var(--divider);
+  color: var(--ink-600);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-sec:hover {
+  color: var(--ink-900);
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: var(--radius);
+  background: var(--canvas);
+  border: 1px solid var(--divider);
+  color: var(--ink-600);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chip.on {
+  background: var(--ink-900);
+  border-color: var(--ink-900);
+  color: var(--canvas);
+}
+
+.sw-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+}
+
+.sw-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-600);
+}
+
+.primary {
+  margin-top: 14px;
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--teal);
+  color: #14151a;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+:root[data-theme="light"] .primary {
+  color: #f5f4f1;
+}
+
 /* ------------------------------------------------------------------- actions */
 
 .actions {
