@@ -49,11 +49,15 @@ class ReminderAppWidgetProvider : AppWidgetProvider() {
             views.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
             views.setPendingIntentTemplate(R.id.widget_task_list, pendingIntent)
 
-            // Scrollable list backed by WidgetTaskService.
+            // Scrollable list backed by WidgetTaskService. The data URI carries
+            // the tasks file mtime so every update binds a FRESH factory that
+            // reads the current file. A stable URI lets the system reuse a
+            // stale factory and silently keep showing an old short list.
+            val tasksFile = findWidgetTasksFile(context)
             val serviceIntent = Intent(context, WidgetTaskService::class.java).apply {
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-                // Distinct URI per widget so the system does not reuse one factory.
-                data = Uri.parse(toUri(Intent.URI_INTENT_SCHEME))
+                val stamp = tasksFile?.lastModified() ?: 0L
+                data = Uri.parse("reminderwidget://tasks/$appWidgetId/$stamp")
             }
             views.setRemoteAdapter(R.id.widget_task_list, serviceIntent)
             views.setEmptyView(R.id.widget_task_list, R.id.widget_empty_view)
@@ -79,20 +83,21 @@ class ReminderAppWidgetProvider : AppWidgetProvider() {
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
-        private fun hasWidgetTasks(context: Context): Boolean {
+        private fun findWidgetTasksFile(context: Context): File? {
             val files = listOf(
                 File(context.dataDir, "widget_tasks.json"),
                 File(context.filesDir, "widget_tasks.json"),
                 File(context.noBackupFilesDir, "widget_tasks.json")
             )
-            for (file in files) {
-                if (!file.exists()) continue
-                try {
-                    val text = file.readText().trim()
-                    if (text.isNotEmpty() && text != "[]") return true
-                    return false
-                } catch (_: Exception) {
-                }
+            return files.firstOrNull { it.exists() }
+        }
+
+        private fun hasWidgetTasks(context: Context): Boolean {
+            val file = findWidgetTasksFile(context) ?: return false
+            try {
+                val text = file.readText().trim()
+                if (text.isNotEmpty() && text != "[]") return true
+            } catch (_: Exception) {
             }
             return false
         }
