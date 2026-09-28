@@ -312,6 +312,8 @@ async function load () {
     if (el.opacityVal) el.opacityVal.textContent = `${pct}%`
   }
 
+  document.documentElement.dataset.theme = config.theme === 'light' ? 'light' : 'dark'
+
   const mode = config.displayMode || 'alwaysOnTop'
   if (mode === 'desktop') {
     if (el.modeDesktop) el.modeDesktop.checked = true

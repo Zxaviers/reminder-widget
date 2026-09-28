@@ -975,6 +975,11 @@ function applyOpacity () {
   document.body.style.opacity = Number.isFinite(o) ? String(Math.min(1, Math.max(0.35, o))) : '1'
 }
 
+/** Opt5 theme pair. The native Android widget always stays dark. */
+function applyTheme () {
+  document.documentElement.dataset.theme = settingsDoc.theme === 'light' ? 'light' : 'dark'
+}
+
 // ------------------------------------------------------------------ rendering
 
 function applyCollapsed (collapsed) {
@@ -1052,6 +1057,7 @@ api.listen('settings-changed', async () => {
   notifyThresholdsMs = thresholdsToMs(settingsDoc.notifyThresholdsHours)
   applyCollapsed(Boolean(settingsDoc.collapsed))
   applyOpacity()
+  applyTheme()
   state._allTasks = withLocalTasks(Array.isArray(state._feedTasks) ? state._feedTasks : [], localEvents, Date.now())
   applyVisibleTasks()
   renderLocalList()
@@ -1181,6 +1187,7 @@ el.localSave?.addEventListener('click', addLocalEvent)
   done = createDoneStore(doc.done ?? {})
   applyCollapsed(Boolean(settingsDoc.collapsed))
   applyOpacity()
+  applyTheme()
 
   await startFeed()
   setInterval(tick, TICK_MS)
