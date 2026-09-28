@@ -774,9 +774,18 @@ async function refreshNow () {
  *  hides healthy feeds: the error screen shows only when no feed has data. */
 function aggregateFeedStatus (seq) {
   if (seq !== startSeq) return
-  const anyData = fetchers.some((one) => {
-    try { return one.getState().hasData } catch { return false }
-  })
+  let anyData = false
+  let lastFetchedAt = null
+  for (const one of fetchers) {
+    try {
+      const st = one.getState()
+      if (st.hasData) anyData = true
+      if (st.lastFetchedAt && (!lastFetchedAt || st.lastFetchedAt > lastFetchedAt)) {
+        lastFetchedAt = st.lastFetchedAt
+      }
+    } catch { /* ignore dead fetcher */ }
+  }
+  if (lastFetchedAt) state.meta = { ...state.meta, lastFetchedAt }
   const firstError = [...feedErrors.values()][0]
   if (anyData) {
     state.meta = { ...state.meta, configured: true, status: 'ready', feedCount: fetchers.length }

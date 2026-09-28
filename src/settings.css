@@ -29,8 +29,8 @@
 /* ------------------------------------------------------------------ auth-box */
 
 .auth-box {
-  background: linear-gradient(135deg, rgba(82, 107, 255, 0.12) 0%, rgba(30, 34, 56, 0.4) 100%);
-  border: 1px solid rgba(130, 150, 255, 0.22);
+  background: linear-gradient(135deg, rgba(91, 181, 166, 0.12) 0%, rgba(30, 34, 56, 0.4) 100%);
+  border: 1px solid rgba(91, 181, 166, 0.25);
   border-radius: 12px;
   padding: 14px;
   margin-bottom: 12px;
@@ -790,7 +790,7 @@
 
 input[type='range']#opacity {
   flex: 0 1 150px;
-  accent-color: #7b8cff;
+  accent-color: var(--teal);
 }
 
 .opacity-val {
