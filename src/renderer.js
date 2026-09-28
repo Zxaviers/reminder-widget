@@ -24,7 +24,21 @@ import { mergeFeedTasks } from './multiFetch.js'
 const el = {
   panel: document.getElementById('panel'),
   status: document.getElementById('status'),
-  groups: document.getElementById('groups'),
+  taskCount: document.getElementById('task-count'),
+  list: document.getElementById('list'),
+  hero: document.getElementById('hero'),
+  heroCode: document.getElementById('hero-code'),
+  heroName: document.getElementById('hero-name'),
+  heroWarn: document.getElementById('hero-warn'),
+  heroCount: document.getElementById('hero-count'),
+  heroTitle: document.getElementById('hero-title'),
+  heroDone: document.getElementById('hero-done'),
+  doneBtn: document.getElementById('done-btn'),
+  doneCount: document.getElementById('done-count'),
+  doneToggleLabel: document.getElementById('done-toggle-label'),
+  donePanel: document.getElementById('done-panel'),
+  doneList: document.getElementById('done-list'),
+  btnSettings: document.getElementById('btn-settings'),
   digest: document.getElementById('digest'),
   body: document.getElementById('body'),
   stale: document.getElementById('stale'),
@@ -36,10 +50,6 @@ const el = {
   undoText: document.getElementById('undo-text'),
   btnUndo: document.getElementById('btn-undo'),
   btnCollapse: document.getElementById('btn-collapse'),
-  doneSection: document.getElementById('done-section'),
-  doneList: document.getElementById('done-list'),
-  doneTitle: document.querySelector('.done-section__title'),
-  btnDoneToggle: document.getElementById('btn-done-toggle'),
   btnAddLocal: document.getElementById('btn-add-local'),
   localPanel: document.getElementById('local-panel'),
   localList: document.getElementById('local-list'),
@@ -272,165 +282,173 @@ function svg (paths, viewBox = '0 0 16 16') {
 const CHECK_ICON = ['M3.5 8.5 6.5 11.5 12.5 5']
 const RESTORE_ICON = ['M13.5 8.5 6.5 5.5 2.5 8.5']
 
+/** Opt5 urgency: overdue | soon (<24h) | later. Neutral items stay uncolored. */
+function urgencyOf (task, now) {
+  const delta = task.dueMs - now
+  if (delta < 0) return 'overdue'
+  if (delta <= SOON_MS) return 'soon'
+  return 'later'
+}
+
+/** Feed label for the name slot (mockup hero-name / row name). */
+function feedLabelFor (task) {
+  if (task.source === 'local') return 'Event manual'
+  const metas = Array.isArray(settingsDoc.feeds) ? settingsDoc.feeds : []
+  const meta = metas.find((m) => m && m.id === task.feedId)
+  if (meta && meta.label) return meta.label
+  if (task.feedId === 'brone' || !task.feedId) return 'BRONE'
+  return String(task.feedId).toUpperCase()
+}
+
+/** Code slot: course code when present, else feed/source tag. */
+function codeFor (task) {
+  if (task.source === 'local') return 'LOCAL'
+  if (task.course) return task.course
+  if (task.feedId) return String(task.feedId).toUpperCase()
+  return 'BRONE'
+}
+
+const dotTimeFmt = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+function dotTime (dueMs) {
+  return dotTimeFmt.format(new Date(dueMs)).replace(':', '.')
+}
+
 /**
- * Builds one row. Uses textContent throughout: feed values are untrusted
- * remote content and never become markup.
+ * Timeline time text: relative when near, weekday + clock when further.
+ * Always words + numbers, never color alone.
+ */
+function rowTime (task, now) {
+  const delta = task.dueMs - now
+  const abs = Math.abs(delta)
+  const minutes = Math.floor(abs / MINUTE)
+  const hours = Math.floor(minutes / 60)
+  const days = Math.floor(hours / 24)
+  if (delta < 0) {
+    if (minutes < 60) return `Terlewat ${Math.max(minutes, 1)} mnt`
+    if (hours < 24) return `Terlewat ${hours} jam`
+    return `Terlewat ${days} hari`
+  }
+  if (minutes < 60) return `${Math.max(minutes, 1)} mnt lagi`
+  if (hours < 24) return `${hours} jam lagi`
+  const due = new Date(task.dueMs)
+  const start = startOfDay(now)
+  const dayDelta = Math.round((startOfDay(task.dueMs) - start) / DAY)
+  if (dayDelta === 1) return `Besok ${dotTime(task.dueMs)}`
+  if (dayDelta < 7) return `${weekdayFmt.format(due)} ${dotTime(task.dueMs)}`
+  return `${days} hari lagi`
+}
+
+/**
+ * Builds one timeline row. Uses textContent throughout: feed values are
+ * untrusted remote content and never become markup.
  */
 function taskRow (task, now, { animate, index }) {
-  const delta = task.dueMs - now
-  const overdue = delta < 0
-  const soon = !overdue && delta <= SOON_MS
+  const urgency = urgencyOf(task, now)
   const dueDate = new Date(task.dueMs)
 
   const row = document.createElement('li')
-  row.className = 'task'
-  if (overdue) row.classList.add('task--overdue')
-  else if (soon) row.classList.add('task--soon')
+  row.className = 'row'
+  if (urgency === 'overdue') row.classList.add('overdue')
+  else if (urgency === 'soon') row.classList.add('soon')
 
   if (animate) {
-    row.classList.add('task--enter')
+    row.classList.add('row--enter')
     row.style.setProperty('--stagger', `${Math.min(index, 8) * 28}ms`)
   }
 
-  // -- countdown gutter (countdown + time)
-  const when = document.createElement('div')
-  when.className = 'task__when'
+  const open = document.createElement('button')
+  open.type = 'button'
+  open.className = 'row-open'
 
-  const value = document.createElement('span')
-  value.className = 'task__value'
-  value.textContent = countdown(delta)
+  const time = document.createElement('span')
+  time.className = 'time'
+  time.textContent = rowTime(task, now)
 
-  const at = document.createElement('span')
-  at.className = 'task__at'
-  at.textContent = task.allDay ? 'sepanjang hari' : timeFmt.format(dueDate)
-
-  when.append(value, at)
-
-  // -- title + course & exact due date
-  const meat = document.createElement('div')
-  meat.className = 'task__meat'
+  const titleWrap = document.createElement('span')
+  titleWrap.className = 'row-title'
 
   const title = document.createElement('span')
-  title.className = 'task__title'
+  title.className = 't'
   title.textContent = task.title
 
-  const course = document.createElement('div')
-  course.className = 'task__course'
+  const meta = document.createElement('span')
+  meta.className = 'c'
+  const code = document.createElement('code')
+  code.textContent = codeFor(task)
+  const name = document.createElement('span')
+  name.textContent = feedLabelFor(task)
+  meta.append(code, name)
 
-  const phase = PHASE_LABEL[task.phase]
-  if (phase && task.source !== 'local') {
-    const phaseNode = document.createElement('span')
-    phaseNode.className = 'task__phase'
-    phaseNode.textContent = phase
-    course.appendChild(phaseNode)
+  titleWrap.append(title, meta)
+  open.append(time, titleWrap)
+
+  if (task.url) {
+    open.setAttribute('aria-label', `${task.title}, buka di browser`)
+    open.addEventListener('click', () => api.openExternal(task.url))
+  } else {
+    open.setAttribute('aria-label', task.title)
+    open.disabled = true
   }
 
-  // Manual events carry no course: the source tag fills the mono code slot.
-  if (task.source === 'local') {
-    const srcNode = document.createElement('span')
-    srcNode.className = 'task__phase task__phase--local'
-    srcNode.textContent = 'LOCAL'
-    course.appendChild(srcNode)
-  }
-
-  if (task.course) {
-    const courseNode = document.createElement('span')
-    courseNode.className = 'task__course-name'
-    courseNode.textContent = task.course
-    course.appendChild(courseNode)
-  }
-
-  const dueSpan = document.createElement('span')
-  dueSpan.className = 'task__duedate'
-  dueSpan.textContent = task.allDay ? dateFmt.format(dueDate) : fullDateFmt.format(dueDate)
-  course.appendChild(dueSpan)
-
-  meat.append(title, course)
-
-  // -- mark-done button (the v2 feature): stops propagation so opening the
-  // task URL stays a click-on-the-row action only.
   const doneBtn = document.createElement('button')
   doneBtn.type = 'button'
-  doneBtn.className = 'task__done-btn'
-  doneBtn.title = 'Tandai selesai (sudah dikumpulkan)'
+  doneBtn.className = 'row-done'
+  doneBtn.title = 'Tandai selesai'
   doneBtn.setAttribute('aria-label', `Tandai ${task.title} selesai`)
-  doneBtn.appendChild(svg(CHECK_ICON))
+  const ring = document.createElement('span')
+  ring.className = 'ring'
+  ring.appendChild(svg(CHECK_ICON))
+  doneBtn.appendChild(ring)
   doneBtn.addEventListener('click', (event) => {
     event.stopPropagation()
     markDone(task)
   })
 
-  row.append(when, meat, doneBtn)
+  row.append(open, doneBtn)
 
   const spoken = [
     task.title,
-    task.course,
+    codeFor(task),
     `Deadline: ${fullDateFmt.format(dueDate)}`,
-    overdue ? `Terlewat ${countdown(delta)}` : `Sisa waktu ${countdown(delta)}`
+    rowTime(task, now)
   ]
     .filter(Boolean)
     .join(', ')
   row.setAttribute('aria-label', spoken)
   row.title = spoken
 
-  if (task.url) {
-    row.classList.add('task--link')
-    row.tabIndex = 0
-    row.setAttribute('role', 'link')
-    const open = () => api.openExternal(task.url)
-    row.addEventListener('click', open)
-    row.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault()
-        open()
-      }
-    })
-  }
-
   return row
+}
+
+/** Hero shows state.tasks[0]; the timeline lists the rest. */
+function renderHero (task, now) {
+  if (!task || !el.hero) {
+    if (el.hero) el.hero.hidden = true
+    return
+  }
+  const urgency = urgencyOf(task, now)
+  el.hero.hidden = false
+  el.hero.classList.toggle('overdue', urgency === 'overdue')
+  el.hero.classList.toggle('soon', urgency === 'soon')
+  el.heroCode.textContent = codeFor(task)
+  el.heroName.textContent = feedLabelFor(task)
+  if (el.heroWarn) el.heroWarn.hidden = urgency === 'later'
+  el.heroCount.textContent = rowTime(task, now)
+  el.heroTitle.textContent = task.title
+  el.heroDone.onclick = () => markDone(task)
+  el.heroDone.setAttribute('aria-label', `Tandai ${task.title} selesai`)
 }
 
 function renderList (animate) {
   const now = Date.now()
-  const todayStart = startOfDay(now)
-  el.groups.replaceChildren()
+  const [first, ...rest] = state.tasks
+  renderHero(first, now)
 
-  const buckets = new Map()
-  for (const task of state.tasks) {
-    const key = task.dueMs < now ? -1 : startOfDay(task.dueMs)
-    if (!buckets.has(key)) buckets.set(key, [])
-    buckets.get(key).push(task)
-  }
-
+  el.list.replaceChildren()
   let index = 0
-  for (const [key, items] of [...buckets.entries()].sort((a, b) => a[0] - b[0])) {
-    const overdue = key === -1
-    const section = document.createElement('section')
-    section.className = 'group'
-    if (overdue) section.classList.add('group--overdue')
-    else if (key === todayStart) section.classList.add('group--today')
-
-    const label = document.createElement('h2')
-    label.className = 'group__label'
-
-    const name = document.createElement('span')
-    name.textContent = overdue ? 'Overdue' : groupLabel(key, todayStart)
-
-    const count = document.createElement('span')
-    count.className = 'group__count'
-    count.textContent = String(items.length)
-
-    label.append(name, count)
-
-    const list = document.createElement('ul')
-    list.className = 'group__items'
-    for (const task of items) {
-      list.appendChild(taskRow(task, now, { animate, index }))
-      index += 1
-    }
-
-    section.append(label, list)
-    el.groups.appendChild(section)
+  for (const task of rest) {
+    el.list.appendChild(taskRow(task, now, { animate, index }))
+    index += 1
   }
 
   renderDigest(now)
@@ -439,66 +457,26 @@ function renderList (animate) {
 /**
  * Builds one row for a done task with a restore button.
  */
+/**
+ * Builds one done row with a restore button.
+ */
 function doneTaskRow (task, now) {
-  const delta = task.dueMs - now
-  const overdue = delta < 0
   const dueDate = new Date(task.dueMs)
 
   const row = document.createElement('li')
-  row.className = 'done-task'
-  if (overdue) row.classList.add('task--overdue')
+  row.className = 'drow'
 
-  // -- countdown gutter (countdown + time)
-  const when = document.createElement('div')
-  when.className = 'done-task__when'
-
-  const value = document.createElement('span')
-  value.className = 'done-task__value'
-  value.textContent = countdown(delta)
-
-  const at = document.createElement('span')
-  at.className = 'done-task__at'
-  at.textContent = task.allDay ? 'sepanjang hari' : timeFmt.format(dueDate)
-
-  when.append(value, at)
-
-  // -- title + course & exact due date
-  const meat = document.createElement('div')
-  meat.className = 'done-task__meat'
+  const code = document.createElement('span')
+  code.className = 'd-code'
+  code.textContent = codeFor(task)
 
   const title = document.createElement('span')
-  title.className = 'done-task__title'
+  title.className = 'd-title'
   title.textContent = task.title
 
-  const course = document.createElement('div')
-  course.className = 'done-task__course'
-
-  const phase = PHASE_LABEL[task.phase]
-  if (phase) {
-    const phaseNode = document.createElement('span')
-    phaseNode.className = 'done-task__phase'
-    phaseNode.textContent = phase
-    course.appendChild(phaseNode)
-  }
-
-  if (task.course) {
-    const courseNode = document.createElement('span')
-    courseNode.className = 'done-task__course-name'
-    courseNode.textContent = task.course
-    course.appendChild(courseNode)
-  }
-
-  const dueSpan = document.createElement('span')
-  dueSpan.className = 'done-task__duedate'
-  dueSpan.textContent = task.allDay ? dateFmt.format(dueDate) : fullDateFmt.format(dueDate)
-  course.appendChild(dueSpan)
-
-  meat.append(title, course)
-
-  // -- restore button
   const restoreBtn = document.createElement('button')
   restoreBtn.type = 'button'
-  restoreBtn.className = 'done-task__restore-btn'
+  restoreBtn.className = 'icon-btn small'
   restoreBtn.title = 'Kembalikan ke daftar tugas'
   restoreBtn.setAttribute('aria-label', `Kembalikan ${task.title} ke daftar tugas`)
   restoreBtn.appendChild(svg(RESTORE_ICON))
@@ -507,14 +485,9 @@ function doneTaskRow (task, now) {
     restoreTask(task)
   })
 
-  row.append(when, meat, restoreBtn)
+  row.append(code, title, restoreBtn)
 
-  const spoken = [
-    task.title,
-    task.course,
-    `Deadline: ${fullDateFmt.format(dueDate)}`,
-    overdue ? `Terlewat ${countdown(-delta)}` : `Selesai ${countdown(-delta)}`
-  ]
+  const spoken = [task.title, codeFor(task), `Deadline: ${fullDateFmt.format(dueDate)}`]
     .filter(Boolean)
     .join(', ')
   row.setAttribute('aria-label', spoken)
@@ -524,28 +497,35 @@ function doneTaskRow (task, now) {
 }
 
 function renderDoneList () {
-  const now = Date.now()
   const tasksAll = Array.isArray(state._allTasks) ? state._allTasks : []
   const doneTasks = done.doneList(tasksAll)
   if (doneTasks.length === 0) {
-    el.doneSection.hidden = true
+    el.doneBtn.hidden = true
+    el.donePanel.hidden = true
     return
   }
 
-  el.doneSection.hidden = false
+  el.doneBtn.hidden = false
   el.doneList.replaceChildren()
 
   for (const task of doneTasks) {
-    el.doneList.appendChild(doneTaskRow(task, now))
+    el.doneList.appendChild(doneTaskRow(task, Date.now()))
   }
 
   // Expansion state lives in settings (showDone) so it survives restarts.
-  // Collapsed by default: the section is secondary until it is needed.
   const expanded = settingsDoc.showDone === true
-  el.doneSection.setAttribute('aria-expanded', String(expanded))
-  el.btnDoneToggle?.setAttribute('aria-expanded', String(expanded))
-  el.doneList.hidden = !expanded
-  if (el.doneTitle) el.doneTitle.textContent = `Selesai (${doneTasks.length})`
+  el.doneBtn.setAttribute('aria-expanded', String(expanded))
+  el.donePanel.hidden = !expanded
+  if (el.doneCount) el.doneCount.textContent = String(doneTasks.length)
+  if (el.doneToggleLabel) el.doneToggleLabel.textContent = expanded ? 'Tutup' : 'Kembalikan'
+}
+
+async function toggleDonePanel () {
+  const expanded = el.donePanel.hidden
+  await api.settingsWrite({ showDone: expanded }).catch(() => {})
+  settingsDoc.showDone = expanded
+  renderDoneList()
+  requestAnimationFrame(autosize)
 }
 
 function restoreTask (task) {
@@ -565,9 +545,10 @@ function renderDigest (now) {
     el.digest.appendChild(note)
     return
   }
-  const row = taskRow(next, now, { animate: false, index: 0 })
-  row.classList.remove('task')
-  el.digest.append(...row.childNodes)
+  const wrap = document.createElement('div')
+  wrap.className = 'list'
+  wrap.appendChild(taskRow(next, now, { animate: false, index: 0 }))
+  el.digest.appendChild(wrap)
 }
 
 // ---------------------------------------------------------------- status text
@@ -586,12 +567,12 @@ const ERROR_FIX = {
 }
 
 const STATUS_TEXT = {
-  loading: 'Loading',
-  refreshing: 'Refreshing',
-  ready: 'Synced',
+  loading: 'Memuat',
+  refreshing: 'Refresh',
+  ready: 'Sync',
   stale: 'Offline',
   error: 'Error',
-  unconfigured: 'Not configured',
+  unconfigured: 'Belum hubung',
   idle: 'Idle'
 }
 
@@ -599,10 +580,10 @@ function relativeSync (iso) {
   if (!iso) return null
   const delta = Date.now() - Date.parse(iso)
   if (!Number.isFinite(delta)) return null
-  if (delta < 90 * 1000) return 'just now'
-  if (delta < HOUR) return `${Math.round(delta / MINUTE)}m ago`
-  if (delta < DAY) return `${Math.round(delta / HOUR)}h ago`
-  return `${Math.round(delta / DAY)}d ago`
+  if (delta < 90 * 1000) return 'baru saja'
+  if (delta < HOUR) return `${Math.round(delta / MINUTE)} mnt`
+  if (delta < DAY) return `${Math.round(delta / HOUR)} jam`
+  return `${Math.round(delta / DAY)} hari`
 }
 
 function renderStatus () {
@@ -614,6 +595,8 @@ function renderStatus () {
   el.panel.dataset.busy = String(busy)
   el.panel.dataset.state = status
 
+  if (el.taskCount) el.taskCount.textContent = count === 1 ? '1 tugas' : `${count} tugas`
+
   let text
   if (!meta.configured) {
     text = STATUS_TEXT.unconfigured
@@ -621,12 +604,7 @@ function renderStatus () {
     text = STATUS_TEXT[status]
   } else {
     const synced = relativeSync(meta.lastFetchedAt)
-    const label = count === 1 ? '1 task' : `${count} tasks`
-    if (status === 'stale' || status === 'error') {
-      text = synced ? `${label} · updated ${synced}` : STATUS_TEXT[status]
-    } else {
-      text = synced ? `${label} · synced ${synced}` : label
-    }
+    text = synced ? `sync ${synced}` : STATUS_TEXT[status]
   }
   el.status.textContent = text
 
@@ -643,7 +621,10 @@ function showPlaceholder (which) {
   for (const [key, node] of Object.entries(el.placeholders)) {
     node.hidden = key !== which
   }
-  el.groups.hidden = which !== null
+  const showingList = which === null
+  el.list.hidden = !showingList
+  if (el.hero && !showingList) el.hero.hidden = true
+  el.doneBtn.hidden = !showingList || done.doneList(state._allTasks ?? []).length === 0
 }
 
 function renderError () {
@@ -678,8 +659,9 @@ function autosize () {
 }
 
 const observer = new ResizeObserver(() => autosize())
-observer.observe(el.groups)
+observer.observe(el.list)
 observer.observe(el.digest)
+if (el.hero) observer.observe(el.hero)
 for (const node of Object.values(el.placeholders)) observer.observe(node)
 
 // ------------------------------------------------------------ mark-done flow
@@ -990,7 +972,7 @@ function applyCollapsed (collapsed) {
 }
 
 function tick () {
-  if (state.tasks.length > 0 && el.groups.hidden === false) {
+  if (state.tasks.length > 0 && el.list.hidden === false) {
     renderList(false)
   }
   renderStatus()
@@ -1029,12 +1011,8 @@ document.getElementById('btn-collapse').addEventListener('click', async () => {
   await api.settingsChanged()
 })
 
-el.btnDoneToggle?.addEventListener('click', () => {
-  settingsDoc.showDone = !(settingsDoc.showDone === true)
-  renderDoneList()
-  api.settingsWrite({ showDone: settingsDoc.showDone }).catch(() => {})
-  requestAnimationFrame(autosize)
-})
+el.doneBtn?.addEventListener('click', toggleDonePanel)
+el.btnSettings?.addEventListener('click', () => api.openSettings())
 
 document.addEventListener('contextmenu', (event) => event.preventDefault())
 

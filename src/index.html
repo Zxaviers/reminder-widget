@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="id" data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Deadlines</title>
+    <title>Deadline</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -16,12 +16,13 @@
     <div class="stage">
       <main class="panel" id="panel" data-state="loading" data-collapsed="false">
         <header class="bar" id="bar" data-tauri-drag-region="deep">
-          <div class="bar__id" data-tauri-drag-region="deep">
-            <h1 class="bar__title">Deadlines</h1>
-            <p class="bar__status" id="status" aria-live="polite">Loading</p>
+          <div class="brand" data-tauri-drag-region="deep">
+            <span class="wordmark">Deadline</span>
+            <span class="count" id="task-count"></span>
           </div>
 
           <div class="bar__actions">
+            <span class="sync" id="status" aria-live="polite"></span>
             <button type="button" class="icon-btn" id="btn-refresh" title="Refresh now" aria-label="Refresh now">
               <svg viewBox="0 0 16 16" aria-hidden="true">
                 <path d="M13.5 8a5.5 5.5 0 1 1-1.9-4.16" />
@@ -32,6 +33,13 @@
             <button type="button" class="icon-btn" id="btn-add-local" title="Tambah event manual" aria-label="Tambah event manual" aria-expanded="false">
               <svg viewBox="0 0 16 16" aria-hidden="true">
                 <path d="M8 3.2v9.6M3.2 8h9.6" />
+              </svg>
+            </button>
+
+            <button type="button" class="icon-btn" id="btn-settings" title="Pengaturan" aria-label="Pengaturan">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M8 5.4a2.6 2.6 0 1 0 0 5.2 2.6 2.6 0 0 0 0-5.2z" />
+                <path d="M8 1.5v1.7M8 12.8v1.7M1.5 8h1.7M12.8 8h1.7M3.4 3.4l1.2 1.2M11.4 11.4l1.2 1.2M12.6 3.4l-1.2 1.2M4.6 11.4 3.4 12.6" />
               </svg>
             </button>
 
@@ -53,6 +61,29 @@
         <div class="digest" id="digest" aria-hidden="true"></div>
 
         <div class="body" id="body">
+          <!-- Hero: the single most urgent task -->
+          <section class="hero" id="hero" hidden>
+            <div class="hero-top">
+              <span class="hero-code" id="hero-code"></span>
+              <span class="hero-name" id="hero-name"></span>
+              <svg class="hero-warn" id="hero-warn" viewBox="0 0 16 16" aria-hidden="true" hidden>
+                <path d="M8 2.5 15 14.5H1z" />
+                <path d="M8 6.6v3.2" />
+                <path d="M8 12.2v.1" />
+              </svg>
+            </div>
+            <div class="hero-count" id="hero-count"></div>
+            <div class="hero-title" id="hero-title"></div>
+            <button type="button" class="btn" id="hero-done">
+              <span class="ring" aria-hidden="true">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M3.5 8.5 6.5 11.5 12.5 5" />
+                </svg>
+              </span>
+              <span>Tandai selesai</span>
+            </button>
+          </section>
+
           <!-- Manual events: local deadlines no calendar feed knows about -->
           <section class="local-panel" id="local-panel" hidden>
             <div class="local-panel__fields">
@@ -68,22 +99,27 @@
             <ul class="local-list" id="local-list"></ul>
           </section>
 
-          <div class="groups" id="groups"></div>
+          <!-- Timeline ledger: flat, nearest first -->
+          <div class="list" id="list"></div>
 
-          <!-- Done tasks section -->
-          <section class="done-section" id="done-section" hidden>
-            <header class="done-section__header">
-              <h2 class="done-section__title">Selesai</h2>
-              <button type="button" class="icon-btn done-section__toggle" id="btn-done-toggle" title="Tampilkan/Sembunyikan tugas selesai" aria-label="Tampilkan/Sembunyikan tugas selesai" aria-expanded="false">
-                <svg viewBox="0 0 16 16" aria-hidden="true" class="icon-chevron">
-                  <path d="M4 6.25 8 10.25l4-4" />
-                </svg>
-              </button>
-            </header>
-            <ul class="done-section__list" id="done-list"></ul>
-          </section>
-
-          <div class="groups" id="groups"></div>
+          <!-- Done tasks -->
+          <button type="button" class="done-btn" id="done-btn" hidden>
+            <svg class="ic" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M8 1.8a6.2 6.2 0 1 0 0 12.4 6.2 6.2 0 0 0 0-12.4z" />
+              <path d="M5.4 8.2 7.2 10l3.4-3.8" />
+            </svg>
+            <span><span class="n" id="done-count">0</span> tugas selesai</span>
+            <span class="rest">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M13.5 8a5.5 5.5 0 1 1-1.9-4.16" />
+                <path d="M13.6 1.9v2.4h-2.4" />
+              </svg>
+              <span id="done-toggle-label">Kembalikan</span>
+            </span>
+          </button>
+          <div class="done-panel" id="done-panel" hidden>
+            <ul class="done-panel__list" id="done-list"></ul>
+          </div>
 
           <!-- Loading -->
           <section class="placeholder" id="ph-loading" hidden>
