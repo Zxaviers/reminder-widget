@@ -747,7 +747,7 @@ function applyVisibleTasks ({ animate = false } = {}) {
 
 function syncHomeScreenWidget () {
   try {
-    const tasks = (state.tasks || []).slice(0, 5).map((t) => ({
+    const tasks = (state.tasks || []).slice(0, 10).map((t) => ({
       id: t.id,
       title: t.title,
       course: t.course || '',

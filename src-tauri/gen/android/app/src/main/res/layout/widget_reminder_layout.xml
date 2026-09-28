@@ -33,6 +33,17 @@
             android:textSize="10sp" />
     </LinearLayout>
 
+    <!-- Scrollable task list: fills whatever height the widget is resized to.
+         Rows come from WidgetTaskService reading widget_tasks.json. -->
+    <ListView
+        android:id="@+id/widget_task_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="@null"
+        android:dividerHeight="0dp"
+        android:scrollbars="none" />
+
     <!-- Empty State -->
     <LinearLayout
         android:id="@+id/widget_empty_view"
@@ -58,186 +69,6 @@
             android:text="Buka aplikasi untuk sinkronisasi"
             android:textColor="#64748b"
             android:textSize="10sp" />
-    </LinearLayout>
-
-    <!-- Task Items Container -->
-    <LinearLayout
-        android:id="@+id/widget_tasks_container"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical">
-
-        <!-- Task Item 1 -->
-        <LinearLayout
-            android:id="@+id/widget_task_1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingVertical="3dp"
-            android:visibility="gone">
-
-            <ImageView
-                android:id="@+id/widget_dot_1"
-                android:layout_width="8dp"
-                android:layout_height="8dp"
-                android:layout_marginEnd="6dp"
-                android:src="@drawable/dot_green" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/widget_title_1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="Tugas 1"
-                    android:textColor="#f1f5f9"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/widget_course_1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="Mata Kuliah"
-                    android:textColor="#94a3b8"
-                    android:textSize="9sp" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/widget_time_1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:background="@drawable/badge_time_bg"
-                android:text="2 hari lagi"
-                android:textColor="#38bdf8"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- Task Item 2 -->
-        <LinearLayout
-            android:id="@+id/widget_task_2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingVertical="3dp"
-            android:visibility="gone">
-
-            <ImageView
-                android:id="@+id/widget_dot_2"
-                android:layout_width="8dp"
-                android:layout_height="8dp"
-                android:layout_marginEnd="6dp"
-                android:src="@drawable/dot_amber" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/widget_title_2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="Tugas 2"
-                    android:textColor="#f1f5f9"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/widget_course_2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="Mata Kuliah"
-                    android:textColor="#94a3b8"
-                    android:textSize="9sp" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/widget_time_2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:background="@drawable/badge_time_bg"
-                android:text="18 jam lagi"
-                android:textColor="#f59e0b"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- Task Item 3 -->
-        <LinearLayout
-            android:id="@+id/widget_task_3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingVertical="3dp"
-            android:visibility="gone">
-
-            <ImageView
-                android:id="@+id/widget_dot_3"
-                android:layout_width="8dp"
-                android:layout_height="8dp"
-                android:layout_marginEnd="6dp"
-                android:src="@drawable/dot_red" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/widget_title_3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="Tugas 3"
-                    android:textColor="#f1f5f9"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/widget_course_3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:text="Mata Kuliah"
-                    android:textColor="#94a3b8"
-                    android:textSize="9sp" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/widget_time_3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:background="@drawable/badge_time_bg"
-                android:text="1 jam lagi"
-                android:textColor="#ef4444"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>
