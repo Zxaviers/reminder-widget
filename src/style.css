@@ -573,6 +573,21 @@ body {
   grid-template-columns: var(--gutter) 1fr 14px;
 }
 
+/* Ledger digest: single full-width timeline row, no crushed grid. */
+.panel[data-collapsed="true"] .digest {
+  display: block;
+}
+
+.digest .list {
+  margin-top: 0;
+  padding-left: 0;
+}
+
+.digest .list::before,
+.digest .row::before {
+  display: none;
+}
+
 .digest .task__title {
   white-space: normal;
   display: -webkit-box;
