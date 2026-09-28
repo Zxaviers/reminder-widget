@@ -3,7 +3,6 @@ package dev.riski.reminderwidget
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
 import org.json.JSONArray
@@ -29,7 +28,9 @@ class WidgetTaskService : RemoteViewsService() {
         override fun onCreate() {}
 
         override fun onDataSetChanged() {
-            tasks = loadWidgetTasks(context)
+            // The provider's hero block shows tasks[0]; the list shows the rest.
+            val all = loadWidgetTasks(context)
+            tasks = if (all.size > 1) all.drop(1) else emptyList()
         }
 
         override fun onDestroy() {
@@ -44,12 +45,7 @@ class WidgetTaskService : RemoteViewsService() {
             val task = tasks[position]
 
             views.setTextViewText(R.id.widget_row_title, task.title)
-            if (task.course.isEmpty()) {
-                views.setViewVisibility(R.id.widget_row_course, View.GONE)
-            } else {
-                views.setViewVisibility(R.id.widget_row_course, View.VISIBLE)
-                views.setTextViewText(R.id.widget_row_course, task.course)
-            }
+            views.setTextViewText(R.id.widget_row_src, task.course.ifEmpty { "BRONE" })
 
             val remainingMs = task.dueMs - System.currentTimeMillis()
             val (timeText, dotRes, colorHex) = formatRelativeTime(remainingMs)

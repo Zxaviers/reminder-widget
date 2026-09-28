@@ -1674,3 +1674,149 @@ body {
   flex-shrink: 0;
 }
 
+/* ---- bottom sheet: manual event (mockup panel 4) ---- */
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 5;
+}
+
+:root[data-theme="light"] .scrim {
+  background: rgba(20, 21, 26, 0.28);
+}
+
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  background: var(--raised);
+  border-radius: 16px 16px 0 0;
+  padding: 12px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 88%;
+  overflow-y: auto;
+}
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--divider);
+  margin: 0 auto 4px;
+  flex-shrink: 0;
+}
+
+.sheet-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink-900);
+}
+
+.field-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-400);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.sheet .input {
+  height: 44px;
+  width: 100%;
+  min-width: 0;
+  padding: 0 12px;
+  border-radius: var(--radius);
+  background: var(--canvas);
+  border: 1px solid var(--divider);
+  color: var(--ink-900);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.sheet .input--sans {
+  font-family: var(--sans);
+}
+
+.sheet .input::placeholder {
+  color: var(--ink-400);
+}
+
+.sheet .input:focus {
+  outline: none;
+  border-color: var(--teal);
+}
+
+.sheet-row {
+  display: flex;
+  gap: 8px;
+}
+
+.sheet-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.sheet-actions .btn-sec,
+.sheet-actions .primary {
+  flex: 1;
+  margin-top: 4px;
+}
+
+.sheet .btn-sec {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: var(--radius);
+  background: var(--raised-2);
+  border: 1px solid var(--divider);
+  color: var(--ink-600);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sheet .primary {
+  min-height: 48px;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--teal);
+  color: #14151a;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+:root[data-theme="light"] .sheet .primary {
+  color: #f5f4f1;
+}
+
+.local-panel__note {
+  font-size: 11px;
+  color: var(--overdue);
+  min-height: 0;
+}
+
+.local-panel__note:empty {
+  display: none;
+}
+
+.local-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.local-list:empty {
+  display: none;
+}
+

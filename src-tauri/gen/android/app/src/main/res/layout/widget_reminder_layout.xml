@@ -33,6 +33,35 @@
             android:textSize="10sp" />
     </LinearLayout>
 
+    <!-- Hero: the single most urgent task. -->
+    <LinearLayout
+        android:id="@+id/widget_hero"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="6dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/widget_hero_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textColor="#C14A4A"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_hero_sub"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="#B8B6B0"
+            android:textSize="11sp" />
+    </LinearLayout>
+
     <!-- Scrollable task list: fills whatever height the widget is resized to.
          Rows come from WidgetTaskService reading widget_tasks.json. -->
     <ListView
@@ -70,5 +99,13 @@
             android:textColor="#64748b"
             android:textSize="10sp" />
     </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Ketuk untuk buka aplikasi"
+        android:textColor="#6E6D68"
+        android:textSize="10sp" />
 
 </LinearLayout>

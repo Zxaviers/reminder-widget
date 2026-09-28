@@ -631,9 +631,9 @@ function renderError () {
   const meta = state.meta ?? {}
   const error = meta.parseError ?? meta.error ?? {}
   el.errorTitle.textContent =
-    error.code === 'NOT_CALENDAR' ? "That's not a calendar feed" : "Can't reach the feed"
+    error.code === 'NOT_CALENDAR' ? 'Itu bukan feed kalender' : 'Feed tidak terjangkau'
   const message = typeof error.message === 'string' ? error.message.trim() : ''
-  el.errorNote.textContent = message || 'The calendar feed could not be loaded.'
+  el.errorNote.textContent = message || 'Feed kalender tidak bisa dimuat. Coba lagi saat koneksi pulih.'
   const fix = ERROR_FIX[error.code]
   el.errorFix.textContent = fix ?? ''
   el.errorFix.hidden = !fix
@@ -732,7 +732,7 @@ function syncHomeScreenWidget () {
     const tasks = (state.tasks || []).slice(0, 10).map((t) => ({
       id: t.id,
       title: t.title,
-      course: t.course || '',
+      course: t.course || (t.source === 'local' ? 'LOCAL' : 'BRONE'),
       dueMs: t.dueMs
     }))
     api.syncWidgetData(tasks).catch(() => {})
@@ -1062,6 +1062,8 @@ api.listen('widget-shown', () => {
 function localPanelOpen (open) {
   if (!el.localPanel) return
   el.localPanel.hidden = !open
+  const scrim = document.getElementById('local-scrim')
+  if (scrim) scrim.hidden = !open
   el.btnAddLocal?.setAttribute('aria-expanded', String(open))
   if (open) el.localTitle?.focus()
   requestAnimationFrame(autosize)
@@ -1135,6 +1137,7 @@ async function removeLocalEvent (id) {
 }
 
 el.btnAddLocal?.addEventListener('click', () => localPanelOpen(el.localPanel.hidden))
+document.getElementById('local-scrim')?.addEventListener('click', () => localPanelOpen(false))
 el.localCancel?.addEventListener('click', () => localPanelOpen(false))
 el.localSave?.addEventListener('click', addLocalEvent)
 

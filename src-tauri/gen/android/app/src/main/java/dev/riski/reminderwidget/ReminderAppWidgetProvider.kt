@@ -67,6 +67,20 @@ class ReminderAppWidgetProvider : AppWidgetProvider() {
             val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
             views.setTextViewText(R.id.widget_sync_time, "Sync ${timeFormat.format(Date(nowMs))}")
 
+            // Hero shows tasks[0]; the service list shows the rest.
+            val hero = loadFirstTask(context)
+            if (hero == null) {
+                views.setViewVisibility(R.id.widget_hero, View.GONE)
+            } else {
+                views.setViewVisibility(R.id.widget_hero, View.VISIBLE)
+                val remainingMs = hero.dueMs - nowMs
+                val (heroText, heroColor) = heroLabel(remainingMs)
+                views.setTextViewText(R.id.widget_hero_count, heroText)
+                views.setTextColor(R.id.widget_hero_count, android.graphics.Color.parseColor(heroColor))
+                val src = hero.course.ifEmpty { "BRONE" }
+                views.setTextViewText(R.id.widget_hero_sub, "${hero.title} · $src")
+            }
+
             // Empty-view toggle needs a count; the rows themselves come from
             // the service. A missing file means "not synced yet".
             val hasTasks = hasWidgetTasks(context)
@@ -90,6 +104,43 @@ class ReminderAppWidgetProvider : AppWidgetProvider() {
                 File(context.noBackupFilesDir, "widget_tasks.json")
             )
             return files.firstOrNull { it.exists() }
+        }
+
+        private fun loadFirstTask(context: Context): WidgetTaskService.TaskItem? {
+            val file = findWidgetTasksFile(context) ?: return null
+            try {
+                val array = org.json.JSONArray(file.readText())
+                if (array.length() == 0) return null
+                val obj = array.getJSONObject(0)
+                return WidgetTaskService.TaskItem(
+                    id = obj.optString("id", ""),
+                    title = obj.optString("title", ""),
+                    course = obj.optString("course", ""),
+                    dueMs = obj.optLong("dueMs", 0L)
+                )
+            } catch (_: Exception) {
+                return null
+            }
+        }
+
+        private fun heroLabel(remainingMs: Long): Pair<String, String> {
+            val hourMs = 60 * 60 * 1000L
+            val dayMs = 24 * hourMs
+            return when {
+                remainingMs <= 0 -> {
+                    val overdueHours = Math.abs(remainingMs) / hourMs
+                    val label = if (overdueHours < 1) "Terlewat" else "Terlewat ${overdueHours}j"
+                    Pair(label, "#C14A4A")
+                }
+                remainingMs < dayMs -> {
+                    val hours = Math.max(1L, remainingMs / hourMs)
+                    Pair("${hours} jam lagi", "#D6A44F")
+                }
+                else -> {
+                    val days = remainingMs / dayMs
+                    Pair("${days} hari lagi", "#F2F1EE")
+                }
+            }
         }
 
         private fun hasWidgetTasks(context: Context): Boolean {

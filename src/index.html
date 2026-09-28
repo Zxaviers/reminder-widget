@@ -84,17 +84,30 @@
             </button>
           </section>
 
-          <!-- Manual events: local deadlines no calendar feed knows about -->
-          <section class="local-panel" id="local-panel" hidden>
-            <div class="local-panel__fields">
-              <input type="text" id="local-title" class="local-input" placeholder="Judul event (mis. Meeting himpunan)" aria-label="Judul event" />
-              <input type="date" id="local-date" class="local-input" aria-label="Tanggal" />
-              <input type="time" id="local-time" class="local-input" aria-label="Jam (opsional)" />
+          <!-- Manual events: bottom sheet -->
+          <div class="scrim" id="local-scrim" hidden></div>
+          <section class="sheet" id="local-panel" hidden>
+            <div class="sheet-handle" aria-hidden="true"></div>
+            <span class="sheet-title">Tambah event manual</span>
+            <div>
+              <label class="field-label" for="local-title">Judul</label>
+              <input type="text" id="local-title" class="input input--sans" placeholder="Mis. Meeting himpunan" aria-label="Judul event" />
+            </div>
+            <div class="sheet-row">
+              <div style="flex:1;min-width:0">
+                <label class="field-label" for="local-date">Tanggal</label>
+                <input type="date" id="local-date" class="input" aria-label="Tanggal" />
+              </div>
+              <div style="flex:1;min-width:0">
+                <label class="field-label" for="local-time">Jam (opsional)</label>
+                <input type="time" id="local-time" class="input" aria-label="Jam" />
+              </div>
             </div>
             <p class="local-panel__note" id="local-note" aria-live="polite"></p>
-            <div class="local-panel__actions">
-              <button type="button" class="btn" id="local-cancel">Batal</button>
-              <button type="button" class="btn btn--primary" id="local-save">Simpan event</button>
+            <span class="card-help">Disimpan lokal di perangkat, ikut masuk countdown &amp; notifikasi.</span>
+            <div class="sheet-actions">
+              <button type="button" class="btn-sec" id="local-cancel">Batal</button>
+              <button type="button" class="primary" id="local-save">Simpan event</button>
             </div>
             <ul class="local-list" id="local-list"></ul>
           </section>
@@ -137,21 +150,21 @@
               <circle cx="20" cy="20" r="13.5" />
               <path d="M20 13.2V20l4.6 2.8" />
             </svg>
-            <h2 class="placeholder__title">Nothing due</h2>
+            <h2 class="placeholder__title">Tidak ada deadline mendekat</h2>
             <p class="placeholder__note">
-              No assignment deadlines in the next 120 days. This updates automatically.
+              Tugas baru dari feed akan muncul otomatis di sini.
             </p>
           </section>
 
           <!-- No feed URL configured: the true first-run state -->
           <section class="placeholder placeholder--setup" id="ph-setup" hidden>
-            <h2 class="placeholder__title">Hubungkan Kalender</h2>
+            <h2 class="placeholder__title">Feed belum dipasang</h2>
             <p class="placeholder__note">
-              Sinkronkan tugas dan deadline dari BRONE UB untuk memantau jadwal kuliah langsung di desktop.
+              Tempel URL kalender BRONE atau secret address Google Calendar untuk mulai.
             </p>
             <div class="placeholder__actions">
               <button type="button" class="btn btn--primary" id="btn-open-settings">
-                Hubungkan Sekarang
+                Buka pengaturan
               </button>
             </div>
           </section>
@@ -163,12 +176,12 @@
               <path d="M20 17.5v6" />
               <path d="M20 27.2v.1" />
             </svg>
-            <h2 class="placeholder__title" id="error-title">Can't reach the feed</h2>
+            <h2 class="placeholder__title" id="error-title">Feed tidak terjangkau</h2>
             <p class="placeholder__note" id="error-note"></p>
             <p class="placeholder__fix" id="error-fix"></p>
             <div class="placeholder__actions">
-              <button type="button" class="btn btn--primary" id="btn-retry-error">Try again</button>
-              <button type="button" class="btn" id="btn-open-settings-2">Settings</button>
+              <button type="button" class="btn btn--primary" id="btn-retry-error">Coba lagi</button>
+              <button type="button" class="btn" id="btn-open-settings-2">Pengaturan</button>
             </div>
           </section>
         </div>
