@@ -176,7 +176,7 @@ export const api = {
       collapsed: Boolean(doc.collapsed),
       opacity: typeof doc.opacity === 'number' ? doc.opacity : 1,
       displayMode: doc.displayMode || 'alwaysOnTop',
-      theme: doc.theme === 'light' ? 'light' : 'dark',
+      theme: ['dark', 'light', 'auto'].includes(doc.theme) ? doc.theme : 'auto',
       autoDetect: doc.autoDetect === true,
       refreshMinutes: Number(doc.refreshMinutes) || 20,
       notifyThresholdsHours: Array.isArray(doc.notifyThresholdsHours)

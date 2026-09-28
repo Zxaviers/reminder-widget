@@ -342,11 +342,29 @@ function paintRefreshChips () {
 }
 
 function paintThemeChips () {
-  const current = settingsCache.theme === 'light' ? 'light' : 'dark'
-  renderChips(el.themeChips, ['dark', 'light'], current, {
+  const current = ['dark', 'light', 'auto'].includes(settingsCache.theme)
+    ? settingsCache.theme
+    : 'auto'
+  renderChips(el.themeChips, ['dark', 'light', 'auto'], current, {
     multi: false,
-    format: (v) => v === 'dark' ? 'Gelap' : 'Terang'
+    format: (v) => v === 'dark' ? 'Gelap' : v === 'light' ? 'Terang' : 'Otomatis'
   })
+}
+
+function previewTheme () {
+  const pref = ['dark', 'light', 'auto'].includes(settingsCache.theme)
+    ? settingsCache.theme
+    : 'auto'
+  if (pref !== 'auto') {
+    document.documentElement.dataset.theme = pref
+    return
+  }
+  try {
+    document.documentElement.dataset.theme =
+      window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+  } catch {
+    document.documentElement.dataset.theme = 'dark'
+  }
 }
 
 /** Live snapshot of settings for chip painting; refreshed on load + change. */
@@ -380,7 +398,7 @@ async function load () {
     if (el.opacityVal) el.opacityVal.textContent = `${pct}%`
   }
 
-  document.documentElement.dataset.theme = config.theme === 'light' ? 'light' : 'dark'
+  previewTheme()
   paintThresholdChips()
   paintRefreshChips()
   paintThemeChips()
@@ -462,11 +480,19 @@ if (el.refreshChips) {
 
 if (el.themeChips) {
   el.themeChips.addEventListener('chip-pick', (event) => {
-    const theme = event.detail === 'light' ? 'light' : 'dark'
-    document.documentElement.dataset.theme = theme
-    void commitChips({ theme })
+    const theme = ['dark', 'light', 'auto'].includes(event.detail) ? event.detail : 'auto'
+    settingsCache.theme = theme
+    previewTheme()
+    paintThemeChips()
+    api.settingsWrite({ theme }).then(() => api.settingsChanged()).catch(() => {})
   })
 }
+
+try {
+  window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+    if ((settingsCache.theme ?? 'auto') === 'auto') previewTheme()
+  })
+} catch { /* older webviews: manual theme only */ }
 
 if (el.modeAlwaysTop) {
   el.modeAlwaysTop.addEventListener('change', () => {

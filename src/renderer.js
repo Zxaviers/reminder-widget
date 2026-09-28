@@ -957,10 +957,27 @@ function applyOpacity () {
   document.body.style.opacity = Number.isFinite(o) ? String(Math.min(1, Math.max(0.35, o))) : '1'
 }
 
+/** Opt5 theme trio. "auto" follows the OS color scheme live. */
+function resolveTheme () {
+  if (settingsDoc.theme === 'light') return 'light'
+  if (settingsDoc.theme === 'dark') return 'dark'
+  try {
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+  } catch {
+    return 'dark'
+  }
+}
+
 /** Opt5 theme pair. The native Android widget always stays dark. */
 function applyTheme () {
-  document.documentElement.dataset.theme = settingsDoc.theme === 'light' ? 'light' : 'dark'
+  document.documentElement.dataset.theme = resolveTheme()
 }
+
+try {
+  window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+    if ((settingsDoc.theme ?? 'auto') === 'auto') applyTheme()
+  })
+} catch { /* older webviews: manual theme only */ }
 
 // ------------------------------------------------------------------ rendering
 

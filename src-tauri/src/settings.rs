@@ -64,7 +64,7 @@ pub struct Settings {
     pub bounds: Option<Bounds>,
     /// "alwaysOnTop" | "desktop"
     pub display_mode: String,
-    /// "dark" | "light"
+    /// "dark" | "light" | "auto" (auto follows the OS color scheme)
     pub theme: String,
     /// Renderer-owned: is the "✓ Selesai" (done tasks) section expanded.
     pub show_done: bool,
@@ -96,7 +96,7 @@ impl Default for Settings {
             opacity: 1.0,
             bounds: None,
             display_mode: "alwaysOnTop".into(),
-            theme: "dark".into(),
+            theme: "auto".into(),
             show_done: false,
             auto_detect: false,
             last_checked: BTreeMap::new(),
