@@ -50,6 +50,7 @@ const el = {
   undoText: document.getElementById('undo-text'),
   btnUndo: document.getElementById('btn-undo'),
   btnCollapse: document.getElementById('btn-collapse'),
+  btnHide: document.getElementById('btn-hide'),
   btnAddLocal: document.getElementById('btn-add-local'),
   localPanel: document.getElementById('local-panel'),
   localList: document.getElementById('local-list'),
