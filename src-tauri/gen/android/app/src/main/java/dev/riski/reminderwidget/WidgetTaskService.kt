@@ -80,8 +80,13 @@ class WidgetTaskService : RemoteViewsService() {
 
             return when {
                 remainingMs <= 0 -> {
-                    val overdueHours = Math.abs(remainingMs) / hourMs
-                    val label = if (overdueHours < 1) "Terlewat" else "Terlewat ${overdueHours}j"
+                    // Never a bare label: always carry the duration.
+                    val overdueMinutes = Math.abs(remainingMs) / (60 * 1000L)
+                    val label = if (overdueMinutes < 60) {
+                        "Terlewat ${Math.max(overdueMinutes, 1)}mnt"
+                    } else {
+                        "Terlewat ${overdueMinutes / 60}j"
+                    }
                     Pair(label, "#D66161") // overdue token, 4.98:1 on #14151A
                 }
                 remainingMs < dayMs -> {

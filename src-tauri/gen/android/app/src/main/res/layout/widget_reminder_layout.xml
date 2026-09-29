@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="BRONE Reminder"
-            android:textColor="#ffffff"
+            android:textColor="#F2F1EE"
             android:textSize="13sp"
             android:textStyle="bold" />
 
@@ -29,7 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Sync"
-            android:textColor="#94a3b8"
+            android:textColor="#8E8D88"
             android:textSize="10sp" />
     </LinearLayout>
 
@@ -47,7 +47,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="monospace"
-            android:textColor="#C14A4A"
+            android:textColor="#D66161"
             android:textSize="20sp"
             android:textStyle="bold" />
 

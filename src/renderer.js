@@ -332,9 +332,9 @@ function rowTime (task, now) {
   const hours = Math.floor(minutes / 60)
   const days = Math.floor(hours / 24)
   if (delta < 0) {
-    if (minutes < 60) return `Terlewat ${Math.max(minutes, 1)} mnt`
-    if (hours < 24) return `Terlewat ${hours} jam`
-    return `Terlewat ${days} hari`
+    if (minutes < 60) return `Terlewat ${Math.max(minutes, 1)}mnt`
+    if (hours < 24) return `Terlewat ${hours}j`
+    return `Terlewat ${days}h`
   }
   if (minutes < 60) return `${Math.max(minutes, 1)} mnt lagi`
   if (hours < 24) return `${hours} jam lagi`
@@ -607,18 +607,19 @@ function renderStatus () {
   el.panel.dataset.busy = String(busy)
   el.panel.dataset.state = status
 
-  if (el.taskCount) el.taskCount.textContent = count === 1 ? '1 tugas' : `${count} tugas`
+  const label = count === 1 ? '1 tugas' : `${count} tugas`
+  if (el.taskCount) el.taskCount.textContent = label
 
-  let text
+  let syncText
   if (!meta.configured) {
-    text = STATUS_TEXT.unconfigured
+    syncText = STATUS_TEXT.unconfigured
   } else if (busy && count === 0) {
-    text = STATUS_TEXT[status]
+    syncText = STATUS_TEXT[status]
   } else {
     const synced = relativeSync(meta.lastFetchedAt)
-    text = synced ? `sync ${synced}` : STATUS_TEXT[status]
+    syncText = synced ? `sync ${synced}` : STATUS_TEXT[status]
   }
-  el.status.textContent = text
+  el.status.textContent = ` · ${syncText}`
 
   const failedWithData = Boolean(meta.error) && count > 0
   el.stale.hidden = !failedWithData
