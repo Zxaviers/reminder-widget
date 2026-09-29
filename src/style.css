@@ -923,6 +923,11 @@ body {
   gap: 2px;
 }
 
+/* Glyph (not the 44px box) aligns to the right gutter (audit C4). */
+.bar__actions > .icon-btn:last-child {
+  margin-right: -12px;
+}
+
 .icon-btn {
   width: 44px;
   height: 44px;
@@ -943,8 +948,8 @@ body {
 }
 
 .icon-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
@@ -958,8 +963,8 @@ body {
 }
 
 .icon-btn.small svg {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
 }
 
 .icon-btn:disabled {
@@ -1007,8 +1012,8 @@ body {
 
 .hero-warn {
   margin-left: auto;
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
   fill: none;
   stroke: var(--overdue);
@@ -1088,8 +1093,8 @@ body {
 }
 
 .ring svg {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2.2;
@@ -1099,6 +1104,29 @@ body {
 
 .hero.overdue .ring { border-color: var(--overdue); color: var(--overdue); }
 .hero.soon .ring { border-color: var(--soon); color: var(--soon); }
+
+/* Hero action follows the row pattern (audit B6): compact ring + text,
+   right-aligned, no full-width button competing with the countdown. */
+.hero-done {
+  margin-top: 12px;
+  align-self: flex-end;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 4px 0 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-600);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hero-done:hover {
+  color: var(--ink-900);
+}
 
 /* ---- timeline ledger list ---- */
 
@@ -1279,8 +1307,8 @@ body {
 }
 
 .done-btn .ic {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
   fill: none;
   stroke: var(--ink-400);
@@ -1307,8 +1335,8 @@ body {
 }
 
 .done-btn .rest svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
@@ -1318,10 +1346,11 @@ body {
 
 .done-panel {
   margin-top: 10px;
+  padding: 0 8px;
+}
+
+:root[data-theme="dark"] .panel {
   border: 1px solid var(--divider);
-  border-radius: var(--radius);
-  background: var(--raised);
-  padding: 4px 8px;
 }
 
 .done-panel__list {
@@ -1346,7 +1375,7 @@ body {
   flex: 1;
   min-width: 0;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ink-400);
   white-space: nowrap;
   overflow: hidden;

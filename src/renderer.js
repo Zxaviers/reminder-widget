@@ -1026,6 +1026,12 @@ el.btnSettings?.addEventListener('click', () => api.openSettings())
 
 document.addEventListener('contextmenu', (event) => event.preventDefault())
 
+// Drop sticky hover/focus after tap (audit A5): touch keeps :hover stuck.
+document.addEventListener('click', (event) => {
+  const btn = event.target.closest?.('button')
+  if (btn) btn.blur()
+})
+
 // Esc hides to tray (README parity). The widget takes focus when clicked,
 // so key events do reach it — unlike v1's always-unfocused window.
 window.addEventListener('keydown', (event) => {

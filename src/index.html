@@ -18,11 +18,10 @@
         <header class="bar" id="bar" data-tauri-drag-region="deep">
           <div class="brand" data-tauri-drag-region="deep">
             <span class="wordmark">BRONE Reminder</span>
-            <span class="count" id="task-count"></span>
+            <span class="meta-line"><span class="count" id="task-count"></span><span class="sync" id="status" aria-live="polite"></span></span>
           </div>
 
           <div class="bar__actions">
-            <span class="sync" id="status" aria-live="polite"></span>
             <button type="button" class="icon-btn" id="btn-refresh" title="Refresh now" aria-label="Refresh now">
               <svg viewBox="0 0 256 256" fill="currentColor" data-ph aria-hidden="true">
                 <path d="M228,48V96a12,12,0,0,1-12,12H168a12,12,0,0,1,0-24h19l-7.8-7.8a75.55,75.55,0,0,0-53.32-22.26h-.43A75.49,75.49,0,0,0,72.39,75.57,12,12,0,1,1,55.61,58.41a99.38,99.38,0,0,1,69.87-28.47H126A99.42,99.42,0,0,1,196.2,59.23L204,67V48a12,12,0,0,1,24,0ZM183.61,180.43a75.49,75.49,0,0,1-53.09,21.63h-.43A75.55,75.55,0,0,1,76.77,179.8L69,172H88a12,12,0,0,0,0-24H40a12,12,0,0,0-12,12v48a12,12,0,0,0,24,0V189l7.8,7.8A99.42,99.42,0,0,0,130,226.06h.56a99.38,99.38,0,0,0,69.87-28.47,12,12,0,0,0-16.78-17.16Z" />
@@ -70,10 +69,10 @@
             </div>
             <div class="hero-count" id="hero-count"></div>
             <div class="hero-title" id="hero-title"></div>
-            <button type="button" class="btn" id="hero-done">
+            <button type="button" class="hero-done" id="hero-done">
               <span class="ring" aria-hidden="true">
                 <svg viewBox="0 0 256 256" fill="currentColor" data-ph aria-hidden="true">
-                  <path d="M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z" />
+                  <path d="M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,0,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z" />
                 </svg>
               </span>
               <span>Tandai selesai</span>

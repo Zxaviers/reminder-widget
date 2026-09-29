@@ -67,8 +67,8 @@
 }
 
 .auth-box__title .icon-key {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   fill: none;
   stroke: var(--ink-600);
   stroke-width: 1.8;
@@ -138,8 +138,8 @@
 }
 
 .btn--full svg {
-  width: 15px;
-  height: 15px;
+  width: 20px;
+  height: 20px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
@@ -178,8 +178,8 @@
 }
 
 .result__icon {
-  width: 15px;
-  height: 15px;
+  width: 20px;
+  height: 20px;
   flex: none;
   margin-top: 1px;
   fill: none;
@@ -419,6 +419,20 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+/* Single-select groups render as full-width segmented controls with equal
+   columns (audit B4). Multi-select threshold chips keep the chip style. */
+.chips.segmented {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 8px;
+}
+
+.chips.segmented .chip {
+  padding: 0 8px;
+  text-align: center;
 }
 
 .chip {

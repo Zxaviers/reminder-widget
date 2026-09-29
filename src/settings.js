@@ -160,6 +160,18 @@ function autoFeedLabel (kind, rawUrl) {
   }
 }
 
+function feedHostOf (rawUrl) {
+  try {
+    return new URL(String(rawUrl ?? '').trim()).hostname || null
+  } catch {
+    return null
+  }
+}
+
+function feedHost (feed) {
+  return feedHosts[feed.id] ?? null
+}
+
 function nextFeedId (kind) {
   if (kind === 'brone') return 'brone'
   const prefix = kind === 'google' ? 'google' : 'ics'
@@ -186,6 +198,9 @@ function svgIcon (paths, viewBox = '0 0 16 16') {
 const ICON_REFRESH = PH.refresh
 const ICON_TRASH = PH.trash
 
+/** Hostname (non-secret URL part) per feed id for informative meta rows. */
+let feedHosts = {}
+
 async function refreshFeedList () {
   if (!el.feedList) return
   el.feedList.replaceChildren()
@@ -194,6 +209,14 @@ async function refreshFeedList () {
     feeds = await api.feedsList()
   } catch {
     feeds = []
+  }
+  try {
+    const full = await api.feedsGetFull()
+    feedHosts = Object.fromEntries(
+      (Array.isArray(full) ? full : []).map((f) => [f.id, feedHostOf(f.url)])
+    )
+  } catch {
+    feedHosts = {}
   }
   const ordered = [...feeds].sort((a, b) => {
     if (a.id === 'brone') return -1
@@ -212,7 +235,7 @@ async function refreshFeedList () {
     name.textContent = feed.label || feed.id
     const meta = document.createElement('span')
     meta.className = 'feed-meta'
-    meta.textContent = `${KIND_NAME[feed.kind] || feed.kind} · ${feed.hasSecret ? 'terhubung' : 'tanpa URL'}`
+    meta.textContent = `${(feedHost(feed) ?? KIND_NAME[feed.kind]) || feed.kind} · ${feed.hasSecret ? 'terhubung' : 'tanpa URL'}`
     info.append(name, meta)
 
     const testBtn = document.createElement('button')
@@ -570,6 +593,12 @@ if (el.opacity) {
 
 document.addEventListener('contextmenu', (event) => {
   if (event.target !== el.feedUrl) event.preventDefault()
+})
+
+// Drop sticky hover/focus after tap (audit A5): touch keeps :hover stuck.
+document.addEventListener('click', (event) => {
+  const btn = event.target.closest?.('button')
+  if (btn) btn.blur()
 })
 
 load().catch((error) => {
