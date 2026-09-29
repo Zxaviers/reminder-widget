@@ -13,13 +13,14 @@
 
     <!-- Left-border urgency indicator: thin strip, color set programmatically
          in WidgetTaskService via setInt(setBackgroundColor). RemoteViews
-         cannot draw real borders. -->
-    <View
+         forbids bare <View>, so an ImageView is used as the strip. -->
+    <ImageView
         android:id="@+id/widget_row_border"
         android:layout_width="3dp"
         android:layout_height="match_parent"
         android:layout_marginEnd="8dp"
-        android:background="#8E8D88" />
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_row_strip" />
 
     <TextView
         android:id="@+id/widget_row_time"
