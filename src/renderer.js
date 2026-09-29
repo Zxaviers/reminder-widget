@@ -21,7 +21,7 @@ import { planSchedules } from './schedulePlan.js'
 import { normalizeLocalEvent, withLocalTasks } from './localEvents.js'
 import { mergeFeedTasks } from './multiFetch.js'
 import { ICONS, PH_VIEWBOX } from './icons.js'
-import { urgencyOf as urgencyBucket, rowTime as rowTimeText } from './taskFormat.js'
+import { urgencyOf as urgencyBucket, rowTime as rowTimeText, isDataStale as isSyncedDataStale } from './taskFormat.js'
 
 const el = {
   panel: document.getElementById('panel'),
@@ -590,14 +590,21 @@ function renderStatus () {
   }
   el.status.textContent = ` · ${syncText}`
 
+  // Partial failure (some feeds down) surfaces once the on-screen data is
+  // older than one refresh interval — fresh data fails silently on purpose.
   const failedWithData = Boolean(meta.error) && count > 0
-  el.stale.hidden = !failedWithData
-  if (failedWithData) {
-    const fix = ERROR_FIX[meta.error.code]
-    const message = typeof meta.error.message === 'string' ? meta.error.message.trim() : ''
+  const partialStale = !failedWithData && Boolean(meta.partialError) && count > 0 &&
+    isSyncedDataStale(meta.lastFetchedAt, Date.now(), settingsDoc.refreshMinutes)
+  el.stale.hidden = !(failedWithData || partialStale)
+  if (failedWithData || partialStale) {
+    const problem = meta.error ?? meta.partialError ?? {}
+    const fix = ERROR_FIX[problem.code]
+    const message = typeof problem.message === 'string' ? problem.message.trim() : ''
     el.staleText.textContent = fix || message || "Couldn't refresh. Showing the last synced copy."
   }
 }
+
+
 
 function showPlaceholder (which) {
   for (const [key, node] of Object.entries(el.placeholders)) {

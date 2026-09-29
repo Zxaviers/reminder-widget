@@ -43,6 +43,14 @@ export function urgencyOf (dueMs, nowMs = Date.now()) {
   return 'later'
 }
 
+/** True when synced data is older than one refresh interval. */
+export function isDataStale (lastFetchedAtIso, nowMs = Date.now(), refreshMinutes = 20) {
+  const at = Date.parse(lastFetchedAtIso)
+  if (!Number.isFinite(at)) return true
+  const intervalMs = (Number(refreshMinutes) || 20) * MINUTE_MS
+  return nowMs - at > intervalMs
+}
+
 /** Timeline/hero/widget countdown text with words + numbers. */
 export function rowTime (dueMs, nowMs = Date.now()) {
   const delta = dueMs - nowMs

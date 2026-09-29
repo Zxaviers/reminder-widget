@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { urgencyOf, rowTime, SOON_MS } from '../src/taskFormat.js'
+import { urgencyOf, rowTime, SOON_MS, isDataStale } from '../src/taskFormat.js'
 
 const HOUR = 60 * 60 * 1000
 const NOW = new Date('2026-09-28T10:00:00').getTime()
@@ -30,6 +30,15 @@ test('future labels: minutes, hours, tomorrow, weekday, days', () => {
   const tomorrow = rowTime(NOW + 26 * HOUR, NOW)
   assert.match(tomorrow, /^Besok \d{2}\.\d{2}$/)
   assert.equal(rowTime(NOW + 10 * 24 * HOUR, NOW), '10 hari lagi')
+})
+
+test('isDataStale fires past one refresh interval', () => {
+  const fresh = new Date(NOW - 5 * 60 * 1000).toISOString()
+  const old = new Date(NOW - 25 * 60 * 1000).toISOString()
+  assert.equal(isDataStale(fresh, NOW, 20), false)
+  assert.equal(isDataStale(old, NOW, 20), true)
+  assert.equal(isDataStale(null, NOW, 20), true)
+  assert.equal(isDataStale('bogus', NOW, 20), true)
 })
 
 test('rowTime output never wraps the compact column', () => {
