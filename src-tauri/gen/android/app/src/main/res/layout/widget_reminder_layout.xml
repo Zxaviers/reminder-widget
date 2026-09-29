@@ -87,7 +87,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Tidak ada deadline mendekat"
-            android:textColor="#38bdf8"
+            android:textColor="#8E8D88"
             android:textSize="12sp"
             android:textStyle="bold" />
 
@@ -96,7 +96,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:text="Buka aplikasi untuk sinkronisasi"
-            android:textColor="#64748b"
+            android:textColor="#8E8D88"
             android:textSize="10sp" />
     </LinearLayout>
 
@@ -105,7 +105,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:text="Ketuk untuk buka aplikasi"
-        android:textColor="#6E6D68"
+        android:textColor="#8E8D88"
         android:textSize="10sp" />
 
 </LinearLayout>

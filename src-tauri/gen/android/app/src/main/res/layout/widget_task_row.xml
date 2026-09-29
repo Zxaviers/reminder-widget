@@ -4,15 +4,22 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
-    android:minHeight="30dp"
-    android:orientation="horizontal">
+    android:minHeight="48dp"
+    android:orientation="horizontal"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
 
-    <ImageView
-        android:id="@+id/widget_row_dot"
-        android:layout_width="8dp"
-        android:layout_height="8dp"
+    <!-- Left-border urgency indicator: thin strip, color set programmatically
+         in WidgetTaskService via setInt(setBackgroundColor). RemoteViews
+         cannot draw real borders. -->
+    <View
+        android:id="@+id/widget_row_border"
+        android:layout_width="3dp"
+        android:layout_height="match_parent"
         android:layout_marginEnd="8dp"
-        android:src="@drawable/dot_green" />
+        android:background="#8E8D88" />
 
     <TextView
         android:id="@+id/widget_row_time"
@@ -21,7 +28,7 @@
         android:ellipsize="none"
         android:fontFamily="monospace"
         android:textColor="#B8B6B0"
-        android:textSize="11sp"
+        android:textSize="12sp"
         android:textStyle="bold" />
 
     <TextView
@@ -30,7 +37,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:ellipsize="end"
-        android:maxLines="1"
+        android:maxLines="2"
         android:textColor="#F2F1EE"
         android:textSize="11sp" />
 
@@ -41,7 +48,8 @@
         android:layout_marginStart="8dp"
         android:ellipsize="none"
         android:fontFamily="monospace"
-        android:textColor="#6E6D68"
+        android:textColor="#8E8D88"
         android:textSize="9sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:textAllCaps="true" />
 </LinearLayout>

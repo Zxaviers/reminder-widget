@@ -48,10 +48,16 @@ class WidgetTaskService : RemoteViewsService() {
             views.setTextViewText(R.id.widget_row_src, task.course.ifEmpty { "BRONE" })
 
             val remainingMs = task.dueMs - System.currentTimeMillis()
-            val (timeText, dotRes, colorHex) = formatRelativeTime(remainingMs)
+            val (timeText, colorHex) = formatRelativeTime(remainingMs)
             views.setTextViewText(R.id.widget_row_time, timeText)
             views.setTextColor(R.id.widget_row_time, Color.parseColor(colorHex))
-            views.setImageViewResource(R.id.widget_row_dot, dotRes)
+            // Urgency = left-border strip + colored time text (never color alone:
+            // timeText always carries the word/number label).
+            views.setInt(
+                R.id.widget_row_border,
+                "setBackgroundColor",
+                Color.parseColor(colorHex)
+            )
 
             val fillIn = Intent().apply {
                 putExtra(ReminderAppWidgetProvider.EXTRA_TASK_ID, task.id)
@@ -68,7 +74,7 @@ class WidgetTaskService : RemoteViewsService() {
 
         override fun hasStableIds(): Boolean = false
 
-        private fun formatRelativeTime(remainingMs: Long): Triple<String, Int, String> {
+        private fun formatRelativeTime(remainingMs: Long): Pair<String, String> {
             val hourMs = 60 * 60 * 1000L
             val dayMs = 24 * hourMs
 
@@ -76,15 +82,15 @@ class WidgetTaskService : RemoteViewsService() {
                 remainingMs <= 0 -> {
                     val overdueHours = Math.abs(remainingMs) / hourMs
                     val label = if (overdueHours < 1) "Terlewat" else "Terlewat ${overdueHours}j"
-                    Triple(label, R.drawable.dot_red, "#ef4444")
+                    Pair(label, "#D66161") // overdue token, 4.98:1 on #14151A
                 }
                 remainingMs < dayMs -> {
                     val hours = Math.max(1L, remainingMs / hourMs)
-                    Triple("${hours} jam lagi", R.drawable.dot_amber, "#f59e0b")
+                    Pair("${hours} jam lagi", "#E8B85E") // soon token (dark)
                 }
                 else -> {
                     val days = remainingMs / dayMs
-                    Triple("${days} hari lagi", R.drawable.dot_green, "#7ee787")
+                    Pair("${days} hari lagi", "#B8B6B0") // neutral ink-600
                 }
             }
         }

@@ -342,6 +342,7 @@ function rowTime (task, now) {
 /**
  * Builds one timeline row. Uses textContent throughout: feed values are
  * untrusted remote content and never become markup.
+ * Only the first row (index 0) gets urgency styling — max 2 semantic colors per screen.
  */
 function taskRow (task, now, { animate, index }) {
   const urgency = urgencyOf(task, now)
@@ -349,8 +350,11 @@ function taskRow (task, now, { animate, index }) {
 
   const row = document.createElement('li')
   row.className = 'row'
-  if (urgency === 'overdue') row.classList.add('overdue')
-  else if (urgency === 'soon') row.classList.add('soon')
+  // Max 2 semantic colors: hero + first list item only
+  if (index === 0) {
+    if (urgency === 'overdue') row.classList.add('overdue')
+    else if (urgency === 'soon') row.classList.add('soon')
+  }
 
   if (animate) {
     row.classList.add('row--enter')

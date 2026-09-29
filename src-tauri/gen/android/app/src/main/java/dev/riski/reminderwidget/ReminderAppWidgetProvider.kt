@@ -130,15 +130,15 @@ class ReminderAppWidgetProvider : AppWidgetProvider() {
                 remainingMs <= 0 -> {
                     val overdueHours = Math.abs(remainingMs) / hourMs
                     val label = if (overdueHours < 1) "Terlewat" else "Terlewat ${overdueHours}j"
-                    Pair(label, "#C14A4A")
+                    Pair(label, "#D66161") // overdue token, 4.98:1 on #14151A
                 }
                 remainingMs < dayMs -> {
                     val hours = Math.max(1L, remainingMs / hourMs)
-                    Pair("${hours} jam lagi", "#D6A44F")
+                    Pair("${hours} jam lagi", "#E8B85E") // soon token (dark)
                 }
                 else -> {
                     val days = remainingMs / dayMs
-                    Pair("${days} hari lagi", "#F2F1EE")
+                    Pair("${days} hari lagi", "#F2F1EE") // neutral ink-900
                 }
             }
         }

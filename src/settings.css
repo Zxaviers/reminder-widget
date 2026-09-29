@@ -501,6 +501,14 @@
   cursor: pointer;
 }
 
+.chip:hover {
+  background: var(--hover);
+}
+
+.chip:active {
+  background: var(--press);
+}
+
 .chip.on {
   background: var(--ink-900);
   border-color: var(--ink-900);
