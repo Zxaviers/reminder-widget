@@ -12,6 +12,7 @@
 
 import { api } from './api.js'
 import { normalizeFeed } from './feeds.js'
+import { ICONS as PH, PH_VIEWBOX } from './icons.js'
 
 const el = {
   close: document.getElementById('close'),
@@ -39,16 +40,20 @@ const el = {
   footnote: document.getElementById('footnote')
 }
 
+// Official Phosphor Icons (Bold) result glyphs — see src/icons.js.
 const ICONS = {
-  ok: ['M13.5 4.5 6.5 11.5 2.5 7.5'],
-  bad: ['M8 2.5 15 14.5H1z', 'M8 6.6v3.2', 'M8 12.2v.1'],
-  busy: ['M8 2.5a5.5 5.5 0 1 1-5.5 5.5', 'M8 2.5V5']
+  ok: PH.checkCircle,
+  bad: PH.warningCircle,
+  busy: PH.refresh
 }
 
 let busy = false
 
 function setIcon (kind) {
   if (!el.resultIcon) return
+  el.resultIcon.setAttribute('viewBox', PH_VIEWBOX)
+  el.resultIcon.setAttribute('fill', 'currentColor')
+  el.resultIcon.setAttribute('data-ph', '')
   el.resultIcon.replaceChildren()
   for (const d of ICONS[kind] ?? []) {
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
@@ -161,10 +166,14 @@ function nextFeedId (kind) {
   return `${prefix}-${Date.now().toString(36)}`
 }
 
-function svgIcon (paths) {
+function svgIcon (paths, viewBox = '0 0 16 16') {
   const node = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  node.setAttribute('viewBox', '0 0 16 16')
+  node.setAttribute('viewBox', viewBox)
   node.setAttribute('aria-hidden', 'true')
+  if (viewBox === PH_VIEWBOX) {
+    node.setAttribute('fill', 'currentColor')
+    node.setAttribute('data-ph', '')
+  }
   for (const d of paths) {
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
     path.setAttribute('d', d)
@@ -173,8 +182,9 @@ function svgIcon (paths) {
   return node
 }
 
-const ICON_REFRESH = ['M13.5 8a5.5 5.5 0 1 1-1.9-4.16', 'M13.6 1.9v2.4h-2.4']
-const ICON_TRASH = ['M2.5 4.5h11', 'M6.5 4.5V3a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1.5', 'M4 4.5 4.7 13a1 1 0 0 0 1 .9h4.6a1 1 0 0 0 1-.9L12 4.5', 'M6.8 7v4M9.2 7v4']
+// Official Phosphor Icons (Bold) — see src/icons.js.
+const ICON_REFRESH = PH.refresh
+const ICON_TRASH = PH.trash
 
 async function refreshFeedList () {
   if (!el.feedList) return
@@ -209,14 +219,14 @@ async function refreshFeedList () {
     testBtn.type = 'button'
     testBtn.className = 'icon-btn small'
     testBtn.setAttribute('aria-label', `Uji koneksi ${feed.label || feed.id}`)
-    testBtn.appendChild(svgIcon(ICON_REFRESH))
+    testBtn.appendChild(svgIcon(ICON_REFRESH, PH_VIEWBOX))
     testBtn.addEventListener('click', () => testFeedRow(feed))
 
     const rm = document.createElement('button')
     rm.type = 'button'
     rm.className = 'icon-btn small'
     rm.setAttribute('aria-label', `Hapus feed ${feed.label || feed.id}`)
-    rm.appendChild(svgIcon(ICON_TRASH))
+    rm.appendChild(svgIcon(ICON_TRASH, PH_VIEWBOX))
     rm.addEventListener('click', async () => {
       setBusy(true, 'Menghapus feed…')
       try {

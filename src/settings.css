@@ -807,3 +807,10 @@ input[type='range']#opacity {
   font-variant-numeric: tabular-nums;
   color: var(--fg-3);
 }
+
+/* Official Phosphor fill glyphs: opt out of the stroke icon rules above.
+   Placed last so it wins equal-specificity ties. */
+svg[data-ph] {
+  fill: currentColor;
+  stroke: none;
+}

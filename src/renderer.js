@@ -20,6 +20,7 @@ import { thresholdsToMs } from './notifyConfig.js'
 import { planSchedules } from './schedulePlan.js'
 import { normalizeLocalEvent, withLocalTasks } from './localEvents.js'
 import { mergeFeedTasks } from './multiFetch.js'
+import { ICONS, PH_VIEWBOX } from './icons.js'
 
 const el = {
   panel: document.getElementById('panel'),
@@ -272,6 +273,10 @@ function svg (paths, viewBox = '0 0 16 16') {
   const node = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
   node.setAttribute('viewBox', viewBox)
   node.setAttribute('aria-hidden', 'true')
+  if (viewBox === PH_VIEWBOX) {
+    node.setAttribute('fill', 'currentColor')
+    node.setAttribute('data-ph', '')
+  }
   for (const d of paths) {
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
     path.setAttribute('d', d)
@@ -280,8 +285,10 @@ function svg (paths, viewBox = '0 0 16 16') {
   return node
 }
 
-const CHECK_ICON = ['M3.5 8.5 6.5 11.5 12.5 5']
-const RESTORE_ICON = ['M13.5 8.5 6.5 5.5 2.5 8.5']
+// Official Phosphor Icons (Bold) — see src/icons.js.
+const CHECK_ICON = ICONS.check
+const RESTORE_ICON = ICONS.restore
+const CHECK_VIEWBOX = PH_VIEWBOX
 
 /** Opt5 urgency: overdue | soon (<24h) | later. Neutral items stay uncolored. */
 function urgencyOf (task, now) {
@@ -402,7 +409,7 @@ function taskRow (task, now, { animate, index }) {
   doneBtn.setAttribute('aria-label', `Tandai ${task.title} selesai`)
   const ring = document.createElement('span')
   ring.className = 'ring'
-  ring.appendChild(svg(CHECK_ICON))
+  ring.appendChild(svg(CHECK_ICON, CHECK_VIEWBOX))
   doneBtn.appendChild(ring)
   doneBtn.addEventListener('click', (event) => {
     event.stopPropagation()
@@ -484,7 +491,7 @@ function doneTaskRow (task, now) {
   restoreBtn.className = 'icon-btn small'
   restoreBtn.title = 'Kembalikan ke daftar tugas'
   restoreBtn.setAttribute('aria-label', `Kembalikan ${task.title} ke daftar tugas`)
-  restoreBtn.appendChild(svg(RESTORE_ICON))
+  restoreBtn.appendChild(svg(RESTORE_ICON, CHECK_VIEWBOX))
   restoreBtn.addEventListener('click', (event) => {
     event.stopPropagation()
     restoreTask(task)
