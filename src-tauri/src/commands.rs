@@ -235,82 +235,22 @@ pub fn feed_url_get() -> Result<FeedUrlInfo, String> {
     })
 }
 
-/// Android only: match the status-bar icon style to the effective web theme
-/// at runtime (audit A1). `light_icons = true` draws light (white) icons
-/// for dark canvas. API 30+ uses WindowInsetsController; older releases
-/// fall back to SYSTEM_UI_FLAG_LIGHT_STATUS_BAR. Desktop: no-op.
+/// Status-bar icon style hook (audit A1).
+///
+/// ATTEMPTED AND REVERTED: driving this at runtime from Rust via raw JNI
+/// (`ndk-context`) aborts the process — Tauri owns the Activity and never
+/// initializes ndk-context ("android context was not initialized" panic in
+/// JavaBridge, verified via logcat tombstone). A proper fix needs a Tauri
+/// mobile plugin holding the Activity, which is out of scope for this pass.
+///
+/// Current behavior: no-op. The static `themes.xml` / `values-night` pair
+/// keeps icons readable whenever the effective theme matches the OS night
+/// mode (the default "auto" theme), which covers the reported dark-theme
+/// symptom. Manual theme overrides do not move the status bar yet.
 #[tauri::command]
 pub fn set_status_bar_style(light_icons: bool) -> Result<(), String> {
-    #[cfg(target_os = "android")]
-    {
-        use jni::objects::JValue;
-
-        const APPEARANCE_LIGHT_STATUS_BARS: i32 = 8;
-        const SYSTEM_UI_FLAG_LIGHT_STATUS_BAR: i32 = 0x2000;
-
-        let ctx = ndk_context::android_context();
-        // SAFETY: ndk-context only hands out the VM/activity while the app
-        // is attached, which always holds inside a Tauri command.
-        let vm = unsafe { jni::JavaVM::from_raw(ctx.vm().cast()) }.map_err(|e| e.to_string())?;
-        let mut env = vm.attach_current_thread().map_err(|e| e.to_string())?;
-        let activity = unsafe { jni::objects::JObject::from_raw(ctx.context().cast()) };
-
-        let sdk: i32 = env
-            .get_static_field("android/os/Build$VERSION", "SDK_INT", "I")
-            .map_err(|e| e.to_string())?
-            .i()
-            .map_err(|e| e.to_string())?;
-        let window: jni::objects::JObject = env
-            .call_method(&activity, "getWindow", "()Landroid/view/Window;", &[])
-            .map_err(|e| e.to_string())?
-            .l()
-            .map_err(|e| e.to_string())?;
-        let decor: jni::objects::JObject = env
-            .call_method(&window, "getDecorView", "()Landroid/view/View;", &[])
-            .map_err(|e| e.to_string())?
-            .l()
-            .map_err(|e| e.to_string())?;
-
-        if sdk >= 30 {
-            let controller: jni::objects::JObject = env
-                .call_method(
-                    &decor,
-                    "getWindowInsetsController",
-                    "()Landroid/view/WindowInsetsController;",
-                    &[],
-                )
-                .map_err(|e| e.to_string())?
-                .l()
-                .map_err(|e| e.to_string())?;
-            let appearance = if light_icons { 0 } else { APPEARANCE_LIGHT_STATUS_BARS };
-            env.call_method(
-                &controller,
-                "setAppearanceLightStatusBars",
-                "(I)V",
-                &[JValue::Int(appearance)],
-            )
-            .map_err(|e| e.to_string())?;
-        } else {
-            let current: i32 = env
-                .call_method(&decor, "getSystemUiVisibility", "()I", &[])
-                .map_err(|e| e.to_string())?
-                .i()
-                .map_err(|e| e.to_string())?;
-            let next = if light_icons {
-                current & !SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-            } else {
-                current | SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-            };
-            env.call_method(&decor, "setSystemUiVisibility", "(I)V", &[JValue::Int(next)])
-                .map_err(|e| e.to_string())?;
-        }
-        Ok(())
-    }
-    #[cfg(not(target_os = "android"))]
-    {
-        let _ = light_icons;
-        Ok(())
-    }
+    let _ = light_icons;
+    Ok(())
 }
 
 /// Full URL only ever travels back once, right after the user logs in or
