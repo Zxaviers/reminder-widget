@@ -30,11 +30,30 @@
 /* ------------------------------------------------------------------ auth-box */
 
 .auth-box {
-  background: linear-gradient(135deg, rgba(91, 181, 166, 0.12) 0%, rgba(30, 34, 56, 0.4) 100%);
-  border: 1px solid rgba(91, 181, 166, 0.25);
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 12px;
+  background: var(--raised);
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-outer);
+  padding: 14px 16px;
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Connected: collapse to the reconnect path only (audit A2/E2). */
+.auth-box.connected .step-guide,
+.auth-box.connected .auth-box__desc {
+  display: none;
+}
+
+.auth-box__reconnect {
+  font-size: 11px;
+  color: var(--ink-400);
+  line-height: 1.4;
+}
+
+.auth-box:not(.connected) .auth-box__reconnect {
+  display: none;
 }
 
 .auth-box__title {
@@ -51,7 +70,7 @@
   width: 16px;
   height: 16px;
   fill: none;
-  stroke: var(--accent);
+  stroke: var(--ink-600);
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;

@@ -10,9 +10,6 @@ import android.net.Uri
 import android.view.View
 import android.widget.RemoteViews
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class ReminderAppWidgetProvider : AppWidgetProvider() {
 
@@ -62,10 +59,11 @@ class ReminderAppWidgetProvider : AppWidgetProvider() {
             views.setRemoteAdapter(R.id.widget_task_list, serviceIntent)
             views.setEmptyView(R.id.widget_task_list, R.id.widget_empty_view)
 
-            // Update timestamp.
+            // Relative sync age from the tasks file mtime — same words as the
+            // app ("sync 5 mnt"), never an absolute clock (audit C8).
             val nowMs = System.currentTimeMillis()
-            val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-            views.setTextViewText(R.id.widget_sync_time, "Sync ${timeFormat.format(Date(nowMs))}")
+            val syncAgeMs = findWidgetTasksFile(context)?.lastModified()?.let { nowMs - it }
+            views.setTextViewText(R.id.widget_sync_time, syncText(syncAgeMs))
 
             // Hero shows tasks[0]; the service list shows the rest.
             val hero = loadFirstTask(context)
@@ -121,6 +119,16 @@ class ReminderAppWidgetProvider : AppWidgetProvider() {
             } catch (_: Exception) {
                 return null
             }
+        }
+
+        private fun syncText(ageMs: Long?): String {
+            if (ageMs == null || ageMs < 0) return "sync"
+            if (ageMs < 90 * 1000L) return "sync baru saja"
+            val minutes = ageMs / (60 * 1000L)
+            if (minutes < 60) return "sync ${minutes} mnt"
+            val hours = minutes / 60
+            if (hours < 24) return "sync ${hours} jam"
+            return "sync ${hours / 24} hari"
         }
 
         private fun heroLabel(remainingMs: Long): Pair<String, String> {

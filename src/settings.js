@@ -365,16 +365,16 @@ function previewTheme () {
   const pref = ['dark', 'light', 'auto'].includes(settingsCache.theme)
     ? settingsCache.theme
     : 'auto'
-  if (pref !== 'auto') {
-    document.documentElement.dataset.theme = pref
-    return
+  let theme = pref
+  if (pref === 'auto') {
+    try {
+      theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+    } catch {
+      theme = 'dark'
+    }
   }
-  try {
-    document.documentElement.dataset.theme =
-      window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
-  } catch {
-    document.documentElement.dataset.theme = 'dark'
-  }
+  document.documentElement.dataset.theme = theme
+  void api.setStatusBarStyle(theme !== 'light')
 }
 
 /** Live snapshot of settings for chip painting; refreshed on load + change. */
@@ -420,13 +420,16 @@ async function load () {
     el.modeAlwaysTop.checked = true
   }
 
+  const authBox = document.getElementById('auth-box')
   if (config.feedUrl) {
     if (el.sub) el.sub.textContent = 'Terhubung'
+    if (authBox) authBox.classList.add('connected')
   } else if (config.envMasked) {
     if (el.sub) el.sub.textContent = 'Menggunakan .env'
     showResult('ok', 'Menggunakan CALENDAR_FEED_URL', `${config.envMasked} — tambah feed di bawah jika ingin mengganti.`)
   } else if (el.sub) {
     el.sub.textContent = 'Belum Terhubung'
+    if (authBox) authBox.classList.remove('connected')
   }
 
   const isMob = await api.isMobile()

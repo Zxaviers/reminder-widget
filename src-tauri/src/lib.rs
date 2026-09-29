@@ -224,6 +224,7 @@ pub fn run() {
             commands::feed_set,
             commands::feed_remove,
             commands::feeds_get_full,
+            commands::set_status_bar_style,
             commands::set_display_mode,
             commands::notify,
             commands::tray_tooltip,

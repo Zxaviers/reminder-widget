@@ -96,6 +96,9 @@ export const api = {
   feedRemove: (id) => cmd('feed_remove', { id }),
   /** Enabled feeds with secret URLs for fetching [{id, kind, label, url}]. */
   feedsGetFull: () => cmd('feeds_get_full'),
+  /** Android status-bar icon style follows the effective theme (A1). */
+  setStatusBarStyle: (lightIcons) =>
+    cmd('set_status_bar_style', { lightIcons: Boolean(lightIcons) }).catch(() => {}),
 
   // ---- display mode
   setDisplayMode: (mode) => cmd('set_display_mode', { mode: String(mode ?? '') }),

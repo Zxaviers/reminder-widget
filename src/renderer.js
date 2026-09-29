@@ -21,6 +21,7 @@ import { planSchedules } from './schedulePlan.js'
 import { normalizeLocalEvent, withLocalTasks } from './localEvents.js'
 import { mergeFeedTasks } from './multiFetch.js'
 import { ICONS, PH_VIEWBOX } from './icons.js'
+import { urgencyOf as urgencyBucket, rowTime as rowTimeText } from './taskFormat.js'
 
 const el = {
   panel: document.getElementById('panel'),
@@ -290,12 +291,13 @@ const CHECK_ICON = ICONS.check
 const RESTORE_ICON = ICONS.restore
 const CHECK_VIEWBOX = PH_VIEWBOX
 
-/** Opt5 urgency: overdue | soon (<24h) | later. Neutral items stay uncolored. */
+/** Task-shaped adapters over the single taskFormat.js implementation. */
 function urgencyOf (task, now) {
-  const delta = task.dueMs - now
-  if (delta < 0) return 'overdue'
-  if (delta <= SOON_MS) return 'soon'
-  return 'later'
+  return urgencyBucket(task.dueMs, now)
+}
+
+function rowTimeShaped (task, now) {
+  return rowTimeText(task.dueMs, now)
 }
 
 /** Feed label for the name slot (mockup hero-name / row name). */
@@ -316,40 +318,10 @@ function codeFor (task) {
   return 'BRONE'
 }
 
-const dotTimeFmt = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
-function dotTime (dueMs) {
-  return dotTimeFmt.format(new Date(dueMs)).replace(':', '.')
-}
-
-/**
- * Timeline time text: relative when near, weekday + clock when further.
- * Always words + numbers, never color alone.
- */
-function rowTime (task, now) {
-  const delta = task.dueMs - now
-  const abs = Math.abs(delta)
-  const minutes = Math.floor(abs / MINUTE)
-  const hours = Math.floor(minutes / 60)
-  const days = Math.floor(hours / 24)
-  if (delta < 0) {
-    if (minutes < 60) return `Terlewat ${Math.max(minutes, 1)}mnt`
-    if (hours < 24) return `Terlewat ${hours}j`
-    return `Terlewat ${days}h`
-  }
-  if (minutes < 60) return `${Math.max(minutes, 1)} mnt lagi`
-  if (hours < 24) return `${hours} jam lagi`
-  const due = new Date(task.dueMs)
-  const start = startOfDay(now)
-  const dayDelta = Math.round((startOfDay(task.dueMs) - start) / DAY)
-  if (dayDelta === 1) return `Besok ${dotTime(task.dueMs)}`
-  if (dayDelta < 7) return `${weekdayFmt.format(due)} ${dotTime(task.dueMs)}`
-  return `${days} hari lagi`
-}
-
 /**
  * Builds one timeline row. Uses textContent throughout: feed values are
  * untrusted remote content and never become markup.
- * Only the first row (index 0) gets urgency styling — max 2 semantic colors per screen.
+ * Urgency color comes from the bucket alone (audit A3), never position.
  */
 function taskRow (task, now, { animate, index }) {
   const urgency = urgencyOf(task, now)
@@ -357,11 +329,8 @@ function taskRow (task, now, { animate, index }) {
 
   const row = document.createElement('li')
   row.className = 'row'
-  // Max 2 semantic colors: hero + first list item only
-  if (index === 0) {
-    if (urgency === 'overdue') row.classList.add('overdue')
-    else if (urgency === 'soon') row.classList.add('soon')
-  }
+  if (urgency === 'overdue') row.classList.add('overdue')
+  else if (urgency === 'soon') row.classList.add('soon')
 
   if (animate) {
     row.classList.add('row--enter')
@@ -374,7 +343,7 @@ function taskRow (task, now, { animate, index }) {
 
   const time = document.createElement('span')
   time.className = 'time'
-  time.textContent = rowTime(task, now)
+  time.textContent = rowTimeShaped(task, now)
 
   const titleWrap = document.createElement('span')
   titleWrap.className = 'row-title'
@@ -422,7 +391,7 @@ function taskRow (task, now, { animate, index }) {
     task.title,
     codeFor(task),
     `Deadline: ${fullDateFmt.format(dueDate)}`,
-    rowTime(task, now)
+    rowTimeShaped(task, now)
   ]
     .filter(Boolean)
     .join(', ')
@@ -445,7 +414,7 @@ function renderHero (task, now) {
   el.heroCode.textContent = codeFor(task)
   el.heroName.textContent = feedLabelFor(task)
   if (el.heroWarn) el.heroWarn.hidden = urgency === 'later'
-  el.heroCount.textContent = rowTime(task, now)
+  el.heroCount.textContent = rowTimeShaped(task, now)
   el.heroTitle.textContent = task.title
   el.heroDone.onclick = () => markDone(task)
   el.heroDone.setAttribute('aria-label', `Tandai ${task.title} selesai`)
@@ -992,7 +961,9 @@ function resolveTheme () {
 
 /** Opt5 theme pair. The native Android widget always stays dark. */
 function applyTheme () {
-  document.documentElement.dataset.theme = resolveTheme()
+  const theme = resolveTheme()
+  document.documentElement.dataset.theme = theme
+  void api.setStatusBarStyle(theme !== 'light')
 }
 
 try {
