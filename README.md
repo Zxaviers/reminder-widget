@@ -4,7 +4,7 @@
 >
 > ⚠️ **Penting / Notice:** Versi desktop (Windows) berfungsi penuh & siap dipakai. Versi **Android (build v8) sudah lulus Audit UI/UX 2.0** dan tersedia sebagai *developer preview* — fungsional untuk pengujian harian, namun masih tanpa background refresh otomatis.
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Zxaviers/reminder-widget/releases/tag/v1.0.0)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/Zxaviers/reminder-widget/releases/tag/v1.1.0)
 [![Platform](https://img.shields.io/badge/platform-Windows%20(Stable)%20|%20Android%20(Preview)-blue.svg)](https://github.com/Zxaviers/reminder-widget)
 [![Build](https://img.shields.io/github/actions/workflow/status/Zxaviers/reminder-widget/ci.yml?branch=main)](https://github.com/Zxaviers/reminder-widget/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/Zxaviers/reminder-widget)](https://github.com/Zxaviers/reminder-widget/releases/latest)
@@ -62,6 +62,7 @@ A sleek Windows desktop widget designed to keep students on track with upcoming 
 |--------|-------------|----------|
 | **📦 Installer (Recommended)** | Creates Start Menu & Desktop shortcuts | [📥 Setup.exe (~3.8 MB)](https://github.com/Zxaviers/reminder-widget/releases/download/v1.0.0/Reminder.Widget.1.0.0.Setup.exe) |
 | **📦 Portable** | No install required, run directly | [📥 Portable.exe (~16.2 MB)](https://github.com/Zxaviers/reminder-widget/releases/download/v1.0.0/Reminder.Widget.1.0.0.exe) |
+| **📱 Android APK** | Sideload via ADB or USB Debugging | [📥 BRONE-Reminder-v1.1.0-android.apk (~62 MB)](https://github.com/Zxaviers/reminder-widget/releases/download/v1.1.0/BRONE-Reminder-v1.1.0-android.apk) |
 
 > **Requirements:** Windows 10/11 with WebView2 Runtime (pre-installed on modern Windows).
 
