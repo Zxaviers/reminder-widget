@@ -61,7 +61,9 @@ export function rowTime (dueMs, nowMs = Date.now()) {
   if (delta < 0) {
     if (minutes < 60) return `Terlewat ${Math.max(minutes, 1)}mnt`
     if (hours < 24) return `Terlewat ${hours}j`
-    return `Terlewat ${days}h`
+    // Days use "hr" (hari): a bare "h" reads as hours (audit N1).
+    // Convention everywhere: mnt (menit) / j (jam) / hr (hari).
+    return `Terlewat ${days}hr`
   }
   if (minutes < 60) return `${Math.max(minutes, 1)} mnt lagi`
   if (hours < 24) return `${hours} jam lagi`

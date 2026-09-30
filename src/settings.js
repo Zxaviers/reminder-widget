@@ -456,6 +456,7 @@ async function load () {
   }
 
   const isMob = await api.isMobile()
+  document.body.dataset.mobile = String(isMob)
   if (isMob) {
     // Desktop-only options stay visible but dimmed and disabled.
     if (el.desktopOpts) el.desktopOpts.classList.add('dim')
@@ -483,6 +484,16 @@ async function load () {
 // Event Listeners
 if (el.btnOpenBrowserMain) {
   el.btnOpenBrowserMain.addEventListener('click', () => {
+    api.openExternal('https://brone.ub.ac.id/calendar/export.php')
+  })
+}
+
+// The "halaman ekspor" reference is a working link to the Moodle export
+// page of the connected host (audit N2), not dead copy.
+const exportLink = document.getElementById('export-link')
+if (exportLink) {
+  exportLink.addEventListener('click', (event) => {
+    event.preventDefault()
     api.openExternal('https://brone.ub.ac.id/calendar/export.php')
   })
 }

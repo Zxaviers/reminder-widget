@@ -33,6 +33,15 @@ test('same id in two feeds keeps the first occurrence', () => {
   assert.equal(out[0].feedId, 'brone')
 })
 
+test('exact duplicates collapse, distinct times survive (audit E1)', () => {
+  const out = mergeFeedTasks([
+    { feed: { id: 'brone' }, tasks: [task('a::1', 100, 'LK04b-Variabel Penelitian')] },
+    { feed: { id: 'brone' }, tasks: [task('b::2', 100, 'LK04b-Variabel Penelitian')] },
+    { feed: { id: 'brone' }, tasks: [task('c::3', 200, 'LK04b-Variabel Penelitian')] }
+  ])
+  assert.deepEqual(out.map((t) => t.id), ['a::1', 'c::3'])
+})
+
 test('tolerates error rows, missing feeds and empty input', () => {
   assert.deepEqual(mergeFeedTasks([]), [])
   assert.deepEqual(mergeFeedTasks(null), [])

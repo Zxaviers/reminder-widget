@@ -240,13 +240,16 @@ pub fn feed_url_get() -> Result<FeedUrlInfo, String> {
 /// ATTEMPTED AND REVERTED: driving this at runtime from Rust via raw JNI
 /// (`ndk-context`) aborts the process — Tauri owns the Activity and never
 /// initializes ndk-context ("android context was not initialized" panic in
-/// JavaBridge, verified via logcat tombstone). A proper fix needs a Tauri
-/// mobile plugin holding the Activity, which is out of scope for this pass.
+/// JavaBridge, verified via logcat tombstone). A Tauri mobile plugin holding
+/// the Activity is the full fix and remains scoped follow-up work.
 ///
-/// Current behavior: no-op. The static `themes.xml` / `values-night` pair
-/// keeps icons readable whenever the effective theme matches the OS night
-/// mode (the default "auto" theme), which covers the reported dark-theme
-/// symptom. Manual theme overrides do not move the status bar yet.
+/// Current behavior: no-op by itself. The live mechanism is
+/// `MainActivity.applyStatusBarFromSettings`, which reads the persisted
+/// theme from settings.json in `onResume`/`onConfigurationChanged` and
+/// applies the matching icon style with no recreate and no JNI. That covers
+/// fresh launch, foreground return, OS night flips, and the settings→home
+/// back navigation after a toggle. Only an in-place toggle (icons inside
+/// the still-open settings screen) still lags one navigation behind.
 #[tauri::command]
 pub fn set_status_bar_style(light_icons: bool) -> Result<(), String> {
     let _ = light_icons;

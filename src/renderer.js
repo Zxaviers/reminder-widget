@@ -588,7 +588,9 @@ function renderStatus () {
     const synced = relativeSync(meta.lastFetchedAt)
     syncText = synced ? `sync ${synced}` : STATUS_TEXT[status]
   }
-  el.status.textContent = ` · ${syncText}`
+  // The "·" separator is its own element (index.html): a leading space
+  // inside a flex item is trimmed by the UA (audit C8).
+  el.status.textContent = syncText
 
   // Partial failure (some feeds down) surfaces once the on-screen data is
   // older than one refresh interval — fresh data fails silently on purpose.

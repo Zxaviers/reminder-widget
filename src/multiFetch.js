@@ -24,6 +24,12 @@ export function mergeFeedTasks (feedResults) {
     for (const task of tasks) {
       if (!task || typeof task.id !== 'string' || seen.has(task.id)) continue
       seen.add(task.id)
+      // Exact duplicates (same feed, title, deadline — e.g. a repeated
+      // export row) collapse to the first occurrence (audit E1). Distinct
+      // UIDs with different times are kept.
+      const dupeKey = `${feed.id}::${String(task.title).trim().toLowerCase()}::${Number(task.dueMs) || 0}`
+      if (seen.has(dupeKey)) continue
+      seen.add(dupeKey)
       merged.push({ ...task, feedId: feed.id, feedKind: feed.kind || 'ics' })
     }
   }

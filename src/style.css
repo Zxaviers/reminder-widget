@@ -205,15 +205,8 @@ body {
     color 0.16s var(--ease);
 }
 
-.icon-btn svg {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
+/* (Glyph size lives in the Opt5 .icon-btn rule below: 20px. No second
+   size here — one glyph size everywhere, audit B5.) */
 
 .icon-btn:hover {
   background: var(--hover);
@@ -490,8 +483,9 @@ body {
 .steps code {
   font-family: "Cascadia Mono", Consolas, ui-monospace, monospace;
   font-size: 10.5px;
-  color: var(--accent);
-  background: rgba(141, 157, 255, 0.11);
+  color: var(--ink-900);
+  background: var(--raised-2);
+  border: 1px solid var(--divider);
   padding: 1px 4px;
   border-radius: 4px;
 }
@@ -710,12 +704,13 @@ body {
   letter-spacing: 0.03em;
 }
 
+/* One glyph size (20px) in a 44px touch box everywhere (audit B5). */
 .done-section__toggle {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  margin: 0 -2px;
+  width: 44px;
+  height: 44px;
+  margin: 0 -12px 0 0;
   border: 0;
   border-radius: 7px;
   background: transparent;
@@ -727,8 +722,8 @@ body {
 }
 
 .done-section__toggle svg {
-  width: 15px;
-  height: 15px;
+  width: 20px;
+  height: 20px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.6;
@@ -821,6 +816,36 @@ body {
   letter-spacing: 0.04em;
 }
 
+/* Touch screens have no hover: a tap would otherwise leave the hover
+   wash stuck on (audit A5). Only devices with a real hover get :hover. */
+@media (hover: none) {
+  .icon-btn:hover,
+  .btn:hover,
+  .btn--primary:hover,
+  .row-open:hover,
+  .hero-done:hover,
+  .done-btn:hover,
+  .btn-sec:hover,
+  .chip:hover,
+  .undo-bar__btn:hover,
+  .local-item:hover,
+  .local-item__remove:hover,
+  .done-section__toggle:hover,
+  .icon-btn--close:hover {
+    background: transparent;
+    color: inherit;
+    filter: none;
+  }
+  .row-done:hover .ring {
+    border-color: var(--ink-400);
+    color: var(--ink-400);
+  }
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Respect the OS setting; the widget is on screen all day. */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -897,8 +922,15 @@ body {
 
 .meta-line {
   display: flex;
-  gap: 0;
+  align-items: baseline;
   white-space: nowrap;
+}
+
+/* Own element with fixed side margins: a leading space inside a flex item
+   is trimmed by the UA, which glued "tugas· sync" together (audit C8). */
+.meta-line .dot {
+  margin: 0 4px;
+  color: var(--ink-400);
 }
 
 .count {
@@ -963,8 +995,8 @@ body {
 }
 
 .icon-btn.small svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
 }
 
 .icon-btn:disabled {
@@ -974,13 +1006,17 @@ body {
 
 /* ---- hero: the single most urgent task ---- */
 
+/* One left gutter for every text block (audit C3): stage side padding
+   (20px) + content padding (12px) = 32px everywhere. */
 .hero {
   margin-top: var(--sp-block);
+  display: flex;
+  flex-direction: column;
   background: var(--raised);
   border-left: 3px solid var(--ink-400);
   /* Straight accent bar: square off the bordered side (audit B1). */
   border-radius: 0 var(--radius-outer) var(--radius-outer) 0;
-  padding: 14px 16px 16px;
+  padding: 16px 12px;
   flex-shrink: 0;
 }
 
@@ -1054,7 +1090,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
+  padding: 10px 12px;
   border-radius: var(--radius);
   background: var(--raised-2);
   border: 1px solid var(--divider);
@@ -1081,8 +1117,8 @@ body {
 }
 
 .ring {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   flex-shrink: 0;
   border: 1.5px solid var(--ink-400);
@@ -1166,7 +1202,7 @@ body {
   align-items: center;
   gap: 10px;
   min-height: 52px;
-  padding: 8px 8px 8px 6px;
+  padding: 8px 8px 8px 12px;
   border: 0;
   background: transparent;
   border-radius: var(--radius);
@@ -1192,11 +1228,13 @@ body {
   background: transparent;
 }
 
+/* Glyph right edge = container edge − 32px gutter: 20px ring centered
+   in the 44px box insets 12px, matching the header glyphs (audit C4). */
 .row-done {
   width: 44px;
   height: 44px;
   flex-shrink: 0;
-  margin-right: 2px;
+  margin-right: 0;
   border: 0;
   background: transparent;
   border-radius: var(--radius);
@@ -1283,6 +1321,8 @@ body {
 
 /* ---- done bar + panel ---- */
 
+/* Done section: divider-separated section, not a bordered card (audit B3).
+   Icons inherit the text color so decorative glyphs stay >= 7:1 (audit A4). */
 .done-btn {
   margin-top: var(--sp-block);
   width: 100%;
@@ -1291,10 +1331,11 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
-  border-radius: var(--radius);
-  background: var(--raised);
-  border: 1px solid var(--divider);
+  padding: 10px 12px;
+  border: 0;
+  border-top: 1px solid var(--divider);
+  border-radius: 0;
+  background: transparent;
   color: var(--ink-600);
   font-family: var(--sans);
   font-size: 12px;
@@ -1311,7 +1352,7 @@ body {
   height: 20px;
   flex-shrink: 0;
   fill: none;
-  stroke: var(--ink-400);
+  stroke: currentColor;
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -1329,14 +1370,14 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--ink-400);
+  color: var(--ink-600);
   font-size: 11px;
   font-weight: 600;
 }
 
 .done-btn .rest svg {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
@@ -1408,8 +1449,10 @@ svg[data-ph] {
 
 /* ---- bottom sheet: manual event (mockup panel 4) ---- */
 
+/* Fixed, not absolute: inside a scrolling panel the absolute containing
+   block ends at the panel edge, floating the sheet mid-screen (audit B2). */
 .scrim {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
   z-index: 5;
@@ -1420,13 +1463,13 @@ svg[data-ph] {
 }
 
 .sheet {
-  position: absolute;
+  position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 6;
   background: var(--raised);
-  border-radius: 16px 16px 0 0;
+  border-radius: var(--radius-outer) var(--radius-outer) 0 0;
   padding: 12px 16px max(20px, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
@@ -1450,10 +1493,12 @@ svg[data-ph] {
   color: var(--ink-900);
 }
 
+/* Labels carry ink-600 so they sit above the tertiary helper text
+   in the hierarchy (audit C9). */
 .field-label {
   font-size: 11px;
   font-weight: 600;
-  color: var(--ink-400);
+  color: var(--ink-600);
   margin-bottom: 6px;
   display: block;
 }
@@ -1494,9 +1539,12 @@ svg[data-ph] {
   gap: 8px;
 }
 
+/* Equal widths by construction: identical flex basis, no content sizing.
+   (audit B2: Simpan must be >= Batal.) */
 .sheet-actions .btn-sec,
 .sheet-actions .primary {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   margin-top: 4px;
 }
 

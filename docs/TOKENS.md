@@ -16,6 +16,7 @@
 |---|---|---|---|
 | `surface-base` | `#F5F4F1` (putih tulang, bukan krem hangat) | `#14151A` (near-black, bukan hitam pekat) | hindari krem+terracotta dan hitam pekat+neon — dua kombinasi paling sering muncul dari agent AI |
 | `surface-raised` | `#FFFFFF` | `#1C1D24` | dipakai HANYA untuk kontainer widget/hero, bukan tiap row |
+| `surface-raised-2` | `#ECEAE5` | `#22232B` | tombol sekunder / kontrol netral — pengganti teal untuk state aktif (audit F1) |
 | `divider` | `#E4E2DD` | `#2A2B33` | hairline 1px antar-row dalam satu grup matkul — pengganti shadow per-card |
 
 ### Aksen brand (identitas, dipakai hemat)
@@ -29,7 +30,12 @@
 | `urgency-safe` | `#37785A` (4,78:1) | `#5CAE7E` (6,78:1) | "X hari lagi" |
 | `urgency-soon` | `#8A6217` (4,97:1) | `#E8B85E` (9,94:1) | "X jam lagi" |
 | `urgency-critical` | `#B34A29` (4,86:1) | `#E06A3B` (5,46:1) | "<24 jam" |
-| `urgency-overdue` | `#8B2E2E` (7,55:1) | `#D66161` (4,98:1) | "Terlewat Xj" |
+| `urgency-overdue` | `#8B2E2E` (7,55:1) | `#D66161` (4,98:1) | "Terlewat X + satuan" (lihat konvensi countdown) |
+
+### Konvensi countdown (audit N1)
+Satu singkatan di app dan widget: `mnt` (menit), `j` (jam), `hr` (hari).
+Jangan pernah `h` saja — terbaca sebagai jam maupun hari. Contoh:
+"Terlewat 7mnt", "Terlewat 1j", "Terlewat 1hr", "30 hari lagi".
 
 Semua rasio dihitung eksak (relative luminance WCAG) terhadap
 `surface-base` masing-masing tema. `ink-400`: light `#6F6D68` (4,70:1)

@@ -14,7 +14,7 @@ test('urgency buckets: overdue, soon, later', () => {
 test('overdue always carries a duration, never a bare label', () => {
   assert.equal(rowTime(NOW - 7 * 60 * 1000, NOW), 'Terlewat 7mnt')
   assert.equal(rowTime(NOW - 5 * HOUR, NOW), 'Terlewat 5j')
-  assert.equal(rowTime(NOW - 3 * 24 * HOUR, NOW), 'Terlewat 3h')
+  assert.equal(rowTime(NOW - 3 * 24 * HOUR, NOW), 'Terlewat 3hr')
   for (const label of [
     rowTime(NOW - 1000, NOW),
     rowTime(NOW - 30 * 60 * 1000, NOW),
@@ -30,6 +30,13 @@ test('future labels: minutes, hours, tomorrow, weekday, days', () => {
   const tomorrow = rowTime(NOW + 26 * HOUR, NOW)
   assert.match(tomorrow, /^Besok \d{2}\.\d{2}$/)
   assert.equal(rowTime(NOW + 10 * 24 * HOUR, NOW), '10 hari lagi')
+})
+
+test('days-overdue uses hr, never bare h (audit N1)', () => {
+  assert.equal(rowTime(NOW - 26 * 60 * 60 * 1000, NOW), 'Terlewat 1hr')
+  assert.equal(rowTime(NOW - 3 * 24 * 60 * 60 * 1000, NOW), 'Terlewat 3hr')
+  assert.equal(rowTime(NOW - 90 * 60 * 1000, NOW), 'Terlewat 1j')
+  assert.equal(rowTime(NOW - 7 * 60 * 1000, NOW), 'Terlewat 7mnt')
 })
 
 test('isDataStale fires past one refresh interval', () => {

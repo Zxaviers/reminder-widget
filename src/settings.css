@@ -7,10 +7,22 @@
   user-select: none;
 }
 
-.sheet {
+.settings-body .sheet {
   height: calc(100% - 24px);
   margin: 12px;
   max-height: none;
+}
+
+/* One mobile shell for every screen (audit C1/C2): the settings page is
+   full-bleed like home — no floating panel, no side overflow. Scoped to
+   .settings-body so the home bottom-sheet keeps its own geometry. */
+@media (max-width: 480px) {
+  .settings-body .sheet {
+    height: 100%;
+    min-height: 100%;
+    margin: 0;
+    border-radius: 0;
+  }
 }
 
 .sheet__bar {
@@ -52,6 +64,19 @@
   line-height: 1.4;
 }
 
+/* The export-page reference is a real link with affordance (audit N2). */
+.auth-box__reconnect a {
+  color: var(--teal);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Desktop-only section never ships on touch devices (audit N3). */
+body[data-mobile="true"] .desktop-card {
+  display: none;
+}
+
 .auth-box:not(.connected) .auth-box__reconnect {
   display: none;
 }
@@ -66,11 +91,12 @@
   margin-bottom: 4px;
 }
 
+/* Decorative key inherits the title color: always >= 7:1 (audit A4). */
 .auth-box__title .icon-key {
   width: 20px;
   height: 20px;
   fill: none;
-  stroke: var(--ink-600);
+  stroke: currentColor;
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -220,9 +246,11 @@
 
 /* -------------------------------------------------------------- feed list */
 
+/* One heading-to-content rhythm per card (audit C5): the card gap owns
+   all spacing, children carry no stray margins. */
 .feed-list {
   list-style: none;
-  margin: 6px 0 4px;
+  margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -306,7 +334,7 @@
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   margin-top: 12px;
 }
 
@@ -317,7 +345,7 @@
 }
 
 .card-help {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink-400);
   line-height: 1.4;
 }
@@ -590,8 +618,8 @@
 }
 
 .radio-card input:checked + .radio-card__dot {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--ink-900);
+  border-color: var(--ink-900);
 }
 
 .radio-card input:checked + .radio-card__dot::after {
@@ -662,9 +690,11 @@
     transform 0.2s var(--ease);
 }
 
+/* Active controls are neutral ink, never teal (audit F1). The check
+   stays >= 7:1 on the ink fill in both themes. */
 .toggle input:checked + .toggle__box {
-  background: var(--accent);
-  box-shadow: inset 0 0 0 1px var(--accent);
+  background: var(--ink-900);
+  box-shadow: inset 0 0 0 1px var(--ink-900);
 }
 
 .toggle input:checked + .toggle__box svg {
@@ -673,7 +703,7 @@
 }
 
 .toggle input:focus-visible + .toggle__box {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink-900);
   outline-offset: 2px;
 }
 
@@ -701,8 +731,10 @@
   font-size: 11px;
 }
 
+/* Footnote text aligns with the card content column (audit N4). */
 .footnote {
   margin-top: 12px;
+  padding: 0 16px;
   font-size: 10.5px;
   line-height: 1.5;
   color: var(--fg-3);

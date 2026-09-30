@@ -137,10 +137,13 @@ class ReminderAppWidgetProvider : AppWidgetProvider() {
             return when {
                 remainingMs <= 0 -> {
                     val overdueMinutes = Math.abs(remainingMs) / (60 * 1000L)
+                    val overdueHours = overdueMinutes / 60
                     val label = if (overdueMinutes < 60) {
                         "Terlewat ${Math.max(overdueMinutes, 1)}mnt"
+                    } else if (overdueHours < 24) {
+                        "Terlewat ${overdueHours}j"
                     } else {
-                        "Terlewat ${overdueMinutes / 60}j"
+                        "Terlewat ${overdueHours / 24}hr"
                     }
                     Pair(label, "#D66161")
                 }
