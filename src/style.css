@@ -1578,6 +1578,15 @@ svg[data-ph] {
   cursor: pointer;
 }
 
+/* ID scope beats the equal-specificity .sheet rules above: both actions
+   share one flex basis, so widths are identical by construction (audit B2:
+   Simpan >= Batal can never regress through cascade order again). */
+#local-panel .sheet-actions > * {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 48px;
+}
+
 :root[data-theme="light"] .sheet .primary {
   color: #f5f4f1;
 }
