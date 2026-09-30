@@ -3,7 +3,7 @@ package dev.riski.reminderwidget
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
-import android.view.WindowInsetsController
+import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import androidx.activity.enableEdgeToEdge
 import java.io.File
 
@@ -37,8 +37,10 @@ class MainActivity : TauriActivity() {
         if (Build.VERSION.SDK_INT < 30) return
         activity.runOnUiThread {
           try {
-            activity.window?.insetsController?.setAppearanceLightStatusBars(
-              if (lightIcons) 0 else WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+            // Framework API is setSystemBarsAppearance(appearance, mask).
+            activity.window?.insetsController?.setSystemBarsAppearance(
+              if (lightIcons) 0 else APPEARANCE_LIGHT_STATUS_BARS,
+              APPEARANCE_LIGHT_STATUS_BARS
             )
           } catch (_: Exception) {
           }
