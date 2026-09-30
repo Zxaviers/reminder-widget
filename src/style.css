@@ -1585,6 +1585,12 @@ svg[data-ph] {
   flex: 1 1 0;
   min-width: 0;
   min-height: 48px;
+  /* Blink resolves flex-basis:0 against the content box, so any padding
+     difference stacks on top of equal flex shares (measured 372 vs 344
+     with 14px vs 0 padding). Identical horizontal padding restores true
+     equality (audit B2). */
+  padding-left: 14px;
+  padding-right: 14px;
 }
 
 :root[data-theme="light"] .sheet .primary {
