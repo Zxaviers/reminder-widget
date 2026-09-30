@@ -135,7 +135,10 @@ body {
     0 3px 10px -3px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
   overflow: hidden;
-  animation: panel-in 0.42s var(--ease) both;
+  /* No fill mode: a retained animation fill can capture position:fixed
+     descendants mid-screen (audit B2). Final keyframe equals the natural
+     style anyway, so dropping the fill is visually identical. */
+  animation: panel-in 0.42s var(--ease);
 }
 
 @keyframes panel-in {
@@ -1016,7 +1019,9 @@ body {
   border-left: 3px solid var(--ink-400);
   /* Straight accent bar: square off the bordered side (audit B1). */
   border-radius: 0 var(--radius-outer) var(--radius-outer) 0;
-  padding: 16px 12px;
+  /* Left padding is 9px, not 12px: the 3px accent border occupies the rest,
+     so hero text lands on the same 32px column as every other block. */
+  padding: 16px 12px 16px 9px;
   flex-shrink: 0;
 }
 
@@ -1202,7 +1207,7 @@ body {
   align-items: center;
   gap: 10px;
   min-height: 52px;
-  padding: 8px 8px 8px 12px;
+  padding: 8px 8px 8px 9px;
   border: 0;
   background: transparent;
   border-radius: var(--radius);
@@ -1310,7 +1315,7 @@ body {
 }
 
 .row--enter {
-  animation: row-in 0.22s var(--ease) both;
+  animation: row-in 0.22s var(--ease);
   animation-delay: var(--stagger, 0ms);
 }
 
@@ -1387,7 +1392,7 @@ body {
 
 .done-panel {
   margin-top: 10px;
-  padding: 0 8px;
+  padding: 0 12px;
 }
 
 :root[data-theme="dark"] .panel {
