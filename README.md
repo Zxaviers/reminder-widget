@@ -2,10 +2,10 @@
 
 > **Compact, always-on-top desktop reminder widget for Moodle / BRONE (UB) assignment deadlines from iCalendar (.ics) feed.**
 >
-> ⚠️ **Penting / Notice:** Versi desktop (Windows) berfungsi penuh & siap dipakai. Versi **Android saat ini masih dalam tahap pengembangan aktif (Work in Progress) dan belum bisa dipakai secara stabil**.
+> ⚠️ **Penting / Notice:** Versi desktop (Windows) berfungsi penuh & siap dipakai. Versi **Android (build v8) sudah lulus Audit UI/UX 2.0** dan tersedia sebagai *developer preview* — fungsional untuk pengujian harian, namun masih tanpa background refresh otomatis.
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Zxaviers/reminder-widget/releases/tag/v1.0.0)
-[![Platform](https://img.shields.io/badge/platform-Windows%20(Stable)%20|%20Android%20(WIP)-orange.svg)](https://github.com/Zxaviers/reminder-widget)
+[![Platform](https://img.shields.io/badge/platform-Windows%20(Stable)%20|%20Android%20(Preview)-blue.svg)](https://github.com/Zxaviers/reminder-widget)
 [![Build](https://img.shields.io/github/actions/workflow/status/Zxaviers/reminder-widget/ci.yml?branch=main)](https://github.com/Zxaviers/reminder-widget/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/Zxaviers/reminder-widget)](https://github.com/Zxaviers/reminder-widget/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -114,12 +114,12 @@ A sleek Windows desktop widget designed to keep students on track with upcoming 
 
 ## 📱 Mobile (Android)
 
-> [!WARNING]
-> ### ⚠️ Status: Dalam Pengembangan (Under Active Development)
-> Versi Android saat ini **masih dalam tahap eksperimen & pengembangan aktif dan BELUM BISA DIPAKAI** untuk penggunaan harian.
-> - **Jangan gunakan versi Android untuk pengingat tugas penting saat ini.** Fitur sinkronisasi latar belakang, alarm manager, dan widget layar utama masih dalam tahap pengujian intensif dan belum terjamin keandalannya.
-> - Pengguna disarankan untuk tetap menggunakan **versi Desktop (Windows)** yang sudah stabil 100%.
-> - Bagian dokumentasi di bawah ini ditujukan khusus untuk keperluan riset & pengujian oleh developer (developer preview only).
+> [!NOTE]
+> ### 📱 Status: Developer Preview (Build v8 — Lulus Audit UI/UX 2.0)
+> Versi Android build v8 telah lulus seluruh butir audit P1 (aksesibilitas, kontras WCAG AA, layout konsisten).
+> - **Cocok untuk pengujian harian** — notifikasi, widget homescreen, dan sinkronisasi feed berfungsi.
+> - **Batasan aktif**: belum ada background refresh otomatis; feed baru muncul saat aplikasi dibuka.
+> - Pengguna yang membutuhkan keandalan penuh tetap disarankan menggunakan **versi Desktop (Windows)**.
 
 The same codebase compiles to a native Android app via Tauri 2. The mobile experience adapts automatically:
 
@@ -131,7 +131,10 @@ The same codebase compiles to a native Android app via Tauri 2. The mobile exper
 ### 📲 Install APK (Developer Preview Only)
 
 ```bash
-# Transfer the pre-built APK to your phone, or use USB Debugging:
+# Gunakan APK yang sudah di-sign (direkomendasikan):
+adb install src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-signed.apk
+
+# Atau instal APK unsigned (hanya untuk emulator):
 adb install src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
 ```
 
@@ -153,14 +156,14 @@ npm run android:build
 npm run android:dev
 ```
 
-### ⚡ Known Limitations (v1 Mobile)
+### ⚡ Known Limitations (v1.1 Mobile — Build v8)
 
 | Limitation | Workaround |
 |-----------|------------|
-| **No background refresh** — new deadlines only appear after opening the app | Open the app periodically; scheduled notifications from the last sync still fire on time |
-| **Some vendors restrict exact alarms** (MIUI, Samsung battery saver) | Add the app to "Unrestricted" in your phone's battery settings |
-| **No 1-click BRONE login** — hidden-webview polling is unreliable on Android | Copy the feed URL from the desktop widget and paste it on mobile |
-| **No auto-detect submission** — hidden webview per-task is too risky on mobile | Mark tasks done manually |
+| **No background refresh** — new deadlines appear after opening the app | Buka aplikasi secara berkala; notifikasi dari sinkronisasi terakhir tetap aktif tepat waktu |
+| **Some vendors restrict exact alarms** (MIUI, Samsung battery saver) | Tambahkan aplikasi ke "Unrestricted" di pengaturan baterai ponsel Anda |
+| **No 1-click BRONE login** — hidden-webview polling tidak andal di Android | Salin URL feed dari widget desktop, lalu paste di ponsel |
+| **No auto-detect submission** — hidden webview per-task terlalu berisiko di mobile | Tandai tugas selesai secara manual |
 
 ---
 
@@ -242,7 +245,7 @@ reminder-widget/
 ## 🧪 Testing
 
 ```bash
-# Run all unit tests (47 tests: parser, doneStore, queue, notify, schedulePlan)
+# Run all unit tests (80 tests: parser, doneStore, queue, notify, schedulePlan, taskFormat)
 npm test
 
 # Syntax check frontend files
