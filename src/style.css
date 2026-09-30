@@ -868,7 +868,12 @@ body {
     background: var(--canvas);
   }
   .stage {
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    /* Side gutter stays 20px on mobile: bare safe-area insets collapse to 0
+       in the Android WebView and glued accents/bars to x=0 (audit C2/C3).
+       Top/bottom follow the device inset, sides keep the ledger gutter. */
+    padding: env(safe-area-inset-top, 0px) var(--sp-gutter) env(safe-area-inset-bottom, 0px);
+    padding-left: max(var(--sp-gutter), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--sp-gutter), env(safe-area-inset-right, 0px));
     height: auto;
     min-height: 100%;
   }

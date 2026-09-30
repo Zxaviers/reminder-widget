@@ -73,8 +73,11 @@
 }
 
 /* Desktop-only section never ships on touch devices (audit N3). */
-body[data-mobile="true"] .desktop-card {
-  display: none;
+body[data-mobile="true"] .desktop-card,
+@media (max-width: 480px) {
+  .desktop-card {
+    display: none !important;
+  }
 }
 
 .auth-box:not(.connected) .auth-box__reconnect {

@@ -20,9 +20,11 @@
         android:scaleType="fitXY"
         android:background="#8E8D88" />
 
+    <!-- 104dp fits the longest countdown "Terlewat 59mnt" in 12sp
+         mono bold without clipping (audit D1/D2 widget readability). -->
     <TextView
         android:id="@+id/widget_row_time"
-        android:layout_width="88dp"
+        android:layout_width="104dp"
         android:layout_height="wrap_content"
         android:ellipsize="none"
         android:fontFamily="monospace"
@@ -37,7 +39,7 @@
         android:layout_marginStart="8dp"
         android:layout_weight="1"
         android:ellipsize="end"
-        android:maxLines="1"
+        android:maxLines="2"
         android:textColor="#F2F1EE"
         android:textSize="11sp" />
 
