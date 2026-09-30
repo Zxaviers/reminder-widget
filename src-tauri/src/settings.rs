@@ -79,8 +79,8 @@ pub struct Settings {
     pub notify_thresholds_hours: Vec<f64>,
     /// taskId -> already-fired notification thresholds (ms remaining).
     pub notified: BTreeMap<String, Vec<f64>>,
-    /// taskId -> ISO timestamp when the user marked it done.
-    pub done: BTreeMap<String, String>,
+    /// taskId -> timestamp when the user marked it done (string or number).
+    pub done: BTreeMap<String, serde_json::Value>,
     /// Multi-feed metadata (URLs stay in the secret store).
     pub feeds: Vec<FeedMeta>,
     /// Manual events (Slice 1). Plain text, persisted across restarts.

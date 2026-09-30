@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-10-01 (Android Build v8 — Audit 2.0 Patch)
+
+### Added
+- **Android home-screen widget**: scrollable `ListView` backed by `WidgetTaskService`, shows hero (tasks[0]) + unlimited scrollable rows; widget height auto-fills available space.
+- **Status bar style sync** (`setStatusBarStyle`): light icons on dark theme, dark icons on light theme — wired to `FileObserver` on `settings.json` in `MainActivity.kt`.
+- **`BootReceiver`**: rebuilds widget data on device reboot so widget stays current after a cold boot.
+- **Manual event bottom sheet**: add local (non-feed) events with title, date, time, and optional note directly from the home screen.
+- **Segmented controls**: theme selector (Gelap / Terang / Otomatis), refresh interval (15 / 20 / 30 min), and notification threshold chips (1j / 6j / 12j / 24j).
+- **`taskFormat.js`**: shared duration-formatting module used by both renderer and widget service; ensures consistent overdue labels (e.g. "Terlewat 2 hari" not "Terlewat 2hr").
+
+### Changed
+- **Android widget hero label**: overdue days format changed from `"Terlewat Xhr"` → `"Terlewat X hari"` (consistent with list rows and WCAG audit N4).
+- **Widget layout**: removed static "Ketuk untuk buka aplikasi" footer (audit A7); time column widened to 114dp so "Terlewat 29 hari" never clips (audit D1/D2).
+- **Settings layout**: header "Pengaturan" centered (C1); all cards use uniform 20dp gutter (C5); desktop-only cards (`desktop-card`, `.mode-options`) hidden on Android (N3); sheet body uses `flex: 1` + `overflow-y: auto` so it always fills the viewport (B2).
+- **Bottom sheet title**: removed " · v8" debug marker (N2).
+- **Home screen gutter**: `stage` padding-left clamped to `max(20px, env(safe-area-inset-left))` so content never touches screen edge on phones with zero safe-area (C2/C3).
+- **Completed task panel** (`.drow`): title font-weight reset to 400 (was 600), column aligned at x=352 matching active rows (B3); restore button flush to right gutter (B5).
+- **Status text**: sync age spelled out in full ("baru saja", "5 mnt", "2 jam", "1 hari") for both app header and widget header (C8).
+
+### Fixed
+- **`SyntaxError` in `settings.js`**: duplicate `const isMob` declaration (line 464) silently killed the entire settings module — chips, segmented controls, and slider never rendered. Removed duplicate.
+- **`api.setStatusBarStyle` missing**: method was called but not implemented; added `cmd('set_status_bar_style', …).catch(() => {})` with optional chaining guard to prevent crash on desktop.
+- **Widget not updating after settings change**: `ReminderAppWidgetProvider.updateAllWidgets()` now called from `MainActivity` on every settings write.
+- **Done-task row contrast (A1)**: completed items on light theme had white icons on `#F5F4F1` (1.10:1 ratio); fixed by binding icon color to `--ink-600` token.
+- All 80 unit tests pass.
+
 ## [1.0.0] - 2026-08-26
 
 ### Added

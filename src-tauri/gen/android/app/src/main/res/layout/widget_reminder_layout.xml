@@ -100,12 +100,4 @@
             android:textSize="10sp" />
     </LinearLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Ketuk untuk buka aplikasi"
-        android:textColor="#8E8D88"
-        android:textSize="10sp" />
-
 </LinearLayout>

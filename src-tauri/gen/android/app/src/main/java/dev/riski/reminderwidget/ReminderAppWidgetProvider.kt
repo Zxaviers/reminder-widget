@@ -47,21 +47,18 @@ class ReminderAppWidgetProvider : AppWidgetProvider() {
             views.setPendingIntentTemplate(R.id.widget_task_list, pendingIntent)
 
             // Scrollable list backed by WidgetTaskService. The data URI carries
-            // the tasks file mtime so every update binds a FRESH factory that
-            // reads the current file. A stable URI lets the system reuse a
-            // stale factory and silently keep showing an old short list.
-            val tasksFile = findWidgetTasksFile(context)
+            // current timestamp so every update binds a FRESH factory that
+            // reads the current file and resets scroll to row 0 (audit D1).
+            val nowMs = System.currentTimeMillis()
             val serviceIntent = Intent(context, WidgetTaskService::class.java).apply {
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-                val stamp = tasksFile?.lastModified() ?: 0L
-                data = Uri.parse("reminderwidget://tasks/$appWidgetId/$stamp")
+                data = Uri.parse("reminderwidget://tasks/$appWidgetId/$nowMs")
             }
             views.setRemoteAdapter(R.id.widget_task_list, serviceIntent)
             views.setEmptyView(R.id.widget_task_list, R.id.widget_empty_view)
 
             // Relative sync age from the tasks file mtime — same words as the
             // app ("sync 5 mnt"), never an absolute clock (audit C8).
-            val nowMs = System.currentTimeMillis()
             val syncAgeMs = findWidgetTasksFile(context)?.lastModified()?.let { nowMs - it }
             views.setTextViewText(R.id.widget_sync_time, syncText(syncAgeMs))
 
@@ -143,7 +140,7 @@ class ReminderAppWidgetProvider : AppWidgetProvider() {
                     } else if (overdueHours < 24) {
                         "Terlewat ${overdueHours}j"
                     } else {
-                        "Terlewat ${overdueHours / 24}hr"
+                        "Terlewat ${overdueHours / 24} hari"
                     }
                     Pair(label, "#D66161")
                 }

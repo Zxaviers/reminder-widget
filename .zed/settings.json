@@ -1,0 +1,18 @@
+{
+  "file_scan_exclusions": [
+    "**/node_modules/**",
+    "**/src-tauri/target/**",
+    "**/src-tauri/gen/android/app/build/**",
+    "**/src-tauri/gen/android/build/**",
+    "**/dist/**",
+    "**/.git/**"
+  ],
+  "languages": {
+    "Rust": { "language_servers": [] },
+    "JavaScript": { "language_servers": [] },
+    "TypeScript": { "language_servers": [] },
+    "HTML": { "language_servers": [] },
+    "CSS": { "language_servers": [] },
+    "Tailwind CSS": { "language_servers": [] }
+  }
+}

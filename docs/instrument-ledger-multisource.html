@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>BRONE Reminder · Instrument Ledger — multi-source visuals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/bold/style.css" />
+<style>
+/* Hallmark · macrostructure: timeline-ledger · tone: industrial-utilitarian · anchor hue: 172 (teal) */
+/* multi-source extension: source identity lives in the mono code slot (IF2040 / GCLASS / LOCAL),
+   never as colored pills; per-feed status is mono text; sheet + feed list reuse the same controls */
+:root {
+  --canvas: #14151A;
+  --raised: #1C1D24;
+  --raised-2: #22232B;
+  --divider: #2A2B33;
+  --teal: #5BB5A6;
+  --ink-900: #F2F1EE;
+  --ink-600: #B8B6B0;
+  --ink-400: #6E6D68;
+  --safe: #5CAE7E;
+  --soon: #D6A44F;
+  --overdue: #C14A4A;
+  --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+  --sans: 'Manrope', 'Segoe UI', system-ui, sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #0E0F13; font-family: var(--sans); }
+body { padding: 48px; display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start; }
+.board { display: flex; flex-direction: column; gap: 12px; }
+.board-label { font-family: var(--mono); font-size: 11px; color: var(--ink-400); }
+
+/* ---- shared widget core (same as v3) ---- */
+.widget {
+  width: 360px;
+  background: var(--canvas);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex; flex-direction: column;
+}
+.header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.brand { display: flex; align-items: baseline; gap: 8px; }
+.wordmark { color: var(--teal); font-size: 15px; font-weight: 800; letter-spacing: -0.01em; }
+.count { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ink-400); }
+.head-right { display: flex; align-items: center; gap: 2px; }
+.sync { font-family: var(--mono); font-size: 11px; color: var(--ink-400); padding-right: 4px; }
+.icon-btn {
+  width: 44px; height: 44px;
+  border: 0; background: transparent; border-radius: 6px;
+  color: var(--ink-600); font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background 120ms var(--ease-out), color 120ms var(--ease-out);
+}
+.icon-btn:hover { background: var(--raised); color: var(--ink-900); }
+.icon-btn:active { background: var(--raised-2); }
+.icon-btn.danger:hover { background: var(--raised); color: var(--overdue); }
+.widget .icon-btn { margin-right: -10px; }
+.icon-btn:focus-visible, .row:focus-visible, .btn:focus-visible, .done-btn:focus-visible,
+.input:focus-visible, .primary:focus-visible, .secondary:focus-visible {
+  outline: 2px solid var(--teal); outline-offset: 2px;
+}
+.hero {
+  margin-top: 12px;
+  background: var(--raised);
+  border-left: 3px solid var(--overdue);
+  border-radius: 12px;
+  padding: 14px 16px 16px;
+}
+.hero-top { display: flex; align-items: center; gap: 8px; }
+.hero-code { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ink-400); letter-spacing: 0.02em; }
+.hero-name { font-size: 12px; font-weight: 600; color: var(--ink-600); }
+.hero-warn { margin-left: auto; color: var(--overdue); font-size: 16px; }
+.hero-count {
+  margin-top: 6px;
+  color: var(--overdue);
+  font-family: var(--mono); font-size: 30px; font-weight: 700; line-height: 1.1;
+}
+.hero-title { margin-top: 4px; color: var(--ink-900); font-size: 16px; font-weight: 700; }
+.btn {
+  margin-top: 12px;
+  width: 100%; height: 44px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 14px;
+  border-radius: 6px;
+  background: var(--raised-2); border: 1px solid var(--divider);
+  color: var(--ink-600); font-family: inherit; font-size: 12px; font-weight: 700;
+  cursor: pointer;
+  transition: background 120ms var(--ease-out), border-color 120ms var(--ease-out), color 120ms var(--ease-out);
+}
+.btn:hover { background: #262730; border-color: #34353E; color: var(--ink-900); }
+.btn:active { transform: scale(0.99); }
+.ring {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 1.5px solid var(--overdue);
+  color: var(--overdue); font-size: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.list { margin-top: 18px; position: relative; padding-left: 20px; display: flex; flex-direction: column; }
+.list::before {
+  content: ''; position: absolute; left: 6px; top: 26px; bottom: 26px;
+  width: 2px; border-radius: 1px; background: var(--divider);
+}
+.row {
+  position: relative;
+  display: flex; align-items: center; gap: 10px;
+  min-height: 52px; padding: 8px 8px 8px 6px;
+  border: 0; background: transparent; border-radius: 6px;
+  text-align: left; font-family: inherit;
+  cursor: pointer;
+  transition: background 120ms var(--ease-out);
+}
+.row:hover { background: var(--raised); }
+.row:active { background: var(--raised-2); }
+.row::before {
+  content: ''; position: absolute; left: -17px; top: 50%;
+  width: 8px; height: 8px; margin-top: -4px; border-radius: 50%;
+  background: var(--ink-400);
+  box-shadow: 0 0 0 3px var(--canvas);
+}
+.row.soon::before { background: var(--soon); }
+.time {
+  width: 78px; flex-shrink: 0;
+  font-family: var(--mono); font-size: 12px; font-weight: 600;
+  color: var(--ink-600);
+}
+.row.soon .time { color: var(--soon); font-weight: 700; }
+.row-title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.t {
+  color: var(--ink-900); font-size: 13px; font-weight: 600; line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.c { display: flex; gap: 6px; align-items: baseline; min-width: 0; }
+.c code { font-family: var(--mono); font-size: 10.5px; font-weight: 600; color: var(--ink-400); letter-spacing: 0.02em; }
+.c span { font-size: 11px; color: var(--ink-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.done-btn {
+  margin-top: 14px;
+  width: 100%; height: 48px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 14px;
+  border-radius: 6px;
+  background: var(--raised); border: 1px solid var(--divider);
+  color: var(--ink-600); font-family: inherit; font-size: 12px; font-weight: 700;
+  cursor: pointer;
+  transition: background 120ms var(--ease-out), border-color 120ms var(--ease-out), color 120ms var(--ease-out);
+}
+.done-btn:hover { background: var(--raised-2); border-color: #34353E; color: var(--ink-900); }
+.done-btn:active { transform: scale(0.99); }
+.done-btn .ic { color: var(--ink-400); font-size: 16px; flex-shrink: 0; }
+.done-btn .n { font-family: var(--mono); font-weight: 700; color: var(--ink-900); }
+.done-btn .rest {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 6px;
+  color: var(--ink-400); font-size: 11px; font-weight: 600;
+}
+.done-btn:hover .rest { color: var(--ink-600); }
+
+/* ---- sheet: tambah event manual ---- */
+.sheet {
+  width: 390px;
+  background: var(--raised);
+  border: 1px solid var(--divider);
+  border-radius: 16px;
+  padding: 12px 16px 16px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.grabber { width: 36px; height: 4px; border-radius: 2px; background: var(--divider); margin: 0 auto 2px; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; }
+.sheet-title { font-size: 15px; font-weight: 800; color: var(--ink-900); }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 12px; font-weight: 600; color: var(--ink-600); }
+.input {
+  height: 44px; width: 100%;
+  border-radius: 6px;
+  background: var(--canvas); border: 1px solid var(--divider);
+  color: var(--ink-900); font-family: var(--sans); font-size: 13px;
+  padding: 0 12px;
+}
+.input::placeholder { color: var(--ink-400); }
+.input.mono { font-family: var(--mono); font-size: 12px; }
+.field-row { display: flex; gap: 10px; }
+.field-row .field { flex: 1; }
+.helper { font-size: 11px; color: var(--ink-400); line-height: 1.5; }
+.primary {
+  width: 100%; height: 48px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  border: 0; border-radius: 6px;
+  background: var(--teal); color: #14151A;
+  font-family: inherit; font-size: 13px; font-weight: 800;
+  cursor: pointer;
+  transition: background 120ms var(--ease-out), transform 120ms var(--ease-out);
+}
+.primary:hover { background: #6CC4B5; }
+.primary:active { transform: scale(0.99); }
+
+/* ---- phone frame + settings feed list ---- */
+.phone {
+  width: 390px; height: 780px;
+  border: 1px solid var(--divider); border-radius: 28px;
+  background: var(--canvas);
+  padding: 14px 16px 20px;
+  display: flex; flex-direction: column; gap: 12px;
+  overflow: hidden;
+}
+.set-head { display: flex; align-items: center; gap: 4px; }
+.set-head .icon-btn { margin-left: -10px; }
+.set-title { font-size: 15px; font-weight: 800; color: var(--ink-900); }
+.card {
+  background: var(--raised); border: 1px solid var(--divider); border-radius: 12px;
+  padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.card-title { font-size: 13px; font-weight: 700; color: var(--ink-900); }
+.feed-row { display: flex; align-items: center; gap: 6px; }
+.feed-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.feed-name { font-size: 13px; font-weight: 600; color: var(--ink-900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.feed-status { font-family: var(--mono); font-size: 11px; color: var(--ink-400); }
+.feed-status.err { color: var(--overdue); }
+.card .divider { height: 1px; background: var(--divider); }
+.secondary {
+  height: 44px; padding: 0 14px;
+  display: inline-flex; align-items: center; gap: 8px;
+  border-radius: 6px;
+  background: var(--raised-2); border: 1px solid var(--divider);
+  color: var(--ink-600); font-family: inherit; font-size: 12px; font-weight: 700;
+  cursor: pointer;
+  transition: background 120ms var(--ease-out), border-color 120ms var(--ease-out), color 120ms var(--ease-out);
+}
+.secondary:hover { background: #262730; border-color: #34353E; color: var(--ink-900); }
+.manage-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.manage-count { font-family: var(--mono); font-size: 12px; color: var(--ink-600); }
+
+/* ---- native android widget (system fonts, no webfont icons) ---- */
+.awidget {
+  width: 330px;
+  background: var(--raised); border-radius: 16px;
+  padding: 14px 16px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.aw-head { display: flex; justify-content: space-between; align-items: baseline; }
+.aw-name { font-size: 13px; font-weight: 700; color: var(--ink-900); }
+.aw-sync { font-family: monospace; font-size: 10px; color: var(--ink-400); }
+.aw-hero-count { font-family: monospace; font-size: 20px; font-weight: 700; color: var(--overdue); line-height: 1.1; }
+.aw-hero-sub { font-size: 11px; color: var(--ink-600); }
+.aw-row { display: flex; align-items: center; gap: 8px; }
+.aw-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-400); flex-shrink: 0; }
+.aw-dot.soon { background: var(--soon); }
+.aw-time { font-family: monospace; font-size: 11px; font-weight: 700; color: var(--ink-600); width: 74px; flex-shrink: 0; }
+.aw-time.soon { color: var(--soon); }
+.aw-title { font-size: 11px; color: var(--ink-900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aw-src { font-family: monospace; font-size: 9px; color: var(--ink-400); flex-shrink: 0; }
+.aw-foot { font-size: 10px; color: var(--ink-400); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+  .btn:active, .done-btn:active, .primary:active { transform: none; }
+}
+</style>
+</head>
+<body>
+
+  <div class="board">
+    <div class="board-label">1 · home, sumber campuran (desktop widget 360px)</div>
+    <div class="widget">
+      <header class="header">
+        <div class="brand">
+          <span class="wordmark">Deadline</span>
+          <span class="count">5 tugas</span>
+        </div>
+        <div class="head-right">
+          <span class="sync">sync 5 mnt</span>
+          <button class="icon-btn" type="button" aria-label="Refresh"><i class="ph-bold ph-arrows-clockwise"></i></button>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="hero-top">
+          <span class="hero-code">GCLASS</span>
+          <span class="hero-name">Matematika Web</span>
+          <i class="ph-bold ph-warning hero-warn" aria-hidden="true"></i>
+        </div>
+        <div class="hero-count">Terlewat 40 mnt</div>
+        <div class="hero-title">Kuis 3 · Deret Taylor</div>
+        <button class="btn" type="button">
+          <span class="ring"><i class="ph-bold ph-check"></i></span>
+          Tandai selesai
+        </button>
+      </section>
+
+      <div class="list">
+        <button class="row soon" type="button">
+          <span class="time">6 jam lagi</span>
+          <span class="row-title">
+            <span class="t">Kuis Jaringan</span>
+            <span class="c"><code>IF2040</code><span>Struktur Data</span></span>
+          </span>
+        </button>
+        <button class="row" type="button">
+          <span class="time">Besok 10.00</span>
+          <span class="row-title">
+            <span class="t">Presentasi Metopen</span>
+            <span class="c"><code>COMB0051</code><span>Metode Penelitian</span></span>
+          </span>
+        </button>
+        <button class="row" type="button">
+          <span class="time">Sabtu 09.00</span>
+          <span class="row-title">
+            <span class="t">Meeting himpunan</span>
+            <span class="c"><code>LOCAL</code><span>Event manual</span></span>
+          </span>
+        </button>
+        <button class="row" type="button">
+          <span class="time">4 hari lagi</span>
+          <span class="row-title">
+            <span class="t">Tugas Chapter 9</span>
+            <span class="c"><code>GCLASS</code><span>Matematika Web</span></span>
+          </span>
+        </button>
+      </div>
+
+      <button class="done-btn" type="button">
+        <i class="ph-bold ph-check-circle ic" aria-hidden="true"></i>
+        <span><span class="n">1</span> tugas selesai</span>
+        <span class="rest"><i class="ph-bold ph-arrow-counter-clockwise" aria-hidden="true"></i>Kembalikan</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="board">
+    <div class="board-label">2 · sheet tambah event manual (mobile)</div>
+    <div class="sheet">
+      <div class="grabber"></div>
+      <div class="sheet-head">
+        <span class="sheet-title">Tambah event</span>
+        <button class="icon-btn" type="button" aria-label="Tutup"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <div class="field">
+        <label for="ev-title">Judul event</label>
+        <input class="input" id="ev-title" type="text" placeholder="Mis. Meeting himpunan" value="Meeting himpunan">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="ev-date">Tanggal</label>
+          <input class="input mono" id="ev-date" type="text" value="Sab, 20 Sep 2026">
+        </div>
+        <div class="field">
+          <label for="ev-time">Jam (opsional)</label>
+          <input class="input mono" id="ev-time" type="text" value="09.00">
+        </div>
+      </div>
+      <div class="helper">Event disimpan lokal di perangkat ini dan ikut masuk daftar deadline serta jadwal notifikasi.</div>
+      <button class="primary" type="button">
+        <i class="ph-bold ph-plus" aria-hidden="true"></i>
+        Tambahkan ke deadline
+      </button>
+    </div>
+  </div>
+
+  <div class="board">
+    <div class="board-label">3 · settings, daftar feed (mobile 390px)</div>
+    <div class="phone">
+      <div class="set-head">
+        <button class="icon-btn" type="button" aria-label="Kembali"><i class="ph-bold ph-caret-left"></i></button>
+        <span class="set-title">Pengaturan</span>
+      </div>
+
+      <section class="card">
+        <div class="card-title">Sumber deadline</div>
+        <div class="feed-row">
+          <div class="feed-meta">
+            <span class="feed-name">BRONE UB</span>
+            <span class="feed-status">sync 5 mnt · 4 tugas</span>
+          </div>
+          <button class="icon-btn" type="button" aria-label="Uji koneksi BRONE UB"><i class="ph-bold ph-arrows-clockwise"></i></button>
+          <button class="icon-btn danger" type="button" aria-label="Hapus BRONE UB"><i class="ph-bold ph-trash"></i></button>
+        </div>
+        <div class="divider"></div>
+        <div class="feed-row">
+          <div class="feed-meta">
+            <span class="feed-name">Google Classroom · Matematika Web</span>
+            <span class="feed-status">sync 12 mnt · 2 tugas</span>
+          </div>
+          <button class="icon-btn" type="button" aria-label="Uji koneksi Matematika Web"><i class="ph-bold ph-arrows-clockwise"></i></button>
+          <button class="icon-btn danger" type="button" aria-label="Hapus Matematika Web"><i class="ph-bold ph-trash"></i></button>
+        </div>
+        <div class="divider"></div>
+        <div class="feed-row">
+          <div class="feed-meta">
+            <span class="feed-name">Google Classroom · Fisika</span>
+            <span class="feed-status err">token kedaluwarsa · perbarui URL</span>
+          </div>
+          <button class="icon-btn" type="button" aria-label="Uji koneksi Fisika"><i class="ph-bold ph-arrows-clockwise"></i></button>
+          <button class="icon-btn danger" type="button" aria-label="Hapus Fisika"><i class="ph-bold ph-trash"></i></button>
+        </div>
+        <button class="primary" type="button">
+          <i class="ph-bold ph-plus" aria-hidden="true"></i>
+          Tambah feed kalender
+        </button>
+        <div class="helper">Sumber dikenali otomatis dari URL (BRONE/Moodle, Google Calendar, iCal lain). Classroom: buka Calendar web → setelan kalender kelas → Integrate calendar → salin secret address in iCal format.</div>
+      </section>
+
+      <section class="card">
+        <div class="card-title">Event manual</div>
+        <div class="manage-row">
+          <span class="manage-count">3 event aktif</span>
+          <button class="secondary" type="button">
+            <i class="ph-bold ph-pencil-simple" aria-hidden="true"></i>
+            Kelola
+          </button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="board">
+    <div class="board-label">4 · widget home-screen android (native, font sistem)</div>
+    <div class="awidget">
+      <div class="aw-head">
+        <span class="aw-name">BRONE Reminder</span>
+        <span class="aw-sync">sync 5 mnt</span>
+      </div>
+      <div>
+        <div class="aw-hero-count">Terlewat 40 mnt</div>
+        <div class="aw-hero-sub">Kuis 3 · Deret Taylor · GCLASS</div>
+      </div>
+      <div class="aw-row">
+        <span class="aw-dot soon"></span>
+        <span class="aw-time soon">6 jam lagi</span>
+        <span class="aw-title">Kuis Jaringan</span>
+        <span class="aw-src">IF2040</span>
+      </div>
+      <div class="aw-row">
+        <span class="aw-dot"></span>
+        <span class="aw-time">Sabtu 09.00</span>
+        <span class="aw-title">Meeting himpunan</span>
+        <span class="aw-src">LOCAL</span>
+      </div>
+      <div class="aw-foot">Ketuk untuk buka aplikasi</div>
+    </div>
+  </div>
+
+</body>
+</html>

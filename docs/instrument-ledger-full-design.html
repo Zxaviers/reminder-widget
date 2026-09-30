@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>BRONE Reminder · Instrument Ledger — FULL DESIGN (dark+light, states, semua permukaan)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/bold/style.css" />
+<style>
+/* Hallmark · macrostructure: timeline-ledger · tone: industrial-utilitarian · anchor hue: 172 (teal) */
+/* FULL DESIGN sheet: pasangan gelap+terang dibangun bersama (D-Design-3), states lengkap
+   (loading/empty/error/setup per user story #15-16), semua permukaan (app, desktop widget,
+   widget native Android). Token light diambil dari docs/TOKENS.md, bukan ditebak. */
+:root {
+  --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+  --sans: 'Manrope', 'Segoe UI', system-ui, sans-serif;
+  --stage: #0A0A0C;
+}
+.dk {
+  --canvas: #14151A; --raised: #1C1D24; --raised-2: #22232B; --divider: #2A2B33;
+  --teal: #5BB5A6; --ink-900: #F2F1EE; --ink-600: #B8B6B0; --ink-400: #6E6D68;
+  --safe: #5CAE7E; --soon: #D6A44F; --overdue: #C14A4A;
+}
+.lt {
+  --canvas: #F5F4F1; --raised: #FFFFFF; --raised-2: #ECEAE5; --divider: #E4E2DD;
+  --teal: #1F6F63; --ink-900: #1A1A1A; --ink-600: #4A4A48; --ink-400: #8A8883;
+  --safe: #3A7D5C; --soon: #B8842E; --overdue: #8B2E2E;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--stage); font-family: var(--sans); }
+.stage { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 40px; padding: 40px; }
+.board { display: flex; flex-direction: column; gap: 12px; }
+.bl { font-family: var(--mono); font-size: 11px; font-weight: 600; color: #6E6D68; letter-spacing: 0.02em; }
+
+/* ================= komponen bersama (scope tema via .dk/.lt) ================= */
+.phone {
+  width: 390px; height: 800px; border-radius: 28px; overflow: hidden;
+  background: var(--canvas); border: 1px solid var(--divider);
+  padding: 16px; display: flex; flex-direction: column; position: relative;
+}
+.header { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0; }
+.brand { display: flex; align-items: baseline; gap: 8px; }
+.wordmark { color: var(--teal); font-size: 15px; font-weight: 800; letter-spacing: -0.01em; }
+.count { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ink-400); }
+.head-right { display: flex; align-items: center; gap: 2px; }
+.sync { font-family: var(--mono); font-size: 11px; color: var(--ink-400); padding-right: 4px; }
+.icon-btn {
+  width: 44px; height: 44px; margin-right: -10px; flex-shrink: 0;
+  border: 0; background: transparent; border-radius: 6px;
+  color: var(--ink-600); font-size: 16px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.icon-btn:last-child { margin-right: 0; }
+.icon-btn.small { width: 40px; height: 40px; margin-right: -6px; font-size: 14px; }
+.screen-title { font-size: 15px; font-weight: 800; color: var(--ink-900); }
+
+.hero {
+  margin-top: 12px; background: var(--raised);
+  border-left: 3px solid var(--ink-400); border-radius: 12px;
+  padding: 14px 16px 16px; flex-shrink: 0;
+}
+.hero.overdue { border-left-color: var(--overdue); }
+.hero.soon { border-left-color: var(--soon); }
+.hero-top { display: flex; align-items: center; gap: 8px; }
+.hero-code { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ink-400); letter-spacing: 0.02em; }
+.hero-name { font-size: 12px; font-weight: 600; color: var(--ink-600); }
+.hero-warn { margin-left: auto; color: var(--overdue); font-size: 16px; }
+.hero-count { margin-top: 6px; font-family: var(--mono); font-size: 30px; font-weight: 700; line-height: 1.1; color: var(--ink-900); }
+.hero.overdue .hero-count { color: var(--overdue); }
+.hero.soon .hero-count { color: var(--soon); }
+.hero-title { margin-top: 4px; color: var(--ink-900); font-size: 16px; font-weight: 700; }
+.btn {
+  margin-top: 12px; width: 100%; height: 44px;
+  display: flex; align-items: center; gap: 10px; padding: 0 14px; border-radius: 6px;
+  background: var(--raised-2); border: 1px solid var(--divider);
+  color: var(--ink-600); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.ring {
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+  border: 1.5px solid var(--ink-400); color: var(--ink-400); font-size: 10px;
+  display: flex; align-items: center; justify-content: center;
+}
+.hero.overdue .ring { border-color: var(--overdue); color: var(--overdue); }
+.hero.soon .ring { border-color: var(--soon); color: var(--soon); }
+
+.list { margin-top: 18px; position: relative; padding-left: 20px; display: flex; flex-direction: column; }
+.list::before {
+  content: ''; position: absolute; left: 6px; top: 26px; bottom: 26px;
+  width: 2px; border-radius: 1px; background: var(--divider);
+}
+.row { position: relative; display: flex; align-items: center; border-radius: 6px; }
+.row::before {
+  content: ''; position: absolute; left: -17px; top: 50%;
+  width: 8px; height: 8px; margin-top: -4px; border-radius: 50%;
+  background: var(--ink-400); box-shadow: 0 0 0 3px var(--canvas);
+}
+.row.soon::before { background: var(--soon); }
+.row-open {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px;
+  min-height: 52px; padding: 8px 8px 8px 6px; border: 0; background: transparent;
+  border-radius: 6px; text-align: left; font-family: inherit; cursor: pointer;
+}
+.row-done {
+  width: 44px; height: 44px; flex-shrink: 0; margin-right: 2px;
+  border: 0; background: transparent; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.time { width: 82px; flex-shrink: 0; font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--ink-600); }
+.row.soon .time { color: var(--soon); font-weight: 700; }
+.row-title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.t { color: var(--ink-900); font-size: 13px; font-weight: 600; line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.c { display: flex; gap: 6px; align-items: baseline; min-width: 0; }
+.c code { font-family: var(--mono); font-size: 10.5px; font-weight: 600; color: var(--ink-400); letter-spacing: 0.02em; }
+.c span { font-size: 11px; color: var(--ink-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.done-btn {
+  margin-top: 14px; width: 100%; height: 48px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 10px; padding: 0 14px; border-radius: 6px;
+  background: var(--raised); border: 1px solid var(--divider);
+  color: var(--ink-600); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.done-btn .ic { color: var(--ink-400); font-size: 16px; flex-shrink: 0; }
+.done-btn .n { font-family: var(--mono); font-weight: 700; color: var(--ink-900); }
+.done-btn .rest { margin-left: auto; display: flex; align-items: center; gap: 6px; color: var(--ink-400); font-size: 11px; font-weight: 600; }
+.done-panel { margin-top: 10px; border: 1px solid var(--divider); border-radius: 6px; background: var(--raised); padding: 4px 8px; }
+.drow { display: flex; align-items: center; gap: 10px; min-height: 48px; }
+.d-title { flex: 1; min-width: 0; font-size: 12px; font-weight: 600; color: var(--ink-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.d-code { font-family: var(--mono); font-size: 10.5px; font-weight: 600; color: var(--ink-400); letter-spacing: 0.02em; }
+
+/* settings */
+.scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.card { background: var(--raised); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.card-title { font-size: 12px; font-weight: 700; color: var(--ink-900); }
+.card-help { font-size: 11px; color: var(--ink-400); line-height: 1.4; }
+.dim { opacity: 0.55; }
+.note { font-size: 11px; color: var(--ink-400); margin-top: 6px; }
+.feed-row { display: flex; align-items: center; gap: 6px; min-height: 52px; }
+.feed-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.feed-name { font-size: 13px; font-weight: 600; color: var(--ink-900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.feed-meta { font-family: var(--mono); font-size: 11px; color: var(--ink-400); }
+.feed-meta.err { color: var(--overdue); }
+.addrow { display: flex; gap: 8px; }
+.input {
+  height: 44px; width: 100%; padding: 0 12px; border-radius: 6px;
+  background: var(--canvas); border: 1px solid var(--divider);
+  color: var(--ink-900); font-family: var(--mono); font-size: 12px;
+}
+.input::placeholder { color: var(--ink-400); }
+.btn-sec {
+  height: 44px; padding: 0 14px; border-radius: 6px; flex-shrink: 0;
+  background: var(--raised-2); border: 1px solid var(--divider);
+  color: var(--ink-600); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.chips { display: flex; gap: 8px; }
+.chip {
+  height: 44px; padding: 0 16px; border-radius: 6px;
+  background: var(--canvas); border: 1px solid var(--divider);
+  color: var(--ink-600); font-family: var(--mono); font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.chip.on { background: var(--ink-900); border-color: var(--ink-900); color: var(--canvas); }
+.sw-row { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
+.sw-label { font-size: 12px; font-weight: 600; color: var(--ink-600); }
+.sw { width: 40px; height: 24px; border-radius: 999px; background: var(--raised-2); border: 1px solid var(--divider); position: relative; flex-shrink: 0; }
+.sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink-400); }
+.primary {
+  margin-top: 14px; width: 100%; height: 48px; border: 0; border-radius: 6px;
+  background: var(--teal); color: #14151A; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer;
+}
+.lt .primary { color: #F5F4F1; }
+
+/* sheet */
+.scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.45); }
+.lt .scrim { background: rgba(20,21,26,0.28); }
+.sheet {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: var(--raised); border-radius: 16px 16px 0 0; padding: 12px 16px 20px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--divider); margin: 0 auto 4px; }
+.sheet-title { font-size: 14px; font-weight: 800; color: var(--ink-900); }
+.field-label { font-size: 11px; font-weight: 600; color: var(--ink-400); margin-bottom: 6px; display: block; }
+.sheet-row { display: flex; gap: 8px; }
+.sheet-actions { display: flex; gap: 8px; }
+.sheet-actions .btn-sec, .sheet-actions .primary { flex: 1; margin-top: 4px; }
+
+/* states mini */
+.mini { width: 320px; background: var(--canvas); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.sk { background: var(--raised-2); border-radius: 6px; }
+.sk.hero { height: 96px; border-radius: 12px; }
+.sk.row { height: 44px; }
+.sk.btn { height: 48px; }
+.state-ic { font-size: 26px; color: var(--ink-400); }
+.state-ic.err { color: var(--overdue); }
+.state-title { font-size: 13px; font-weight: 700; color: var(--ink-900); }
+.state-sub { font-size: 11px; color: var(--ink-400); line-height: 1.45; }
+
+/* desktop widget */
+.widget { width: 360px; background: var(--canvas); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; }
+
+/* native android widget (system fonts, no webfont icons) */
+.awidget {
+  width: 330px; background: #1C1D24; border-radius: 24px; padding: 14px 16px;
+  font-family: Roboto, 'Segoe UI', system-ui, sans-serif;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.aw-head { display: flex; align-items: baseline; justify-content: space-between; }
+.aw-name { font-size: 13px; font-weight: 700; color: #F2F1EE; }
+.aw-sync { font-family: monospace; font-size: 10px; color: #6E6D68; }
+.aw-hero { font-family: monospace; font-size: 20px; font-weight: 700; color: #C14A4A; line-height: 1.15; }
+.aw-hero-sub { font-size: 11px; color: #B8B6B0; margin-top: 2px; }
+.aw-row { display: flex; align-items: center; gap: 8px; min-height: 30px; }
+.aw-dot { width: 8px; height: 8px; border-radius: 50%; background: #6E6D68; flex-shrink: 0; }
+.aw-dot.soon { background: #D6A44F; }
+.aw-time { font-family: monospace; font-size: 11px; font-weight: 700; color: #B8B6B0; width: 74px; flex-shrink: 0; }
+.aw-time.soon { color: #D6A44F; }
+.aw-title { font-size: 11px; color: #F2F1EE; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aw-src { font-family: monospace; font-size: 9px; font-weight: 700; color: #6E6D68; letter-spacing: 0.04em; flex-shrink: 0; }
+.aw-foot { font-size: 10px; color: #6E6D68; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <!-- ============ 1 · APP HOME DARK ============ -->
+  <div class="board">
+    <span class="bl">1 · App home — dark</span>
+    <div class="phone dk">
+      <div class="header">
+        <div class="brand"><span class="wordmark">Deadline</span><span class="count">5 tugas</span></div>
+        <div class="head-right">
+          <span class="sync">sync 5 mnt</span>
+          <button class="icon-btn" aria-label="Refresh"><i class="ph-bold ph-arrows-clockwise"></i></button>
+          <button class="icon-btn" aria-label="Tambah event manual"><i class="ph-bold ph-plus"></i></button>
+          <button class="icon-btn" aria-label="Pengaturan"><i class="ph-bold ph-gear"></i></button>
+        </div>
+      </div>
+      <section class="hero overdue">
+        <div class="hero-top"><span class="hero-code">IF2040</span><span class="hero-name">Struktur Data</span><i class="ph-bold ph-warning hero-warn"></i></div>
+        <div class="hero-count">Terlewat 2 jam</div>
+        <div class="hero-title">Tugas Bab 6</div>
+        <button class="btn"><span class="ring"><i class="ph-bold ph-check"></i></span>Tandai selesai</button>
+      </section>
+      <div class="list">
+        <div class="row soon">
+          <button class="row-open"><span class="time">6 jam lagi</span><span class="row-title"><span class="t">Kuis Jaringan</span><span class="c"><code>IF2040</code><span>Struktur Data</span></span></span></button>
+          <button class="row-done" aria-label="Tandai selesai"><span class="ring"><i class="ph-bold ph-check"></i></span></button>
+        </div>
+        <div class="row">
+          <button class="row-open"><span class="time">Besok 10.00</span><span class="row-title"><span class="t">Presentasi Metopen</span><span class="c"><code>COMB0051</code><span>Metode Penelitian</span></span></span></button>
+          <button class="row-done" aria-label="Tandai selesai"><span class="ring"><i class="ph-bold ph-check"></i></span></button>
+        </div>
+        <div class="row">
+          <button class="row-open"><span class="time">Sabtu 09.00</span><span class="row-title"><span class="t">Meeting himpunan</span><span class="c"><code>LOCAL</code><span>Event manual</span></span></span></button>
+          <button class="row-done" aria-label="Tandai selesai"><span class="ring"><i class="ph-bold ph-check"></i></span></button>
+        </div>
+        <div class="row">
+          <button class="row-open"><span class="time">3 hari lagi</span><span class="row-title"><span class="t">Laporan Praktikum</span><span class="c"><code>FI1101</code><span>Fisika Dasar</span></span></span></button>
+          <button class="row-done" aria-label="Tandai selesai"><span class="ring"><i class="ph-bold ph-check"></i></span></button>
+        </div>
+      </div>
+      <button class="done-btn"><i class="ph-bold ph-check-circle ic"></i><span><span class="n">1</span> tugas selesai</span><span class="rest"><i class="ph-bold ph-arrow-counter-clockwise"></i>Kembalikan</span></button>
+    </div>
+  </div>
+
+  <!-- ============ 2 · APP HOME LIGHT ============ -->
+  <div class="board">
+    <span class="bl">2 · App home — light (pasangan wajib D-Design-3)</span>
+    <div class="phone lt">
+      <div class="header">
+        <div class="brand"><span class="wordmark">Deadline</span><span class="count">5 tugas</span></div>
+        <div class="head-right">
+          <span class="sync">sync 5 mnt</span>
+          <button class="icon-btn" aria-label="Refresh"><i class="ph-bold ph-arrows-clockwise"></i></button>
+          <button class="icon-btn" aria-label="Tambah event manual"><i class="ph-bold ph-plus"></i></button>
+          <button class="icon-btn" aria-label="Pengaturan"><i class="ph-bold ph-gear"></i></button>
+        </div>
+      </div>
+      <section class="hero overdue">
+        <div class="hero-top"><span class="hero-code">IF2040</span><span class="hero-name">Struktur Data</span><i class="ph-bold ph-warning hero-warn"></i></div>
+        <div class="hero-count">Terlewat 2 jam</div>
+        <div class="hero-title">Tugas Bab 6</div>
+        <button class="btn"><span class="ring"><i class="ph-bold ph-check"></i></span>Tandai selesai</button>
+      </section>
+      <div class="list">
+        <div class="row soon">
+          <button class="row-open"><span class="time">6 jam lagi</span><span class="row-title"><span class="t">Kuis Jaringan</span><span class="c"><code>IF2040</code><span>Struktur Data</span></span></span></button>
+          <button class="row-done" aria-label="Tandai selesai"><span class="ring"><i class="ph-bold ph-check"></i></span></button>
+        </div>
+        <div class="row">
+          <button class="row-open"><span class="time">Besok 10.00</span><span class="row-title"><span class="t">Presentasi Metopen</span><span class="c"><code>COMB0051</code><span>Metode Penelitian</span></span></span></button>
+          <button class="row-done" aria-label="Tandai selesai"><span class="ring"><i class="ph-bold ph-check"></i></span></button>
+        </div>
+        <div class="row">
+          <button class="row-open"><span class="time">Sabtu 09.00</span><span class="row-title"><span class="t">Meeting himpunan</span><span class="c"><code>LOCAL</code><span>Event manual</span></span></span></button>
+          <button class="row-done" aria-label="Tandai selesai"><span class="ring"><i class="ph-bold ph-check"></i></span></button>
+        </div>
+        <div class="row">
+          <button class="row-open"><span class="time">3 hari lagi</span><span class="row-title"><span class="t">Laporan Praktikum</span><span class="c"><code>FI1101</code><span>Fisika Dasar</span></span></span></button>
+          <button class="row-done" aria-label="Tandai selesai"><span class="ring"><i class="ph-bold ph-check"></i></span></button>
+        </div>
+      </div>
+      <button class="done-btn"><i class="ph-bold ph-check-circle ic"></i><span><span class="n">1</span> tugas selesai</span><span class="rest"><i class="ph-bold ph-arrow-counter-clockwise"></i>Kembalikan</span></button>
+    </div>
+  </div>
+
+  <!-- ============ 3 · SETTINGS DARK ============ -->
+  <div class="board">
+    <span class="bl">3 · Settings — daftar feed multi-sumber + tema</span>
+    <div class="phone dk">
+      <div class="header">
+        <button class="icon-btn" aria-label="Kembali"><i class="ph-bold ph-caret-left"></i></button>
+        <span class="screen-title">Pengaturan</span>
+        <button class="icon-btn" style="visibility:hidden" aria-hidden="true"></button>
+      </div>
+      <div class="scroll">
+        <section class="card">
+          <span class="card-title">Sumber feed</span>
+          <div class="feed-row">
+            <div class="feed-info"><span class="feed-name">BRONE · Kalender utama</span><span class="feed-meta">sync 5 mnt · 4 tugas</span></div>
+            <button class="icon-btn small" aria-label="Uji koneksi"><i class="ph-bold ph-arrows-clockwise"></i></button>
+            <button class="icon-btn small" aria-label="Hapus feed"><i class="ph-bold ph-trash"></i></button>
+          </div>
+          <div class="feed-row">
+            <div class="feed-info"><span class="feed-name">Google Calendar · Matweb B</span><span class="feed-meta">sync 8 mnt · 2 tugas</span></div>
+            <button class="icon-btn small" aria-label="Uji koneksi"><i class="ph-bold ph-arrows-clockwise"></i></button>
+            <button class="icon-btn small" aria-label="Hapus feed"><i class="ph-bold ph-trash"></i></button>
+          </div>
+          <div class="feed-row">
+            <div class="feed-info"><span class="feed-name">BRONE · semester lama</span><span class="feed-meta err">token kedaluwarsa · perbarui URL</span></div>
+            <button class="icon-btn small" aria-label="Uji koneksi"><i class="ph-bold ph-arrows-clockwise"></i></button>
+            <button class="icon-btn small" aria-label="Hapus feed"><i class="ph-bold ph-trash"></i></button>
+          </div>
+          <div class="addrow">
+            <input class="input" type="url" placeholder="https://…/export_execute.php?… atau secret address iCal" aria-label="URL feed baru" />
+            <button class="btn-sec">Tambah</button>
+          </div>
+          <span class="card-help">Sumber dikenali otomatis dari URL: BRONE/Moodle, Google Calendar (termasuk kalender kelas Classroom), atau iCal lain. Classroom: Settings Google Calendar → kalender kelas → secret address in iCal format.</span>
+        </section>
+        <section class="card">
+          <span class="card-title">Ingatkan sebelum tenggat</span>
+          <div class="chips"><button class="chip on">24j</button><button class="chip on">6j</button><button class="chip on">1j</button></div>
+        </section>
+        <section class="card">
+          <span class="card-title">Interval sync</span>
+          <div class="chips"><button class="chip">15</button><button class="chip on">20</button><button class="chip">30</button></div>
+        </section>
+        <section class="card">
+          <span class="card-title">Tema</span>
+          <div class="chips"><button class="chip on">Gelap</button><button class="chip">Terang</button></div>
+        </section>
+        <section class="card">
+          <span class="card-title">Khusus desktop</span>
+          <div class="dim">
+            <div class="sw-row"><span class="sw-label">Auto-start saat login</span><span class="sw"></span></div>
+            <div class="sw-row"><span class="sw-label">Deteksi submission otomatis</span><span class="sw"></span></div>
+          </div>
+          <div class="note">Opsi ini hanya aktif di desktop.</div>
+        </section>
+        <button class="primary">Simpan perubahan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 4 · SHEET TAMBAH EVENT ============ -->
+  <div class="board">
+    <span class="bl">4 · Sheet tambah event manual</span>
+    <div class="phone dk">
+      <div class="header">
+        <div class="brand"><span class="wordmark">Deadline</span><span class="count">5 tugas</span></div>
+        <div class="head-right"><span class="sync">sync 5 mnt</span><button class="icon-btn" aria-label="Pengaturan"><i class="ph-bold ph-gear"></i></button></div>
+      </div>
+      <section class="hero overdue">
+        <div class="hero-top"><span class="hero-code">IF2040</span><span class="hero-name">Struktur Data</span><i class="ph-bold ph-warning hero-warn"></i></div>
+        <div class="hero-count">Terlewat 2 jam</div>
+        <div class="hero-title">Tugas Bab 6</div>
+      </section>
+      <div class="scrim"></div>
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <span class="sheet-title">Tambah event manual</span>
+        <div>
+          <span class="field-label">Judul</span>
+          <input class="input" style="font-family:var(--sans)" placeholder="Mis. Meeting himpunan" aria-label="Judul event" />
+        </div>
+        <div class="sheet-row">
+          <div style="flex:1"><span class="field-label">Tanggal</span><input class="input" type="date" aria-label="Tanggal" /></div>
+          <div style="flex:1"><span class="field-label">Jam (opsional)</span><input class="input" type="time" aria-label="Jam" /></div>
+        </div>
+        <span class="card-help">Disimpan lokal di perangkat, ikut masuk countdown &amp; notifikasi.</span>
+        <div class="sheet-actions"><button class="btn-sec">Batal</button><button class="primary">Simpan event</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 5-8 · STATES ============ -->
+  <div class="board">
+    <span class="bl">5 · State: loading</span>
+    <div class="mini dk">
+      <div class="sk" style="height:18px;width:120px"></div>
+      <div class="sk hero"></div>
+      <div class="sk row"></div>
+      <div class="sk row"></div>
+      <div class="sk btn"></div>
+    </div>
+  </div>
+  <div class="board">
+    <span class="bl">6 · State: empty</span>
+    <div class="mini dk">
+      <i class="ph-bold ph-check-circle state-ic"></i>
+      <span class="state-title">Tidak ada deadline mendekat</span>
+      <span class="state-sub">Sync 5 mnt lalu — tugas baru dari feed akan muncul otomatis di sini.</span>
+    </div>
+  </div>
+  <div class="board">
+    <span class="bl">7 · State: error / offline</span>
+    <div class="mini dk">
+      <i class="ph-bold ph-warning-circle state-ic err"></i>
+      <span class="state-title">Feed tidak terjangkau</span>
+      <span class="state-sub">Menampilkan data sync 12 mnt lalu. Coba lagi saat koneksi pulih.</span>
+      <button class="btn-sec" style="width:100%"><i class="ph-bold ph-arrows-clockwise"></i>&nbsp; Coba lagi</button>
+    </div>
+  </div>
+  <div class="board">
+    <span class="bl">8 · State: setup (feed belum ada)</span>
+    <div class="mini dk">
+      <i class="ph-bold ph-gear state-ic"></i>
+      <span class="state-title">Feed belum dipasang</span>
+      <span class="state-sub">Tempel URL kalender BRONE atau secret address Google Calendar untuk mulai.</span>
+      <button class="primary">Buka pengaturan</button>
+    </div>
+  </div>
+
+  <!-- ============ 9 · DESKTOP WIDGET DARK ============ -->
+  <div class="board">
+    <span class="bl">9 · Desktop widget 360px — dark</span>
+    <div class="widget dk">
+      <div class="header">
+        <div class="brand"><span class="wordmark">Deadline</span><span class="count">5 tugas</span></div>
+        <div class="head-right">
+          <span class="sync">sync 5 mnt</span>
+          <button class="icon-btn" aria-label="Refresh"><i class="ph-bold ph-arrows-clockwise"></i></button>
+          <button class="icon-btn" aria-label="Pengaturan"><i class="ph-bold ph-gear"></i></button>
+        </div>
+      </div>
+      <section class="hero overdue">
+        <div class="hero-top"><span class="hero-code">IF2040</span><span class="hero-name">Struktur Data</span><i class="ph-bold ph-warning hero-warn"></i></div>
+        <div class="hero-count">Terlewat 2 jam</div>
+        <div class="hero-title">Tugas Bab 6</div>
+        <button class="btn"><span class="ring"><i class="ph-bold ph-check"></i></span>Tandai selesai</button>
+      </section>
+      <div class="list">
+        <div class="row soon">
+          <button class="row-open"><span class="time">6 jam lagi</span><span class="row-title"><span class="t">Kuis Jaringan</span><span class="c"><code>IF2040</code><span>Struktur Data</span></span></span></button>
+          <button class="row-done" aria-label="Tandai selesai"><span class="ring"><i class="ph-bold ph-check"></i></span></button>
+        </div>
+        <div class="row">
+          <button class="row-open"><span class="time">Besok 10.00</span><span class="row-title"><span class="t">Presentasi Metopen</span><span class="c"><code>COMB0051</code><span>Metode Penelitian</span></span></span></button>
+          <button class="row-done" aria-label="Tandai selesai"><span class="ring"><i class="ph-bold ph-check"></i></span></button>
+        </div>
+      </div>
+      <button class="done-btn"><i class="ph-bold ph-check-circle ic"></i><span><span class="n">1</span> tugas selesai</span><span class="rest"><i class="ph-bold ph-arrow-counter-clockwise"></i>Kembalikan</span></button>
+    </div>
+  </div>
+
+  <!-- ============ 10 · DESKTOP WIDGET LIGHT ============ -->
+  <div class="board">
+    <span class="bl">10 · Desktop widget 360px — light</span>
+    <div class="widget lt">
+      <div class="header">
+        <div class="brand"><span class="wordmark">Deadline</span><span class="count">5 tugas</span></div>
+        <div class="head-right">
+          <span class="sync">sync 5 mnt</span>
+          <button class="icon-btn" aria-label="Refresh"><i class="ph-bold ph-arrows-clockwise"></i></button>
+          <button class="icon-btn" aria-label="Pengaturan"><i class="ph-bold ph-gear"></i></button>
+        </div>
+      </div>
+      <section class="hero overdue">
+        <div class="hero-top"><span class="hero-code">IF2040</span><span class="hero-name">Struktur Data</span><i class="ph-bold ph-warning hero-warn"></i></div>
+        <div class="hero-count">Terlewat 2 jam</div>
+        <div class="hero-title">Tugas Bab 6</div>
+        <button class="btn"><span class="ring"><i class="ph-bold ph-check"></i></span>Tandai selesai</button>
+      </section>
+      <div class="list">
+        <div class="row soon">
+          <button class="row-open"><span class="time">6 jam lagi</span><span class="row-title"><span class="t">Kuis Jaringan</span><span class="c"><code>IF2040</code><span>Struktur Data</span></span></span></button>
+          <button class="row-done" aria-label="Tandai selesai"><span class="ring"><i class="ph-bold ph-check"></i></span></button>
+        </div>
+        <div class="row">
+          <button class="row-open"><span class="time">Besok 10.00</span><span class="row-title"><span class="t">Presentasi Metopen</span><span class="c"><code>COMB0051</code><span>Metode Penelitian</span></span></span></button>
+          <button class="row-done" aria-label="Tandai selesai"><span class="ring"><i class="ph-bold ph-check"></i></span></button>
+        </div>
+      </div>
+      <button class="done-btn"><i class="ph-bold ph-check-circle ic"></i><span><span class="n">1</span> tugas selesai</span><span class="rest"><i class="ph-bold ph-arrow-counter-clockwise"></i>Kembalikan</span></button>
+    </div>
+  </div>
+
+  <!-- ============ 11 · DONE PANEL EXPANDED ============ -->
+  <div class="board">
+    <span class="bl">11 · Panel selesai expanded</span>
+    <div class="mini dk" style="width:360px">
+      <button class="done-btn" style="margin-top:0"><i class="ph-bold ph-check-circle ic"></i><span><span class="n">2</span> tugas selesai</span><span class="rest"><i class="ph-bold ph-caret-up"></i>Tutup</span></button>
+      <div class="done-panel">
+        <div class="drow"><span class="d-code">IF2040</span><span class="d-title">Review desain widget</span><button class="icon-btn small" aria-label="Kembalikan"><i class="ph-bold ph-arrow-counter-clockwise"></i></button></div>
+        <div class="drow"><span class="d-code">COMB0051</span><span class="d-title">Draft bab 2 metopen</span><button class="icon-btn small" aria-label="Kembalikan"><i class="ph-bold ph-arrow-counter-clockwise"></i></button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 12 · NATIVE ANDROID WIDGET ============ -->
+  <div class="board">
+    <span class="bl">12 · Widget home-screen Android (native, selalu gelap)</span>
+    <div class="awidget">
+      <div class="aw-head"><span class="aw-name">BRONE Reminder</span><span class="aw-sync">sync 5 mnt</span></div>
+      <div>
+        <div class="aw-hero">Terlewat 2 jam</div>
+        <div class="aw-hero-sub">Tugas Bab 6 · IF2040</div>
+      </div>
+      <div class="aw-row"><span class="aw-dot soon"></span><span class="aw-time soon">6 jam lagi</span><span class="aw-title">Kuis Jaringan</span><span class="aw-src">IF2040</span></div>
+      <div class="aw-row"><span class="aw-dot"></span><span class="aw-time">Sabtu 09.00</span><span class="aw-title">Meeting himpunan</span><span class="aw-src">LOCAL</span></div>
+      <div class="aw-foot">Ketuk untuk buka aplikasi</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -89,7 +89,7 @@ class WidgetTaskService : RemoteViewsService() {
                     } else if (overdueHours < 24) {
                         "Terlewat ${overdueHours}j"
                     } else {
-                        "Terlewat ${overdueHours / 24}hr"
+                        "Terlewat ${overdueHours / 24} hari"
                     }
                     Pair(label, "#D66161") // overdue token, 4.98:1 on #14151A
                 }

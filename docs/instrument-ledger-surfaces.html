@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>BRONE Reminder · Instrument Ledger — 4 surfaces</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/bold/style.css" />
+<style>
+/* Hallmark · macrostructure: timeline-ledger · tone: industrial-utilitarian · anchor hue: 172 (teal) */
+/* 4 surfaces, one language: mono carries time/code, Manrope carries titles, vertical time rail
+   with urgency nodes, one hero per screen. Board 3 (native RemoteViews) deliberately drops
+   webfonts + font-icons: system sans + system mono + geometric dots only. */
+:root {
+  --canvas: #14151A;
+  --raised: #1C1D24;
+  --raised-2: #22232B;
+  --divider: #2A2B33;
+  --teal: #5BB5A6;
+  --ink-900: #F2F1EE;
+  --ink-600: #B8B6B0;
+  --ink-400: #6E6D68;
+  --safe: #5CAE7E;
+  --soon: #D6A44F;
+  --overdue: #C14A4A;
+  --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+  --sans: 'Manrope', 'Segoe UI', system-ui, sans-serif;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #0A0A0C; font-family: var(--sans); }
+.stage { display: flex; flex-wrap: wrap; gap: 48px; padding: 48px; align-items: flex-start; }
+.board { display: flex; flex-direction: column; gap: 14px; }
+.board-label { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ink-400); letter-spacing: 0.02em; }
+
+/* ============ shared components (webview surfaces) ============ */
+.widget, .phone { background: var(--canvas); display: flex; flex-direction: column; }
+.widget { width: 360px; border-radius: 16px; padding: 16px; }
+.phone { width: 390px; height: 780px; border-radius: 28px; border: 1px solid var(--divider); padding: 20px 16px 24px; overflow: hidden; }
+
+.header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.brand { display: flex; align-items: baseline; gap: 8px; }
+.wordmark { color: var(--teal); font-size: 15px; font-weight: 800; letter-spacing: -0.01em; }
+.count { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ink-400); }
+.head-right { display: flex; align-items: center; }
+.sync { font-family: var(--mono); font-size: 11px; color: var(--ink-400); padding-right: 4px; }
+.icon-btn {
+  width: 44px; height: 44px; margin-right: -10px;
+  border: 0; background: transparent; border-radius: 6px;
+  color: var(--ink-600); font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background 120ms var(--ease-out), color 120ms var(--ease-out);
+}
+.phone .icon-btn { margin-right: -4px; }
+.icon-btn.leader { margin-right: 0; }
+.icon-btn:hover { background: var(--raised); color: var(--ink-900); }
+.icon-btn:active { background: var(--raised-2); }
+.icon-btn:focus-visible, .row:focus-visible, .btn:focus-visible, .done-btn:focus-visible,
+.chip:focus-visible, .primary:focus-visible, .second:focus-visible {
+  outline: 2px solid var(--teal); outline-offset: 2px;
+}
+.screen-title { color: var(--ink-900); font-size: 15px; font-weight: 800; }
+
+.hero { margin-top: 12px; background: var(--raised); border-left: 3px solid var(--overdue); border-radius: 12px; padding: 14px 16px 16px; }
+.hero-top { display: flex; align-items: center; gap: 8px; }
+.hero-code { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ink-400); letter-spacing: 0.02em; }
+.hero-name { font-size: 12px; font-weight: 600; color: var(--ink-600); }
+.hero-warn { margin-left: auto; color: var(--overdue); font-size: 16px; }
+.hero-count { margin-top: 6px; color: var(--overdue); font-family: var(--mono); font-size: 30px; font-weight: 700; line-height: 1.1; }
+.hero-title { margin-top: 4px; color: var(--ink-900); font-size: 16px; font-weight: 700; }
+.btn {
+  margin-top: 12px; width: 100%; height: 44px;
+  display: flex; align-items: center; gap: 10px; padding: 0 14px;
+  border-radius: 6px; background: var(--raised-2); border: 1px solid var(--divider);
+  color: var(--ink-600); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+  transition: background 120ms var(--ease-out), border-color 120ms var(--ease-out), color 120ms var(--ease-out);
+}
+.btn:hover { background: #262730; border-color: #34353E; color: var(--ink-900); }
+.btn:active { transform: scale(0.99); }
+.ring {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 1.5px solid var(--overdue); color: var(--overdue); font-size: 10px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+.list { margin-top: 18px; position: relative; padding-left: 20px; display: flex; flex-direction: column; }
+.list::before { content: ''; position: absolute; left: 6px; top: 26px; bottom: 26px; width: 2px; border-radius: 1px; background: var(--divider); }
+.row {
+  position: relative; display: flex; align-items: center; gap: 10px;
+  min-height: 52px; padding: 8px 8px 8px 6px;
+  border: 0; background: transparent; border-radius: 6px;
+  text-align: left; font-family: inherit; cursor: pointer;
+  transition: background 120ms var(--ease-out);
+}
+.row:hover { background: var(--raised); }
+.row:active { background: var(--raised-2); }
+.row::before {
+  content: ''; position: absolute; left: -17px; top: 50%;
+  width: 8px; height: 8px; margin-top: -4px; border-radius: 50%;
+  background: var(--ink-400); box-shadow: 0 0 0 3px var(--canvas);
+}
+.row.soon::before { background: var(--soon); }
+.time { width: 78px; flex-shrink: 0; font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--ink-600); }
+.row.soon .time { color: var(--soon); font-weight: 700; }
+.row-title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.t { color: var(--ink-900); font-size: 13px; font-weight: 600; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.c { display: flex; gap: 6px; align-items: baseline; min-width: 0; }
+.c code { font-family: var(--mono); font-size: 10.5px; font-weight: 600; color: var(--ink-400); letter-spacing: 0.02em; }
+.c span { font-size: 11px; color: var(--ink-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.done-btn {
+  margin-top: 14px; width: 100%; height: 48px;
+  display: flex; align-items: center; gap: 10px; padding: 0 14px;
+  border-radius: 6px; background: var(--raised); border: 1px solid var(--divider);
+  color: var(--ink-600); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+  transition: background 120ms var(--ease-out), border-color 120ms var(--ease-out), color 120ms var(--ease-out);
+}
+.phone .done-btn { margin-top: auto; }
+.done-btn:hover { background: var(--raised-2); border-color: #34353E; color: var(--ink-900); }
+.done-btn:active { transform: scale(0.99); }
+.done-btn .ic { color: var(--ink-400); font-size: 16px; flex-shrink: 0; }
+.done-btn .n { font-family: var(--mono); font-weight: 700; color: var(--ink-900); }
+.done-btn .rest { margin-left: auto; display: flex; align-items: center; gap: 6px; color: var(--ink-400); font-size: 11px; font-weight: 600; }
+.done-btn:hover .rest { color: var(--ink-600); }
+
+/* ============ board 3: native RemoteViews widget (system fonts, no font-icons) ============ */
+.awidget {
+  width: 330px; background: var(--raised); border-radius: 16px; padding: 14px 16px;
+  font-family: Roboto, 'Segoe UI', system-ui, sans-serif;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.awidget .mono { font-family: ui-monospace, 'Roboto Mono', SFMono-Regular, monospace; }
+.aw-head { display: flex; align-items: baseline; justify-content: space-between; }
+.aw-name { color: var(--ink-900); font-size: 13px; font-weight: 700; }
+.aw-sync { color: var(--ink-400); font-size: 10px; }
+.aw-hero-count { color: var(--overdue); font-size: 20px; font-weight: 700; line-height: 1.15; }
+.aw-hero-sub { margin-top: 2px; color: var(--ink-600); font-size: 11px; }
+.aw-row { display: flex; align-items: center; gap: 8px; min-height: 22px; }
+.aw-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-400); flex-shrink: 0; }
+.aw-dot.soon { background: var(--soon); }
+.aw-time { width: 66px; flex-shrink: 0; font-size: 11px; font-weight: 700; color: var(--ink-600); }
+.aw-row.soon .aw-time { color: var(--soon); }
+.aw-title { color: var(--ink-900); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aw-foot { color: var(--ink-400); font-size: 10px; }
+
+/* ============ board 4: settings ============ */
+.set-card { margin-top: 12px; background: var(--raised); border-radius: 12px; padding: 14px 16px; }
+.set-label { display: block; color: var(--ink-400); font-size: 11px; font-weight: 600; margin-bottom: 8px; }
+.field {
+  width: 100%; height: 44px; padding: 0 12px;
+  background: var(--canvas); border: 1px solid var(--divider); border-radius: 6px;
+  color: var(--ink-900); font-family: var(--mono); font-size: 11px;
+}
+.field:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.test-row { margin-top: 10px; display: flex; align-items: center; gap: 10px; }
+.second {
+  height: 44px; padding: 0 16px; border-radius: 6px;
+  background: var(--raised-2); border: 1px solid var(--divider);
+  color: var(--ink-600); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+  transition: background 120ms var(--ease-out), color 120ms var(--ease-out);
+}
+.second:hover { color: var(--ink-900); background: #262730; }
+.test-ok { display: flex; align-items: center; gap: 6px; color: var(--safe); font-size: 11px; font-weight: 700; }
+.chips { display: flex; gap: 8px; }
+.chip {
+  height: 44px; padding: 0 14px; border-radius: 6px;
+  background: transparent; border: 1px solid var(--divider);
+  color: var(--ink-600); font-family: var(--mono); font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: background 120ms var(--ease-out), color 120ms var(--ease-out);
+}
+.chip:hover { background: var(--raised-2); color: var(--ink-900); }
+.chip.on { background: var(--ink-900); border-color: var(--ink-900); color: var(--canvas); font-weight: 700; }
+.sw-row { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
+.sw-label { color: var(--ink-600); font-size: 12px; font-weight: 600; }
+.sw { width: 40px; height: 24px; border-radius: 999px; background: var(--raised-2); border: 1px solid var(--divider); position: relative; flex-shrink: 0; }
+.sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink-400); }
+.dim { opacity: 0.5; }
+.note { margin-top: 8px; color: var(--ink-400); font-size: 11px; }
+.primary {
+  margin-top: auto; width: 100%; height: 48px; border: 0; border-radius: 6px;
+  background: var(--teal); color: #10131A; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer;
+  transition: filter 120ms var(--ease-out);
+}
+.primary:hover { filter: brightness(1.08); }
+.primary:active { transform: scale(0.99); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+  .btn:active, .done-btn:active, .primary:active { transform: none; }
+}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <!-- ================= 1 · desktop widget ================= -->
+  <div class="board">
+    <div class="board-label">1 · Desktop widget — webview frameless 360px</div>
+    <div class="widget">
+      <header class="header">
+        <div class="brand"><span class="wordmark">Deadline</span><span class="count">4 tugas</span></div>
+        <div class="head-right">
+          <span class="sync">sync 5 mnt</span>
+          <button class="icon-btn" type="button" aria-label="Refresh"><i class="ph-bold ph-arrows-clockwise"></i></button>
+        </div>
+      </header>
+      <section class="hero">
+        <div class="hero-top">
+          <span class="hero-code">IF2040</span><span class="hero-name">Struktur Data</span>
+          <i class="ph-bold ph-warning hero-warn" aria-hidden="true"></i>
+        </div>
+        <div class="hero-count">Terlewat 2 jam</div>
+        <div class="hero-title">Tugas Bab 6</div>
+        <button class="btn" type="button"><span class="ring"><i class="ph-bold ph-check"></i></span>Tandai selesai</button>
+      </section>
+      <div class="list">
+        <button class="row soon" type="button">
+          <span class="time">6 jam lagi</span>
+          <span class="row-title"><span class="t">Kuis Jaringan</span><span class="c"><code>IF2040</code><span>Struktur Data</span></span></span>
+        </button>
+        <button class="row" type="button">
+          <span class="time">Besok 10.00</span>
+          <span class="row-title"><span class="t">Presentasi Metopen</span><span class="c"><code>COMB0051</code><span>Metode Penelitian</span></span></span>
+        </button>
+        <button class="row" type="button">
+          <span class="time">3 hari lagi</span>
+          <span class="row-title"><span class="t">Laporan Praktikum</span><span class="c"><code>FI1101</code><span>Fisika Dasar</span></span></span>
+        </button>
+      </div>
+      <button class="done-btn" type="button">
+        <i class="ph-bold ph-check-circle ic" aria-hidden="true"></i>
+        <span><span class="n">1</span> tugas selesai</span>
+        <span class="rest"><i class="ph-bold ph-arrow-counter-clockwise" aria-hidden="true"></i>Kembalikan</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= 2 · mobile app home ================= -->
+  <div class="board">
+    <div class="board-label">2 · App Android — layar utama, webview full-screen</div>
+    <div class="phone">
+      <header class="header">
+        <div class="brand"><span class="wordmark">Deadline</span><span class="count">4 tugas</span></div>
+        <div class="head-right">
+          <span class="sync">sync 5 mnt</span>
+          <button class="icon-btn" type="button" aria-label="Refresh"><i class="ph-bold ph-arrows-clockwise"></i></button>
+          <button class="icon-btn" type="button" aria-label="Pengaturan"><i class="ph-bold ph-gear-six"></i></button>
+        </div>
+      </header>
+      <section class="hero">
+        <div class="hero-top">
+          <span class="hero-code">IF2040</span><span class="hero-name">Struktur Data</span>
+          <i class="ph-bold ph-warning hero-warn" aria-hidden="true"></i>
+        </div>
+        <div class="hero-count">Terlewat 2 jam</div>
+        <div class="hero-title">Tugas Bab 6</div>
+        <button class="btn" type="button"><span class="ring"><i class="ph-bold ph-check"></i></span>Tandai selesai</button>
+      </section>
+      <div class="list">
+        <button class="row soon" type="button">
+          <span class="time">6 jam lagi</span>
+          <span class="row-title"><span class="t">Kuis Jaringan</span><span class="c"><code>IF2040</code><span>Struktur Data</span></span></span>
+        </button>
+        <button class="row" type="button">
+          <span class="time">Besok 10.00</span>
+          <span class="row-title"><span class="t">Presentasi Metopen</span><span class="c"><code>COMB0051</code><span>Metode Penelitian</span></span></span>
+        </button>
+        <button class="row" type="button">
+          <span class="time">3 hari lagi</span>
+          <span class="row-title"><span class="t">Laporan Praktikum</span><span class="c"><code>FI1101</code><span>Fisika Dasar</span></span></span>
+        </button>
+        <button class="row" type="button">
+          <span class="time">5 hari lagi</span>
+          <span class="row-title"><span class="t">Resume Jurnal Minggu 4</span><span class="c"><code>COMB0051</code><span>Metode Penelitian</span></span></span>
+        </button>
+      </div>
+      <button class="done-btn" type="button">
+        <i class="ph-bold ph-check-circle ic" aria-hidden="true"></i>
+        <span><span class="n">1</span> tugas selesai</span>
+        <span class="rest"><i class="ph-bold ph-arrow-counter-clockwise" aria-hidden="true"></i>Kembalikan</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= 3 · native android home-screen widget ================= -->
+  <div class="board">
+    <div class="board-label">3 · Widget home-screen Android — native RemoteViews, sistem font, tanpa ikon font</div>
+    <div class="awidget">
+      <div class="aw-head">
+        <span class="aw-name">BRONE Reminder</span>
+        <span class="aw-sync mono">sync 5 mnt</span>
+      </div>
+      <div>
+        <div class="aw-hero-count mono">Terlewat 2 jam</div>
+        <div class="aw-hero-sub">Tugas Bab 6 · IF2040 Struktur Data</div>
+      </div>
+      <div class="aw-row soon">
+        <span class="aw-dot soon"></span>
+        <span class="aw-time mono">6 jam lagi</span>
+        <span class="aw-title">Kuis Jaringan</span>
+      </div>
+      <div class="aw-row">
+        <span class="aw-dot"></span>
+        <span class="aw-time mono">Besok 10.00</span>
+        <span class="aw-title">Presentasi Metopen</span>
+      </div>
+      <div class="aw-foot">Ketuk untuk buka aplikasi</div>
+    </div>
+  </div>
+
+  <!-- ================= 4 · settings ================= -->
+  <div class="board">
+    <div class="board-label">4 · Settings — mobile single-window / desktop window 480px</div>
+    <div class="phone">
+      <header class="header">
+        <button class="icon-btn leader" type="button" aria-label="Kembali"><i class="ph-bold ph-caret-left"></i></button>
+        <span class="screen-title">Pengaturan</span>
+        <span style="flex:1"></span>
+      </header>
+
+      <section class="set-card" style="margin-top: 16px;">
+        <span class="set-label">URL feed kalender</span>
+        <input class="field" type="text" value="https://brone.ub.ac.id/calendar/export_execute.php?userid=21504…" readonly>
+        <div class="test-row">
+          <button class="second" type="button">Uji koneksi</button>
+          <span class="test-ok"><i class="ph-bold ph-check-circle" aria-hidden="true"></i>3 tugas ditemukan</span>
+        </div>
+      </section>
+
+      <section class="set-card">
+        <span class="set-label">Ingatkan sebelum tenggat</span>
+        <div class="chips">
+          <button class="chip on" type="button">24 jam</button>
+          <button class="chip on" type="button">6 jam</button>
+          <button class="chip on" type="button">1 jam</button>
+        </div>
+      </section>
+
+      <section class="set-card">
+        <span class="set-label">Interval sync</span>
+        <div class="chips">
+          <button class="chip" type="button">15 mnt</button>
+          <button class="chip on" type="button">20 mnt</button>
+          <button class="chip" type="button">30 mnt</button>
+        </div>
+      </section>
+
+      <section class="set-card">
+        <span class="set-label">Khusus desktop</span>
+        <div class="dim">
+          <div class="sw-row"><span class="sw-label">Auto-start saat login</span><span class="sw"></span></div>
+          <div class="sw-row"><span class="sw-label">Deteksi submission otomatis</span><span class="sw"></span></div>
+        </div>
+        <div class="note">Opsi ini hanya aktif di desktop.</div>
+      </section>
+
+      <button class="primary" type="button">Simpan perubahan</button>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

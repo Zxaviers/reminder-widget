@@ -8,9 +8,18 @@ import androidx.activity.enableEdgeToEdge
 import java.io.File
 
 class MainActivity : TauriActivity() {
+  private var settingsObserver: android.os.FileObserver? = null
+
   override fun onCreate(savedInstanceState: Bundle?) {
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
+    setupSettingsObserver()
+  }
+
+  override fun onDestroy() {
+    settingsObserver?.stopWatching()
+    settingsObserver = null
+    super.onDestroy()
   }
 
   override fun onResume() {
@@ -27,6 +36,31 @@ class MainActivity : TauriActivity() {
     super.onConfigurationChanged(newConfig)
     // OS night flip while foregrounded (audit A1, Otomatis case).
     applyStatusBarFromSettings()
+  }
+
+  private fun setupSettingsObserver() {
+    try {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        settingsObserver = object : android.os.FileObserver(dataDir, CLOSE_WRITE or MOVED_TO) {
+          override fun onEvent(event: Int, path: String?) {
+            if (path == null || path.contains("settings.json")) {
+              runOnUiThread { applyStatusBarFromSettings() }
+            }
+          }
+        }
+      } else {
+        @Suppress("DEPRECATION")
+        settingsObserver = object : android.os.FileObserver(dataDir.absolutePath, CLOSE_WRITE or MOVED_TO) {
+          override fun onEvent(event: Int, path: String?) {
+            if (path == null || path.contains("settings.json")) {
+              runOnUiThread { applyStatusBarFromSettings() }
+            }
+          }
+        }
+      }
+      settingsObserver?.startWatching()
+    } catch (_: Exception) {
+    }
   }
 
   companion object {
@@ -54,8 +88,11 @@ class MainActivity : TauriActivity() {
     try {
       val theme = readThemeSetting()
       val night = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-      val dark = theme == "dark" ||
-        (theme != "light" && night == Configuration.UI_MODE_NIGHT_YES)
+      val dark = when (theme) {
+        "dark" -> true
+        "light" -> false
+        else -> night == Configuration.UI_MODE_NIGHT_YES
+      }
       applyStatusBarAppearance(this, dark)
     } catch (_: Exception) {
     }
@@ -81,7 +118,7 @@ class MainActivity : TauriActivity() {
         if (firstQuote < 0) continue
         val endQuote = text.indexOf('"', firstQuote + 1)
         if (endQuote < 0) continue
-        return text.substring(firstQuote + 1, endQuote)
+        return text.substring(firstQuote + 1, endQuote).trim()
       } catch (_: Exception) {
       }
     }

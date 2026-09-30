@@ -397,7 +397,7 @@ function previewTheme () {
     }
   }
   document.documentElement.dataset.theme = theme
-  void api.setStatusBarStyle(theme !== 'light')
+  void api.setStatusBarStyle?.(theme !== 'light')
 }
 
 /** Live snapshot of settings for chip painting; refreshed on load + change. */
@@ -413,6 +413,12 @@ async function commitChips (patch) {
 }
 
 async function load () {
+  const isMob = await api.isMobile()
+  if (isMob) {
+    document.body.dataset.mobile = 'true'
+    const desktopCard = document.querySelector('.desktop-card')
+    if (desktopCard) { desktopCard.hidden = true; desktopCard.style.display = 'none'; }
+  }
   const config = await api.getSettings()
   settingsCache = {
     notifyThresholdsHours: config.notifyThresholdsHours,
@@ -455,7 +461,7 @@ async function load () {
     if (authBox) authBox.classList.remove('connected')
   }
 
-  const isMob = await api.isMobile()
+  // mobile handled above
   document.body.dataset.mobile = String(isMob)
   if (isMob) {
     // Desktop-only options stay visible but dimmed and disabled.

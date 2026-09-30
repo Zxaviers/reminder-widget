@@ -447,13 +447,25 @@ function doneTaskRow (task, now) {
   const row = document.createElement('li')
   row.className = 'drow'
 
-  const code = document.createElement('span')
-  code.className = 'd-code'
-  code.textContent = codeFor(task)
+  const statusCol = document.createElement('span')
+  statusCol.className = 'd-status'
+  statusCol.textContent = 'Selesai'
+
+  const titleWrap = document.createElement('span')
+  titleWrap.className = 'd-title-wrap'
 
   const title = document.createElement('span')
   title.className = 'd-title'
   title.textContent = task.title
+
+  const meta = document.createElement('span')
+  meta.className = 'd-meta'
+  const code = document.createElement('code')
+  code.className = 'd-code'
+  code.textContent = codeFor(task)
+  meta.appendChild(code)
+
+  titleWrap.append(title, meta)
 
   const restoreBtn = document.createElement('button')
   restoreBtn.type = 'button'
@@ -466,7 +478,7 @@ function doneTaskRow (task, now) {
     restoreTask(task)
   })
 
-  row.append(code, title, restoreBtn)
+  row.append(statusCol, titleWrap, restoreBtn)
 
   const spoken = [task.title, codeFor(task), `Deadline: ${fullDateFmt.format(dueDate)}`]
     .filter(Boolean)

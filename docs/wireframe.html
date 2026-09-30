@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRONE Reminder — Wireframe Lo-Fi</title>
+<style>
+  /* ================================================================
+     WIREFRAME — lo-fi grayscale only. No color decisions here.
+     Surface archetypes:
+       Widget/App home = MONITOR (glanceability > decoration)
+       Settings        = CONFIGURE (progressive disclosure, validation)
+       Android widget  = MONITOR read-only (max 3 rows, always dark)
+     ================================================================ */
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1a1a;
+    --ink-60: #666;
+    --ink-40: #999;
+    --ink-20: #ccc;
+    --ink-10: #e8e8e8;
+    --ink-05: #f4f4f4;
+    --bg: #fff;
+    --radius: 6px;
+    --radius-lg: 12px;
+    --mono: 'IBM Plex Mono', 'Courier New', monospace;
+    --sans: 'Manrope', system-ui, sans-serif;
+    --note: #888;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: #f0f0f0;
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1.4;
+    padding: 24px;
+  }
+
+  h1 { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: var(--ink-60); margin-bottom: 24px; }
+
+  /* ---- Board layout ---- */
+  .board-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  .board {
+    background: var(--bg);
+    border: 1px solid var(--ink-20);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .board__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--ink-10);
+    background: var(--ink-05);
+  }
+
+  .board__num {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: 4px;
+    width: 18px; height: 18px;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+
+  .board__title { font-size: 11px; font-weight: 700; flex: 1; }
+  .board__tag {
+    font-size: 9px;
+    font-family: var(--mono);
+    font-weight: 600;
+    color: var(--ink-60);
+    border: 1px solid var(--ink-20);
+    border-radius: 3px;
+    padding: 1px 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .board__body { padding: 14px; }
+
+  /* ---- Section labels inside boards ---- */
+  .section-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-40);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--ink-10); }
+
+  /* ---- Phone frame ---- */
+  .phone {
+    width: 260px;
+    margin: 0 auto;
+    border: 2px solid var(--ink-20);
+    border-radius: 20px;
+    padding: 10px 8px 16px;
+    background: var(--bg);
+  }
+
+  /* ---- Widget frame ---- */
+  .widget-frame {
+    width: 300px;
+    margin: 0 auto;
+    border: 1px solid var(--ink-20);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  /* ---- Generic components ---- */
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--ink-10);
+    background: var(--ink-05);
+  }
+
+  .wordmark { font-size: 12px; font-weight: 800; }
+  .count { font-family: var(--mono); font-size: 9px; color: var(--ink-40); }
+  .sync-label { font-family: var(--mono); font-size: 9px; color: var(--ink-40); margin-left: auto; }
+
+  .icon-btn-ph {
+    width: 24px; height: 24px;
+    border-radius: 4px;
+    background: var(--ink-10);
+    display: grid; place-items: center;
+    font-size: 10px; color: var(--ink-60);
+    flex-shrink: 0;
+  }
+
+  /* ---- Hero ---- */
+  .hero-ph {
+    border: 1px solid var(--ink-20);
+    border-left: 3px solid var(--ink-60);
+    border-radius: var(--radius-lg);
+    padding: 10px 12px;
+    margin: 10px 0;
+  }
+  .hero-ph.urgent { border-left-color: var(--ink); }
+
+  .hero-meta { font-family: var(--mono); font-size: 9px; color: var(--ink-40); margin-bottom: 3px; }
+  .hero-count { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--ink); }
+  .hero-title { font-size: 11px; font-weight: 600; margin-top: 3px; color: var(--ink); }
+  .hero-btn {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 8px;
+    min-height: 32px;
+    border: 1px solid var(--ink-20);
+    border-radius: var(--radius);
+    padding: 0 10px;
+    font-size: 10px; font-weight: 700;
+    color: var(--ink-60);
+    background: var(--ink-05);
+  }
+  .ring-ph { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--ink-40); flex-shrink: 0; }
+
+  /* ---- Timeline rows ---- */
+  .list-ph { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+
+  .row-ph {
+    display: flex;
+    align-items: center;
+    border-left: 3px solid var(--ink-20); /* neutral default */
+    border-radius: var(--radius);
+    min-height: 36px;
+    padding: 4px 6px;
+    gap: 6px;
+  }
+  .row-ph.soon { border-left-color: var(--ink-60); }
+  .row-ph.overdue { border-left-color: var(--ink); }
+
+  .time-ph { font-family: var(--mono); font-size: 9px; font-weight: 600; width: 56px; flex-shrink: 0; color: var(--ink-60); }
+  .row-ph.soon .time-ph { color: var(--ink); }
+  .row-ph.overdue .time-ph { color: var(--ink); font-weight: 700; }
+
+  .row-info { flex: 1; min-width: 0; }
+  .row-title-ph { font-size: 10px; font-weight: 600; color: var(--ink); }
+  .row-meta-ph { font-family: var(--mono); font-size: 8px; color: var(--ink-40); margin-top: 1px; }
+
+  .done-ring-ph { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--ink-20); flex-shrink: 0; display: grid; place-items: center; }
+
+  /* ---- Done bar ---- */
+  .done-bar-ph {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 10px;
+    min-height: 32px;
+    border: 1px solid var(--ink-10);
+    border-radius: var(--radius);
+    padding: 0 10px;
+    font-size: 10px; font-weight: 600; color: var(--ink-40);
+    background: var(--ink-05);
+  }
+
+  /* ---- Skeleton / loading ---- */
+  .skeleton-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .skel { border-radius: 3px; background: var(--ink-10); height: 9px; }
+  .skel.short { width: 56px; }
+  .skel.long { flex: 1; }
+
+  /* ---- Empty state ---- */
+  .empty-ph { text-align: center; padding: 24px 16px; }
+  .empty-ph .icon-ph { width: 32px; height: 32px; border: 2px solid var(--ink-20); border-radius: 50%; margin: 0 auto 8px; display: grid; place-items: center; font-size: 14px; color: var(--ink-20); }
+  .empty-ph .title-ph { font-size: 11px; font-weight: 700; color: var(--ink-60); }
+  .empty-ph .note-ph { font-size: 10px; color: var(--ink-40); margin-top: 3px; }
+
+  /* ---- Error state ---- */
+  .error-ph { padding: 16px; }
+  .error-ph .icon-ph { width: 28px; height: 28px; border: 2px solid var(--ink-40); border-radius: 4px; display: grid; place-items: center; font-size: 12px; color: var(--ink-40); margin-bottom: 8px; }
+  .error-ph .title-ph { font-size: 11px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .error-ph .note-ph { font-size: 10px; color: var(--ink-60); margin-bottom: 10px; }
+  .btn-ph {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 32px; padding: 0 12px;
+    border-radius: var(--radius);
+    font-size: 10px; font-weight: 700;
+    cursor: pointer; border: none;
+  }
+  .btn-ph.primary { background: var(--ink); color: var(--bg); }
+  .btn-ph.secondary { background: var(--ink-10); color: var(--ink); border: 1px solid var(--ink-20); }
+  .btn-ph + .btn-ph { margin-left: 6px; }
+
+  /* ---- Setup state ---- */
+  .setup-ph { padding: 16px; }
+  .setup-ph .title-ph { font-size: 11px; font-weight: 700; margin-bottom: 4px; }
+  .setup-ph .note-ph { font-size: 10px; color: var(--ink-60); margin-bottom: 10px; }
+
+  /* ---- Settings components ---- */
+  .card-ph {
+    border: 1px solid var(--ink-10);
+    border-radius: var(--radius-lg);
+    padding: 10px 12px;
+    margin-top: 10px;
+  }
+  .card-title-ph { font-size: 10px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+  .card-help-ph { font-size: 9px; color: var(--ink-40); margin-top: 6px; }
+
+  .input-ph {
+    width: 100%;
+    min-height: 32px;
+    border: 1px solid var(--ink-20);
+    border-radius: var(--radius);
+    background: var(--ink-05);
+    padding: 0 8px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--ink-60);
+    display: flex; align-items: center;
+  }
+
+  .chip-ph {
+    display: inline-flex; align-items: center;
+    min-height: 28px; padding: 0 10px;
+    border-radius: var(--radius);
+    border: 1px solid var(--ink-20);
+    font-family: var(--mono);
+    font-size: 9px; font-weight: 600;
+    color: var(--ink-60);
+    margin-right: 6px; margin-bottom: 4px;
+    background: var(--bg);
+  }
+  .chip-ph.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+  .toggle-ph { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .toggle-box-ph { width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid var(--ink-20); flex-shrink: 0; }
+  .toggle-box-ph.on { background: var(--ink); border-color: var(--ink); }
+  .toggle-text-ph { font-size: 10px; color: var(--ink); }
+  .toggle-text-ph b { display: block; font-weight: 600; }
+  .toggle-text-ph span { font-size: 9px; color: var(--ink-40); }
+
+  .radio-ph { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; padding: 8px; border: 1px solid var(--ink-10); border-radius: var(--radius); }
+  .radio-dot-ph { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--ink-20); margin-top: 1px; flex-shrink: 0; }
+  .radio-dot-ph.on { background: var(--ink); border-color: var(--ink); }
+  .radio-text-ph { font-size: 10px; }
+  .radio-text-ph b { display: block; font-weight: 600; }
+  .radio-text-ph span { font-size: 9px; color: var(--ink-40); }
+
+  .feed-item-ph { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--ink-10); }
+  .feed-item-ph:last-child { border-bottom: none; }
+  .feed-name-ph { flex: 1; font-size: 10px; font-weight: 600; }
+  .feed-meta-ph { font-family: var(--mono); font-size: 8px; color: var(--ink-40); }
+  .feed-del-ph { font-size: 9px; color: var(--ink-40); border: 1px solid var(--ink-10); border-radius: 3px; padding: 2px 6px; }
+
+  .range-ph { width: 100px; height: 4px; background: var(--ink-10); border-radius: 2px; position: relative; }
+  .range-ph::after { content: ''; position: absolute; left: 70%; top: -3px; width: 10px; height: 10px; border-radius: 50%; background: var(--ink-40); }
+
+  /* ---- Android widget ---- */
+  .android-widget {
+    width: 240px;
+    margin: 0 auto;
+    border: 1px solid var(--ink-20);
+    border-radius: var(--radius-lg);
+    background: var(--ink);
+    color: var(--ink-10);
+    overflow: hidden;
+  }
+  .aw-header { display: flex; align-items: center; padding: 8px 10px; gap: 6px; }
+  .aw-title { font-size: 10px; font-weight: 700; flex: 1; }
+  .aw-sync { font-family: var(--mono); font-size: 8px; color: var(--ink-40); }
+  .aw-hero { padding: 4px 10px 6px; }
+  .aw-hero-count { font-family: var(--mono); font-size: 16px; font-weight: 700; }
+  .aw-hero-sub { font-size: 9px; color: var(--ink-40); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .aw-row { display: flex; align-items: center; gap: 6px; padding: 4px 10px; min-height: 28px; }
+  .aw-border { width: 3px; height: 20px; border-radius: 1px; flex-shrink: 0; background: var(--ink-40); }
+  .aw-border.soon { background: var(--ink-60); }
+  .aw-time { font-family: var(--mono); font-size: 8px; font-weight: 600; width: 48px; flex-shrink: 0; }
+  .aw-title-row { font-size: 8px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .aw-src { font-family: var(--mono); font-size: 7px; color: var(--ink-40); text-transform: uppercase; }
+  .aw-footer { font-size: 7px; color: var(--ink-40); padding: 4px 10px 6px; }
+
+  /* ---- Collapsed widget ---- */
+  .collapsed-ph { padding: 8px 10px; }
+
+  /* ---- Notes/annotations ---- */
+  .note-strip {
+    font-size: 9px;
+    font-family: var(--mono);
+    color: var(--note);
+    padding: 6px 10px;
+    border-top: 1px dashed var(--ink-20);
+    background: var(--ink-05);
+  }
+
+  /* ---- Eye flow ---- */
+  .eye-flow {
+    font-size: 9px;
+    font-family: var(--mono);
+    color: var(--ink-40);
+    padding: 8px 12px;
+    border-top: 1px solid var(--ink-10);
+    background: var(--ink-05);
+  }
+
+  /* ---- Responsive annotation ---- */
+  .resp-note {
+    font-size: 9px;
+    color: var(--ink-40);
+    padding: 6px 12px;
+    border-top: 1px dashed var(--ink-20);
+  }
+
+  /* ---- Full-width boards ---- */
+  .board.full { grid-column: 1 / -1; }
+
+  /* ---- Divider ---- */
+  hr.section { border: none; border-top: 2px solid var(--ink-20); margin: 28px 0 16px; }
+
+  h2 { font-size: 14px; font-weight: 800; margin-bottom: 4px; }
+  h3 { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .section-note { font-size: 11px; color: var(--ink-60); margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<h1>BRONE Reminder — Wireframe Lo-Fi</h1>
+<p class="subtitle">
+  Surface archetypes: Widget/App = MONITOR · Settings = CONFIGURE · Android widget = MONITOR (read-only)<br>
+  Semua elemen grayscale. Belum ada keputusan visual (warna, font pairing, radius final).<br>
+  Breakpoints: 340px (desktop widget) · 390px (mobile app) · 768px (desktop full)
+</p>
+
+<!-- ============================================================
+     SECTION 1: DESKTOP WIDGET (MONITOR)
+     ============================================================ -->
+<hr class="section">
+<h2>1 · Desktop Widget (Monitor)</h2>
+<p class="section-note">Floating always-on-top · 340px lebar default · autosize vertikal</p>
+
+<div class="board-grid">
+
+  <!-- Board 1: Normal state -->
+  <div class="board">
+    <div class="board__header">
+      <span class="board__num">1</span>
+      <span class="board__title">Widget — Normal (data terisi)</span>
+      <span class="board__tag">MONITOR</span>
+    </div>
+    <div class="widget-frame">
+      <div class="bar">
+        <span class="wordmark">BRONE Reminder</span>
+        <span class="count">7 tugas</span>
+        <span class="sync-label">sync 5 mnt</span>
+        <span class="icon-btn-ph">↻</span>
+        <span class="icon-btn-ph">+</span>
+        <span class="icon-btn-ph">⚙</span>
+        <span class="icon-btn-ph">▾</span>
+        <span class="icon-btn-ph">✕</span>
+      </div>
+
+      <!-- Hero -->
+      <div class="hero-ph urgent">
+        <div class="hero-meta">CCE61305 · BRONE</div>
+        <div class="hero-count">5 jam lagi</div>
+        <div class="hero-title">Tugas Video Microcode &amp; ALU — deadline pukul 23.59</div>
+        <div class="hero-btn">
+          <span class="ring-ph"></span>
+          Tandai selesai
+        </div>
+      </div>
+
+      <!-- Timeline rows -->
+      <div class="list-ph">
+        <div class="row-ph soon">
+          <span class="time-ph">6 jam lagi</span>
+          <div class="row-info">
+            <div class="row-title-ph">Kuis jaringan — CCE61315</div>
+            <div class="row-meta-ph">CCE61315 · BRONE</div>
+          </div>
+          <span class="done-ring-ph">✓</span>
+        </div>
+        <div class="row-ph">
+          <span class="time-ph">Besok 10.00</span>
+          <div class="row-info">
+            <div class="row-title-ph">Presentasi metopen bab 6</div>
+            <div class="row-meta-ph">COMB0051 · BRONE</div>
+          </div>
+          <span class="done-ring-ph">✓</span>
+        </div>
+        <div class="row-ph">
+          <span class="time-ph">3 hari lagi</span>
+          <div class="row-info">
+            <div class="row-title-ph">Laporan praktikum Jarkom</div>
+            <div class="row-meta-ph">CCE61305 · BRONE</div>
+          </div>
+          <span class="done-ring-ph">✓</span>
+        </div>
+        <div class="row-ph">
+          <span class="time-ph">32 hari lagi</span>
+          <div class="row-info">
+            <div class="row-title-ph">Tugas akhir embedded system</div>
+            <div class="row-meta-ph">CCE61315 · BRONE</div>
+          </div>
+          <span class="done-ring-ph">✓</span>
+        </div>
+      </div>
+
+      <!-- Done bar -->
+      <div class="done-bar-ph">
+        <span>✓</span>
+        <span><b style="font-family:var(--mono)">2</b> tugas selesai</span>
+        <span style="margin-left:auto; font-size:9px; color:var(--ink-40)">Kembalikan ▸</span>
+      </div>
+    </div>
+    <div class="eye-flow">
+      Eye flow: ① sync status → ② hero countdown → ③ hero title → ④ list rows (nearest first) → ⑤ done bar
+    </div>
+    <div class="resp-note">340px: hero + max 5 rows visible · 280px: hero only + "N tugas lagi" digest</div>
+  </div>
+
+  <!-- Board 2: Collapsed -->
+  <div class="board">
+    <div class="board__header">
+      <span class="board__num">2</span>
+      <span class="board__title">Widget — Collapsed (1 baris digest)</span>
+      <span class="board__tag">MONITOR</span>
+    </div>
+    <div class="widget-frame">
+      <div class="bar">
+        <span class="wordmark">BRONE Reminder</span>
+        <span class="count">7 tugas</span>
+        <span class="sync-label">sync 5 mnt</span>
+        <span class="icon-btn-ph">↻</span>
+        <span class="icon-btn-ph">+</span>
+        <span class="icon-btn-ph">⚙</span>
+        <span class="icon-btn-ph">▸</span>
+        <span class="icon-btn-ph">✕</span>
+      </div>
+      <div class="collapsed-ph">
+        <div class="row-ph soon">
+          <span class="time-ph">5 jam lagi</span>
+          <div class="row-info">
+            <div class="row-title-ph">Tugas Video Microcode &amp; ALU</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="resp-note">Collapsed: hanya row berikutnya yang tampil — hemat ruang desktop</div>
+  </div>
+
+  <!-- Board 3: Loading -->
+  <div class="board">
+    <div class="board__header">
+      <span class="board__num">3</span>
+      <span class="board__title">Widget — Loading (skeleton)</span>
+      <span class="board__tag">MONITOR</span>
+    </div>
+    <div class="widget-frame">
+      <div class="bar">
+        <span class="wordmark">BRONE Reminder</span>
+        <span class="sync-label">Memuat…</span>
+        <span class="icon-btn-ph" style="animation:none">↻</span>
+      </div>
+      <div style="padding: 12px 10px;">
+        <div class="skeleton-row"><span class="skel short"></span><span class="skel long"></span></div>
+        <div class="skeleton-row"><span class="skel short"></span><span class="skel long" style="width:80%"></span></div>
+        <div class="skeleton-row"><span class="skel short"></span><span class="skel long" style="width:60%"></span></div>
+        <p style="font-size:9px; color:var(--ink-40); margin-top:10px;">Membaca feed kalender…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Board 4: Empty -->
+  <div class="board">
+    <div class="board__header">
+      <span class="board__num">4</span>
+      <span class="board__title">Widget — Empty (tidak ada deadline)</span>
+      <span class="board__tag">MONITOR</span>
+    </div>
+    <div class="widget-frame">
+      <div class="bar">
+        <span class="wordmark">BRONE Reminder</span>
+        <span class="count">0 tugas</span>
+        <span class="sync-label">sync baru saja</span>
+      </div>
+      <div class="empty-ph">
+        <div class="icon-ph">🕐</div>
+        <div class="title-ph">Tidak ada deadline mendekat</div>
+        <div class="note-ph">Tugas baru dari feed akan muncul otomatis di sini.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Board 5: Error -->
+  <div class="board">
+    <div class="board__header">
+      <span class="board__num">5</span>
+      <span class="board__title">Widget — Error feed</span>
+      <span class="board__tag">MONITOR</span>
+    </div>
+    <div class="widget-frame">
+      <div class="bar">
+        <span class="wordmark">BRONE Reminder</span>
+        <span class="sync-label">Error</span>
+      </div>
+      <div class="error-ph">
+        <div class="icon-ph">⚠</div>
+        <div class="title-ph">Feed tidak terjangkau</div>
+        <div class="note-ph">Periksa koneksi internet Anda.</div>
+        <button class="btn-ph primary">Coba lagi</button>
+        <button class="btn-ph secondary">Pengaturan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Board 6: Setup / first run -->
+  <div class="board">
+    <div class="board__header">
+      <span class="board__num">6</span>
+      <span class="board__title">Widget — Belum ada feed (first run)</span>
+      <span class="board__tag">MONITOR</span>
+    </div>
+    <div class="widget-frame">
+      <div class="bar">
+        <span class="wordmark">BRONE Reminder</span>
+        <span class="sync-label">Belum hubung</span>
+      </div>
+      <div class="setup-ph">
+        <div class="title-ph">Feed belum dipasang</div>
+        <div class="note-ph">Tempel URL kalender BRONE atau secret address Google Calendar untuk mulai.</div>
+        <button class="btn-ph primary">Buka pengaturan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Board 7: Stale (data ada tapi refresh gagal) -->
+  <div class="board">
+    <div class="board__header">
+      <span class="board__num">7</span>
+      <span class="board__title">Widget — Stale (data lama, refresh gagal)</span>
+      <span class="board__tag">MONITOR</span>
+    </div>
+    <div class="widget-frame">
+      <div class="bar">
+        <span class="wordmark">BRONE Reminder</span>
+        <span class="count">7 tugas</span>
+        <span class="sync-label">Offline</span>
+      </div>
+      <div class="list-ph" style="margin:8px 0;">
+        <div class="row-ph soon">
+          <span class="time-ph">5 jam lagi</span>
+          <div class="row-info"><div class="row-title-ph">Tugas Video Microcode</div></div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; padding:6px 10px; border-top:1px solid var(--ink-10); font-size:9px; color:var(--ink-60);">
+        <span>⚠</span>
+        <span style="flex:1">Gagal refresh — menampilkan data terakhir.</span>
+        <span style="text-decoration:underline; cursor:pointer;">Retry</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Board 8: Undo toast -->
+  <div class="board">
+    <div class="board__header">
+      <span class="board__num">8</span>
+      <span class="board__title">Widget — Undo toast (setelah mark-done)</span>
+      <span class="board__tag">MONITOR</span>
+    </div>
+    <div class="widget-frame">
+      <div class="bar">
+        <span class="wordmark">BRONE Reminder</span>
+        <span class="count">6 tugas</span>
+        <span class="sync-label">sync 5 mnt</span>
+      </div>
+      <div class="list-ph" style="margin:8px 0;">
+        <div class="row-ph"><span class="time-ph">6 jam lagi</span><div class="row-info"><div class="row-title-ph">Kuis jaringan</div></div><span class="done-ring-ph">✓</span></div>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:6px 10px; border-top:1px solid var(--ink-10); background:var(--ink-05); font-size:9px; color:var(--ink-60);">
+        <span>"Tugas Video Microcode…" ditandai selesai</span>
+        <button class="btn-ph secondary" style="min-height:24px; font-size:9px;">Urungkan</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end board-grid -->
+
+<!-- ============================================================
+     SECTION 2: MOBILE APP HOME (MONITOR)
+     ============================================================ -->
+<hr class="section">
+<h2>2 · Mobile App Home (Monitor)</h2>
+<p class="section-note">390px viewport · hero + timeline + done panel · bottom sheet untuk event manual</p>
+
+<div class="board-grid">
+
+  <!-- Board 9: App home normal -->
+  <div class="board">
+    <div class="board__header">
+      <span class="board__num">9</span>
+      <span class="board__title">App Home — Normal</span>
+      <span class="board__tag">MONITOR</span>
+    </div>
+    <div class="board__body">
+      <div class="phone">
+        <div class="bar">
+          <span class="wordmark">BRONE Reminder</span>
+          <span class="count">7 tugas</span>
+          <span class="sync-label">sync 5 mnt</span>
+          <span class="icon-btn-ph">↻</span>
+          <span class="icon-btn-ph">+</span>
+          <span class="icon-btn-ph">⚙</span>
+        </div>
+        <div class="hero-ph urgent">
+          <div class="hero-meta">CCE61305 · BRONE</div>
+          <div class="hero-count">5 jam lagi</div>
+          <div class="hero-title">Tugas Video Microcode &amp; ALU — deadline pukul 23.59</div>
+          <div class="hero-btn"><span class="ring-ph"></span> Tandai selesai</div>
+        </div>
+        <div class="list-ph">
+          <div class="row-ph soon">
+            <span class="time-ph">6 jam lagi</span>
+            <div class="row-info">
+              <div class="row-title-ph">Kuis jaringan</div>
+              <div class="row-meta-ph">CCE61315 · BRONE</div>
+            </div>
+            <span class="done-ring-ph">✓</span>
+          </div>
+          <div class="row-ph">
+            <span class="time-ph">Besok 10.00</span>
+            <div class="row-info">
+              <div class="row-title-ph">Presentasi metopen bab 6</div>
+              <div class="row-meta-ph">COMB0051 · BRONE</div>
+            </div>
+            <span class="done-ring-ph">✓</span>
+          </div>
+        </div>
+        <div class="done-bar-ph">
+          <span>✓</span>
+          <span><b style="font-family:var(--mono)">2</b> tugas selesai</span>
+          <span style="margin-left:auto; font-size:9px; color:var(--ink-40)">Kembalikan ▸</span>
+        </div>
+      </div>
+    </div>
+    <div class="eye-flow">Eye flow: ① hero countdown → ② hero title → ③ list nearest-first → ④ done bar</div>
+    <div class="resp-note">390px: hero + list scroll · 320px: hero compressed, list scroll</div>
+  </div>
+
+  <!-- Board 10: App home loading -->
+  <div class="board">
+    <div class="board__header">
+      <span class="board__num">10</span>
+      <span class="board__title">App Home — Loading</span>
+      <span class="board__tag">MONITOR</span>
+    </div>
+    <div class="board__body">
+      <div class="phone">
+        <div class="bar">
+          <span class="wordmark">BRONE Reminder</span>
+          <span class="sync-label">Memuat…</span>
+        </div>
+        <div style="padding:12px;">
+          <div class="skeleton-row"><span class="skel short"></span><span class="skel long"></span></div>
+          <div class="skeleton-row"><span class="skel short"></span><span class="skel long" style="width:75%"></span></div>
+          <div class="skeleton-row"><span class="skel short"></span><span class="skel long" style="width:55%"></span></div>
+          <p style="font-size:9px; color:var(--ink-40); margin-top:12px;">Membaca feed kalender…</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Board 11: App home error -->
+  <div class="board">
+    <div class="board__header">
+      <span class="board__num">11</span>
+      <span class="board__title">App Home — Error feed</span>
+      <span class="board__tag">MONITOR</span>
+    </div>
+    <div class="board__body">
+      <div class="phone">
+        <div class="bar"><span class="wordmark">BRONE Reminder</span><span class="sync-label">Error</span></div>
+        <div class="error-ph">
+          <div class="icon-ph">⚠</div>
+          <div class="title-ph">Feed tidak terjangkau</div>
+          <div class="note-ph">Periksa koneksi internet Anda.</div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-ph primary">Coba lagi</button>
+            <button class="btn-ph secondary">Pengaturan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Board 12: Bottom sheet — manual event -->
+  <div class="board">
+    <div class="board__header">
+      <span class="board__num">12</span>
+      <span class="board__title">Bottom Sheet — Tambah Event Manual</span>
+      <span class="board__tag">CONFIGURE</span>
+    </div>
+    <div class="board__body">
+      <div class="phone">
+        <div class="bar"><span class="wordmark">BRONE Reminder</span><span class="sync-label">sync 5 mnt</span></div>
+        <div style="padding:10px;">
+          <div style="border-top:2px solid var(--ink-20); width:36px; margin:0 auto 10px; border-radius:2px;"></div>
+          <div style="font-size:12px; font-weight:800; margin-bottom:10px;">Tambah event manual</div>
+          <div style="margin-bottom:8px;">
+            <div style="font-size:9px; font-weight:600; color:var(--ink-40); margin-bottom:4px;">JUDUL</div>
+            <div class="input-ph">Mis. Meeting himpunan</div>
+          </div>
+          <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <div style="flex:1;">
+              <div style="font-size:9px; font-weight:600; color:var(--ink-40); margin-bottom:4px;">TANGGAL</div>
+              <div class="input-ph">—</div>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:9px; font-weight:600; color:var(--ink-40); margin-bottom:4px;">JAM (OPS.)</div>
+              <div class="input-ph">—</div>
+            </div>
+          </div>
+          <p style="font-size:9px; color:var(--ink-40); margin-bottom:10px;">Disimpan lokal di perangkat, ikut masuk countdown &amp; notifikasi.</p>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-ph secondary" style="flex:1;">Batal</button>
+            <button class="btn-ph primary" style="flex:1;">Simpan event</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="note-strip">Sheet overlay · scrim di belakang · Esc/tap-scrim untuk tutup · input pertama auto-focus</div>
+  </div>
+
+</div><!-- end board-grid -->
+
+<!-- ============================================================
+     SECTION 3: SETTINGS (CONFIGURE)
+     ============================================================ -->
+<hr class="section">
+<h2>3 · Settings (Configure)</h2>
+<p class="section-note">Progressive disclosure · hasil validasi terlihat · desktop-only options tampil redup berlabel</p>
+
+<div class="board-grid">
+
+  <!-- Board 13: Settings full -->
+  <div class="board full">
+    <div class="board__header">
+      <span class="board__num">13</span>
+      <span class="board__title">Settings — Lengkap</span>
+      <span class="board__tag">CONFIGURE</span>
+    </div>
+    <div class="board__body" style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+
+      <!-- Left column -->
+      <div>
+        <div class="section-label">Sumber feed</div>
+        <div class="card-ph">
+          <div class="feed-item-ph">
+            <div class="feed-name-ph">BRONE</div>
+            <div class="feed-meta-ph">sync 5 mnt · 7 event</div>
+            <span class="feed-del-ph">Hapus</span>
+          </div>
+          <div class="feed-item-ph">
+            <div class="feed-name-ph">Google Calendar</div>
+            <div class="feed-meta-ph">sync 5 mnt · 2 event</div>
+            <span class="feed-del-ph">Hapus</span>
+          </div>
+          <div style="display:flex; gap:6px; margin-top:8px;">
+            <div class="input-ph" style="flex:1;">https://…/export_execute.php?…</div>
+            <button class="btn-ph secondary" style="min-height:32px;">Tambah</button>
+          </div>
+          <div class="card-help-ph">Sumber dikenali otomatis dari URL: BRONE/Moodle, Google Calendar, atau iCal lain.</div>
+        </div>
+
+        <div class="section-label" style="margin-top:14px;">Ingatkan sebelum tenggat</div>
+        <div class="card-ph">
+          <div>
+            <span class="chip-ph on">24 jam</span>
+            <span class="chip-ph on">6 jam</span>
+            <span class="chip-ph on">1 jam</span>
+            <span class="chip-ph">3 jam</span>
+            <span class="chip-ph">12 jam</span>
+          </div>
+        </div>
+
+        <div class="section-label" style="margin-top:14px;">Interval sync</div>
+        <div class="card-ph">
+          <div>
+            <span class="chip-ph">15 mnt</span>
+            <span class="chip-ph on">20 mnt</span>
+            <span class="chip-ph">30 mnt</span>
+          </div>
+          <div class="card-help-ph">Menit antar refresh otomatis. Batas sopan server kampus: 15–30 menit.</div>
+        </div>
+
+        <div class="section-label" style="margin-top:14px;">Tema</div>
+        <div class="card-ph">
+          <div>
+            <span class="chip-ph on">Gelap</span>
+            <span class="chip-ph">Terang</span>
+            <span class="chip-ph">Auto</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div>
+        <div class="section-label">Tampilan widget</div>
+        <div class="card-ph">
+          <div class="radio-ph">
+            <span class="radio-dot-ph on"></span>
+            <div class="radio-text-ph">
+              <b>Always on Top (Rekomendasi)</b>
+              <span>Widget mengambang di pojok layar dan selalu terlihat.</span>
+            </div>
+          </div>
+          <div class="radio-ph">
+            <span class="radio-dot-ph"></span>
+            <div class="radio-text-ph">
+              <b>Desktop Layer (Wallpaper)</b>
+              <span>Widget menempel di wallpaper desktop (di balik jendela kerja).</span>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+            <span style="font-size:10px; flex:1;">Opasitas widget</span>
+            <div class="range-ph"></div>
+            <span style="font-family:var(--mono); font-size:9px; color:var(--ink-40);">100%</span>
+          </div>
+          <div class="toggle-ph" style="margin-top:8px;">
+            <span class="toggle-box-ph on"></span>
+            <div class="toggle-text-ph">
+              <b>Notifikasi Pengingat Deadline (Toast)</b>
+              <span>Munculkan pemberitahuan sesuai ambang yang dipilih.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-label" style="margin-top:14px;">Khusus desktop</div>
+        <div class="card-ph" style="opacity:0.55;">
+          <div class="toggle-ph">
+            <span class="toggle-box-ph"></span>
+            <div class="toggle-text-ph">
+              <b>Auto-start saat login</b>
+              <span>Otomatis terbuka ketika Anda menyalakan atau login ke Windows.</span>
+            </div>
+          </div>
+          <div class="toggle-ph">
+            <span class="toggle-box-ph"></span>
+            <div class="toggle-text-ph">
+              <b>Deteksi submission otomatis</b>
+              <span>Memeriksa halaman tugas di BRONE lewat sesi login Anda.</span>
+            </div>
+          </div>
+          <div class="card-help-ph">Opsi ini hanya aktif di desktop.</div>
+        </div>
+
+        <div class="section-label" style="margin-top:14px;">Hubungkan BRONE (guided)</div>
+        <div class="card-ph">
+          <div style="font-size:10px; font-weight:700; margin-bottom:6px;">Hubungkan Kalender BRONE UB</div>
+          <div style="font-size:9px; color:var(--ink-40); margin-bottom:10px;">100% Aman &amp; Resmi — menggunakan fitur ekspor kalender iCal bawaan Moodle kampus.</div>
+          <button class="btn-ph primary" style="width:100%; margin-bottom:8px;">1. Buka Halaman Ekspor di Browser</button>
+          <button class="btn-ph secondary" style="width:100%;">2. Tempel Otomatis &amp; Hubungkan</button>
+          <div style="margin-top:8px; padding:8px; border-radius:var(--radius); border:1px solid var(--ink-10); background:var(--ink-05); font-size:9px; color:var(--ink-60);">
+            <div style="font-weight:600; color:var(--ink);">✓ Berhasil terhubung</div>
+            <div>7 event ditemukan · feed valid</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="resp-note">768px+: 2 kolom · 390px: 1 kolom, cards stack vertikal · desktop-only section opacity 0.55 di mobile</div>
+  </div>
+
+</div><!-- end board-grid -->
+
+<!-- ============================================================
+     SECTION 4: ANDROID HOME WIDGET (MONITOR READ-ONLY)
+     ============================================================ -->
+<hr class="section">
+<h2>4 · Android Home Widget (Monitor — Read Only)</h2>
+<p class="section-note">Selalu gelap · maks 3 rows + hero · tanpa kontrol interaktif · ketuk buka app</p>
+
+<div class="board-grid">
+
+  <!-- Board 14: Android widget normal -->
+  <div class="board">
+    <div class="board__header">
+      <span class="board__num">14</span>
+      <span class="board__title">Android Widget — Normal (3 rows + hero)</span>
+      <span class="board__tag">MONITOR</span>
+    </div>
+    <div class="board__body">
+      <div class="android-widget">
+        <div class="aw-header">
+          <span class="aw-title">BRONE Reminder</span>
+          <span class="aw-sync">Sync 17.23</span>
+        </div>
+        <div class="aw-hero">
+          <div class="aw-hero-count">5 jam lagi</div>
+          <div class="aw-hero-sub">Tugas Video Microcode &amp; ALU · CCE61305</div>
+        </div>
+        <div class="aw-row">
+          <span class="aw-border soon"></span>
+          <span class="aw-time">6 jam lagi</span>
+          <span class="aw-title-row">Kuis jaringan</span>
+          <span class="aw-src">CCE61315</span>
+        </div>
+        <div class="aw-row">
+          <span class="aw-border"></span>
+          <span class="aw-time">Besok 10.00</span>
+          <span class="aw-title-row">Presentasi metopen bab 6</span>
+          <span class="aw-src">COMB0051</span>
+        </div>
+        <div class="aw-row">
+          <span class="aw-border"></span>
+          <span class="aw-time">3 hari lagi</span>
+          <span class="aw-title-row">Laporan praktikum Jarkom</span>
+          <span class="aw-src">CCE61305</span>
+        </div>
+        <div class="aw-footer">Ketuk untuk buka aplikasi</div>
+      </div>
+    </div>
+    <div class="note-strip">Selalu gelap · left-border 3dp per row (RemoteViews View strip) · max 3 rows · hero = tasks[0]</div>
+  </div>
+
+  <!-- Board 15: Android widget empty -->
+  <div class="board">
+    <div class="board__header">
+      <span class="board__num">15</span>
+      <span class="board__title">Android Widget — Empty</span>
+      <span class="board__tag">MONITOR</span>
+    </div>
+    <div class="board__body">
+      <div class="android-widget">
+        <div class="aw-header">
+          <span class="aw-title">BRONE Reminder</span>
+          <span class="aw-sync">Sync 17.23</span>
+        </div>
+        <div style="text-align:center; padding:16px 10px;">
+          <div style="font-size:9px; font-weight:700; color:var(--ink-40);">Tidak ada deadline mendekat</div>
+          <div style="font-size:8px; color:var(--ink-40); margin-top:3px;">Buka aplikasi untuk sinkronisasi</div>
+        </div>
+        <div class="aw-footer">Ketuk untuk buka aplikasi</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Board 16: Android widget overdue -->
+  <div class="board">
+    <div class="board__header">
+      <span class="board__num">16</span>
+      <span class="board__title">Android Widget — Overdue (hero merah)</span>
+      <span class="board__tag">MONITOR</span>
+    </div>
+    <div class="board__body">
+      <div class="android-widget">
+        <div class="aw-header">
+          <span class="aw-title">BRONE Reminder</span>
+          <span class="aw-sync">Sync 17.23</span>
+        </div>
+        <div class="aw-hero">
+          <div class="aw-hero-count" style="color:var(--ink-60);">Terlewat 2j</div>
+          <div class="aw-hero-sub">Laporan praktikum Jarkom · CCE61305</div>
+        </div>
+        <div class="aw-row">
+          <span class="aw-border soon"></span>
+          <span class="aw-time" style="color:var(--ink-60);">6 jam lagi</span>
+          <span class="aw-title-row">Kuis jaringan</span>
+          <span class="aw-src">CCE61315</span>
+        </div>
+        <div class="aw-footer">Ketuk untuk buka aplikasi</div>
+      </div>
+    </div>
+    <div class="note-strip">Hero overdue: teks + border sama warna overdue token · row 2 max (hero + 2 list)</div>
+  </div>
+
+</div><!-- end board-grid -->
+
+<!-- ============================================================
+     SECTION 5: DONE PANEL EXPANDED
+     ============================================================ -->
+<hr class="section">
+<h2>5 · Done Panel Expanded</h2>
+<p class="section-note">Tampil setelah tap "Kembalikan" di done bar · judul strikethrough · tombol restore per row</p>
+
+<div class="board-grid">
+  <div class="board">
+    <div class="board__header">
+      <span class="board__num">17</span>
+      <span class="board__title">Done Panel — Expanded</span>
+      <span class="board__tag">MONITOR</span>
+    </div>
+    <div class="widget-frame">
+      <div class="bar">
+        <span class="wordmark">BRONE Reminder</span>
+        <span class="count">5 tugas</span>
+        <span class="sync-label">sync 5 mnt</span>
+      </div>
+      <div class="list-ph" style="margin:8px 0;">
+        <div class="row-ph"><span class="time-ph">3 hari lagi</span><div class="row-info"><div class="row-title-ph">Laporan praktikum</div></div><span class="done-ring-ph">✓</span></div>
+      </div>
+      <div class="done-bar-ph" style="margin:0;">
+        <span>✓</span>
+        <span><b style="font-family:var(--mono)">2</b> tugas selesai</span>
+        <span style="margin-left:auto; font-size:9px; color:var(--ink-40)">Tutup ▾</span>
+      </div>
+      <div style="border:1px solid var(--ink-10); border-radius:var(--radius); margin:4px 0; padding:4px 8px;">
+        <div style="display:flex; align-items:center; gap:8px; min-height:32px; border-bottom:1px solid var(--ink-10);">
+          <span style="font-family:var(--mono); font-size:8px; color:var(--ink-40); flex-shrink:0;">CCE61305</span>
+          <span style="flex:1; font-size:10px; color:var(--ink-40); text-decoration:line-through;">Tugas Video Microcode</span>
+          <span class="icon-btn-ph" style="width:20px; height:20px; font-size:9px;">↺</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; min-height:32px;">
+          <span style="font-family:var(--mono); font-size:8px; color:var(--ink-40); flex-shrink:0;">COMB0051</span>
+          <span style="flex:1; font-size:10px; color:var(--ink-40); text-decoration:line-through;">Kuis basis data</span>
+          <span class="icon-btn-ph" style="width:20px; height:20px; font-size:9px;">↺</span>
+        </div>
+      </div>
+    </div>
+    <div class="note-strip">Restore button (↺) = icon-btn 28px visual + 44px hit area · row height 48px · kode matkul di slot mono</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SECTION 6: STATES SUMMARY TABLE
+     ============================================================ -->
+<hr class="section">
+<h2>6 · States Checklist</h2>
+<table style="width:100%; border-collapse:collapse; font-size:11px; margin-top:12px;">
+  <thead>
+    <tr style="background:var(--ink-05); border-bottom:2px solid var(--ink-20);">
+      <th style="padding:8px 12px; text-align:left;">View</th>
+      <th style="padding:8px 12px; text-align:left;">Loading</th>
+      <th style="padding:8px 12px; text-align:left;">Empty</th>
+      <th style="padding:8px 12px; text-align:left;">Error</th>
+      <th style="padding:8px 12px; text-align:left;">Partial-data</th>
+      <th style="padding:8px 12px; text-align:left;">Normal</th>
+      <th style="padding:8px 12px; text-align:left;">Collapsed</th>
+      <th style="padding:8px 12px; text-align:left;">Undo toast</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom:1px solid var(--ink-10);">
+      <td style="padding:8px 12px; font-weight:600;">Desktop Widget</td>
+      <td style="padding:8px 12px;">Board 3</td>
+      <td style="padding:8px 12px;">Board 4</td>
+      <td style="padding:8px 12px;">Board 5</td>
+      <td style="padding:8px 12px;">Board 7</td>
+      <td style="padding:8px 12px;">Board 1</td>
+      <td style="padding:8px 12px;">Board 2</td>
+      <td style="padding:8px 12px;">Board 8</td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--ink-10);">
+      <td style="padding:8px 12px; font-weight:600;">Mobile App</td>
+      <td style="padding:8px 12px;">Board 10</td>
+      <td style="padding:8px 12px;">—</td>
+      <td style="padding:8px 12px;">Board 11</td>
+      <td style="padding:8px 12px;">—</td>
+      <td style="padding:8px 12px;">Board 9</td>
+      <td style="padding:8px 12px;">—</td>
+      <td style="padding:8px 12px;">—</td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--ink-10);">
+      <td style="padding:8px 12px; font-weight:600;">Android Widget</td>
+      <td style="padding:8px 12px;">—</td>
+      <td style="padding:8px 12px;">Board 15</td>
+      <td style="padding:8px 12px;">—</td>
+      <td style="padding:8px 12px;">—</td>
+      <td style="padding:8px 12px;">Board 14</td>
+      <td style="padding:8px 12px;">—</td>
+      <td style="padding:8px 12px;">—</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px; font-weight:600;">Settings</td>
+      <td style="padding:8px 12px;">—</td>
+      <td style="padding:8px 12px;">—</td>
+      <td style="padding:8px 12px;">—</td>
+      <td style="padding:8px 12px;">—</td>
+      <td style="padding:8px 12px;">Board 13</td>
+      <td style="padding:8px 12px;">—</td>
+      <td style="padding:8px 12px;">—</td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="font-size:10px; color:var(--ink-40); margin-top:16px;">
+  Catatan: "—" = state tidak relevan untuk view tersebut (mis. Android widget tidak punya loading state karena read-only).
+</p>
+
+</body>
+</html>

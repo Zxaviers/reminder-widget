@@ -127,6 +127,7 @@ export const api = {
     } catch {}
   },
   trayTooltip: (text) => cmd('tray_tooltip', { text: String(text ?? '') }),
+  setStatusBarStyle: (lightIcons) => cmd('set_status_bar_style', { lightIcons }).catch(() => {}),
   openSettings: async () => {
     const isMob = await api.isMobile()
     if (isMob) {

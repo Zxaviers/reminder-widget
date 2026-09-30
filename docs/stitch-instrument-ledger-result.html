@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Deadline Widget</title>
+<!-- Tailwind CSS v3 with forms and container-queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            canvas: '#14151A',
+            card: '#1C1D24',
+            divider: '#2A2B33',
+            tealAccent: '#5BB5A6',
+            mainText: '#F2F1EE',
+            secondaryText: '#B8B6B0',
+            mutedText: '#6E6D68',
+            amberAccent: '#D6A44F',
+            overdueRed: '#C14A4A',
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Styles for Precise Metrics -->
+<style data-purpose="base-styling">
+    body {
+      background-color: #14151A;
+      color: #F2F1EE;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .hairline-border {
+      border-color: #2A2B33;
+    }
+  </style>
+</head>
+<body class="bg-canvas min-h-screen flex items-center justify-center p-4">
+<!-- BEGIN: MainContainer -->
+<!-- Constrained desktop widget container matching original 392px width -->
+<main class="w-full max-w-[392px] px-6 py-8 select-none" data-purpose="widget-container">
+<!-- BEGIN: HeaderSection -->
+<header class="flex items-center justify-between mb-5" data-purpose="widget-header">
+<!-- Title in Teal Accent -->
+<h1 class="text-tealAccent font-bold text-lg tracking-tight">Deadline</h1>
+<!-- Sync Status Meta -->
+<span class="text-mutedText text-xs font-normal tracking-wide">4 tugas · sync 5 mnt</span>
+</header>
+<!-- END: HeaderSection -->
+<!-- BEGIN: HeroCard -->
+<!-- Highlighted Overdue Card -->
+<section class="bg-card rounded-2xl p-5 mb-6 shadow-none" data-purpose="hero-overdue-card">
+<!-- Course Code and Name -->
+<div class="text-mutedText text-xs font-normal mb-1.5 tracking-normal">
+        IF2040 · Struktur Data
+      </div>
+<!-- Overdue Highlight Countdown -->
+<div class="text-overdueRed font-bold text-[28px] leading-tight mb-2 tracking-tight">
+        Terlewat 2 jam
+      </div>
+<!-- Task Title -->
+<div class="text-mainText font-bold text-base mb-6">
+        Tugas Bab 6
+      </div>
+<!-- Mark as Completed Interactive Checkbox Row -->
+<div class="flex items-center gap-3 cursor-pointer group" data-purpose="mark-complete-action">
+<!-- Thin Red Circular Ring Indicator -->
+<span aria-hidden="true" class="w-5 h-5 rounded-full border border-overdueRed/80 flex items-center justify-center flex-shrink-0 transition-colors group-hover:border-overdueRed"></span>
+<span class="text-secondaryText text-xs tracking-normal">Tandai selesai</span>
+</div>
+</section>
+<!-- END: HeroCard -->
+<!-- BEGIN: TaskList -->
+<!-- Flat Quiet List of Upcoming Deadlines -->
+<section class="space-y-0 mb-7" data-purpose="upcoming-tasks-list">
+<!-- Task Row 1: 6 jam lagi -->
+<div class="py-3.5 flex items-center gap-4" data-purpose="task-row">
+<!-- Left Indicator and Countdown -->
+<div class="flex items-center gap-2.5 w-[100px] flex-shrink-0">
+<span aria-hidden="true" class="w-1.5 h-1.5 rounded-full bg-amberAccent flex-shrink-0"></span>
+<span class="text-amberAccent font-bold text-xs tracking-tight">6 jam lagi</span>
+</div>
+<!-- Right Content: Title and Course -->
+<div class="min-w-0 flex-1">
+<h2 class="text-mainText text-sm font-semibold leading-snug truncate">Kuis Jaringan</h2>
+<p class="text-mutedText text-xs leading-normal truncate">IF2040 · Struktur Data</p>
+</div>
+</div>
+<!-- Thin Hairline Separator -->
+<div aria-hidden="true" class="border-b hairline-border"></div>
+<!-- Task Row 2: Besok 10.00 -->
+<div class="py-3.5 flex items-center gap-4" data-purpose="task-row">
+<!-- Left Indicator and Countdown (Two lines) -->
+<div class="flex items-center gap-2.5 w-[100px] flex-shrink-0">
+<span aria-hidden="true" class="w-1.5 h-1.5 rounded-full bg-mutedText flex-shrink-0"></span>
+<div class="text-mainText text-xs font-bold leading-[1.15]">
+<div>Besok</div>
+<div class="text-mainText">10.00</div>
+</div>
+</div>
+<!-- Right Content: Title and Course -->
+<div class="min-w-0 flex-1">
+<h2 class="text-mainText text-sm font-semibold leading-snug truncate">Presentasi Metopen</h2>
+<p class="text-mutedText text-xs leading-normal truncate">COMB0051 · Metode Penelitian</p>
+</div>
+</div>
+<!-- Thin Hairline Separator -->
+<div aria-hidden="true" class="border-b hairline-border"></div>
+<!-- Task Row 3: 3 hari lagi -->
+<div class="py-3.5 flex items-center gap-4" data-purpose="task-row">
+<!-- Left Indicator and Countdown -->
+<div class="flex items-center gap-2.5 w-[100px] flex-shrink-0">
+<span aria-hidden="true" class="w-1.5 h-1.5 rounded-full bg-mutedText flex-shrink-0"></span>
+<span class="text-mainText font-bold text-xs tracking-tight">3 hari lagi</span>
+</div>
+<!-- Right Content: Title and Course -->
+<div class="min-w-0 flex-1">
+<h2 class="text-mainText text-sm font-semibold leading-snug truncate">Laporan Praktikum</h2>
+<p class="text-mutedText text-xs leading-normal truncate">FI1101 · Fisika Dasar</p>
+</div>
+</div>
+</section>
+<!-- END: TaskList -->
+<!-- BEGIN: FooterStatus -->
+<!-- Muted Undo/Completed Count Footer -->
+<footer class="pt-1" data-purpose="widget-footer">
+<button class="text-mutedText text-xs font-normal hover:text-secondaryText transition-colors focus:outline-none" type="button">
+        Selesai (1) · ketuk untuk kembalikan
+      </button>
+</footer>
+<!-- END: FooterStatus -->
+</main>
+<!-- END: MainContainer -->
+</body></html>

@@ -14,7 +14,7 @@ test('urgency buckets: overdue, soon, later', () => {
 test('overdue always carries a duration, never a bare label', () => {
   assert.equal(rowTime(NOW - 7 * 60 * 1000, NOW), 'Terlewat 7mnt')
   assert.equal(rowTime(NOW - 5 * HOUR, NOW), 'Terlewat 5j')
-  assert.equal(rowTime(NOW - 3 * 24 * HOUR, NOW), 'Terlewat 3hr')
+  assert.equal(rowTime(NOW - 3 * 24 * HOUR, NOW), 'Terlewat 3 hari')
   for (const label of [
     rowTime(NOW - 1000, NOW),
     rowTime(NOW - 30 * 60 * 1000, NOW),
@@ -32,9 +32,9 @@ test('future labels: minutes, hours, tomorrow, weekday, days', () => {
   assert.equal(rowTime(NOW + 10 * 24 * HOUR, NOW), '10 hari lagi')
 })
 
-test('days-overdue uses hr, never bare h (audit N1)', () => {
-  assert.equal(rowTime(NOW - 26 * 60 * 60 * 1000, NOW), 'Terlewat 1hr')
-  assert.equal(rowTime(NOW - 3 * 24 * 60 * 60 * 1000, NOW), 'Terlewat 3hr')
+test('days-overdue uses hari dieja penuh (audit N4)', () => {
+  assert.equal(rowTime(NOW - 26 * 60 * 60 * 1000, NOW), 'Terlewat 1 hari')
+  assert.equal(rowTime(NOW - 3 * 24 * 60 * 60 * 1000, NOW), 'Terlewat 3 hari')
   assert.equal(rowTime(NOW - 90 * 60 * 1000, NOW), 'Terlewat 1j')
   assert.equal(rowTime(NOW - 7 * 60 * 1000, NOW), 'Terlewat 7mnt')
 })

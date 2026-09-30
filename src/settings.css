@@ -5,12 +5,19 @@
 
 .settings-body {
   user-select: none;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0;
+  overflow: hidden;
 }
 
 .settings-body .sheet {
   height: calc(100% - 24px);
   margin: 12px;
   max-height: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* One mobile shell for every screen (audit C1/C2): the settings page is
@@ -22,12 +29,37 @@
     min-height: 100%;
     margin: 0;
     border-radius: 0;
+    background: var(--canvas);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sheet__bar {
+    padding-top: max(11px, env(safe-area-inset-top, 11px));
+    padding-left: max(var(--sp-gutter), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--sp-gutter), env(safe-area-inset-right, 0px));
+    flex-shrink: 0;
+  }
+
+  .sheet__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px var(--sp-gutter) max(56px, env(safe-area-inset-bottom, 56px));
   }
 }
 
 .sheet__bar {
   -webkit-app-region: drag;
   align-items: center;
+  background: var(--canvas);
+  border-bottom: 1px solid var(--hairline);
+}
+
+:root[data-theme="light"] .sheet__bar {
+  background: var(--raised);
 }
 
 .sheet__bar .bar__actions {
@@ -74,6 +106,10 @@
 
 /* Desktop-only section never ships on touch devices (audit N3). */
 body[data-mobile="true"] .desktop-card,
+.desktop-card[hidden] {
+  display: none !important;
+}
+
 @media (max-width: 480px) {
   .desktop-card {
     display: none !important;
@@ -98,11 +134,9 @@ body[data-mobile="true"] .desktop-card,
 .auth-box__title .icon-key {
   width: 20px;
   height: 20px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  fill: currentColor;
+  stroke: none;
+  color: var(--ink-600);
 }
 
 .auth-box__desc {
@@ -169,11 +203,8 @@ body[data-mobile="true"] .desktop-card,
 .btn--full svg {
   width: 20px;
   height: 20px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  fill: currentColor;
+  stroke: none;
 }
 
 .btn--accent {
@@ -363,11 +394,25 @@ body[data-mobile="true"] .desktop-card,
   margin-top: 6px;
 }
 
+.feed-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.feed-list:empty {
+  display: none;
+}
+
 .feed-row {
   display: flex;
   align-items: center;
   gap: 6px;
   min-height: 52px;
+}
+
+.feed-row > .icon-btn.small:last-child {
+  margin-right: -6px;
 }
 
 .feed-row + .feed-row {

@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframe — BRONE Reminder</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #6f6d68;
+    --paper: #f5f4f1;
+    --line: #c9c7c1;
+    --cross: #b34a29;
+    --scratch: #6f6d68;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.4;
+    padding: 24px 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1 {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin-bottom: 4px;
+  }
+
+  .meta {
+    font-size: 11px;
+    color: var(--faint);
+    margin-bottom: 24px;
+  }
+
+  .clarify {
+    background: var(--cross);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 24px;
+  }
+
+  .boards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 20px;
+  }
+
+  .board {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .board__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--faint);
+  }
+
+  .board__body {
+    padding: 12px;
+    min-height: 420px;
+  }
+
+  /* ---- grayscale skeleton primitives ---- */
+
+  .s {
+    background: var(--faint);
+    border-radius: 4px;
+  }
+
+  .text {
+    font-size: 12px;
+    color: var(--faint);
+    margin-top: 4px;
+  }
+
+  .label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--faint);
+    margin-bottom: 4px;
+  }
+
+  /* ---- annotations ---- */
+
+  .note {
+    display: block;
+    position: absolute;
+    right: 14px;
+    top: 14px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--cross);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ================= if browser reflow ================= */
+
+  @media (max-width: 359px) {
+    body { padding: 12px; }
+    .boards { grid-template-columns: 1fr; }
+  }
+
+  /* ================= DESKTOP WIDGET wireframe ================= */
+
+  .widget {
+    border-radius: 12px;
+    height: 280px;
+  }
+
+  .widget__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--lines);
+    height: 44px;
+  }
+
+  .widget__bar--glow {
+    backdrop-filter: blur(14px);
+    background: rgba(245, 244, 241, 0.72);
+  }
+
+  .widget__wordmark {
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: -0.012em;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .widget__sync {
+    font-size: 11px;
+    color: var(--faint);
+    margin-right: 6px;
+  }
+
+  .widget__icon {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .widget__icon-svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .widget__body {
+    padding: 12px;
+    overflow-y: auto;
+  }
+
+  .widget__hero {
+    border-left: 3px solid var(--faint);
+    border-radius: 12px;
+    padding: 14px 16px 16px;
+    margin-top: 12px;
+  }
+
+  .widget__hero-code {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--faint);
+    letter-spacing: 0.02em;
+  }
+
+  .widget__hero-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+
+  .widget__hero-count {
+    font-size: 28px;
+    font-weight: 700;
+    margin-top: 6px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .widget__hero-title {
+    margin-top: 4px;
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-width: 100%;
+  }
+
+  .widget__btn {
+    margin-top: 12px;
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: var(--faint);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .widget__ring {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid var(--faint);
+    flex-shrink: 0;
+  }
+
+  .widget__list {
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .widget__row {
+    border-left: 3px solid var(--faint);
+    border-radius: 6px;
+    padding: 8px 8px 8px 6px;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+
+  .widget__row-time {
+    width: 82px;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+
+  .widget__row-title {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .widget__row-t {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    color: var(--ink);
+  }
+
+  .widget__row-meta {
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+  }
+
+  .widget__row-code {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--faint);
+    letter-spacing: 0.02em;
+  }
+
+  .widget__row-name {
+    font-size: 11px;
+    color: var(--faint);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .widget__row-done {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border: 0;
+    background: transparent;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .widget__done-section {
+    margin-top: 18px;
+    border-top: 1px solid var(--line);
+    padding-top: 10px;
+  }
+
+  .widget__done-btn {
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: var(--ink);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .widget__stale {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-top: 1px solid var(--line);
+    margin-top: 8px;
+    font-size: 10.5px;
+    color: var(--faint);
+  }
+
+  .widget__stale-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .widget__stale-retry {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  /* ================= MOBILE APP wireframe ================= */
+
+  .mobile {
+    border-radius: 12px;
+    min-height: 600px;
+  }
+
+  .mobile__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    height: 52px;
+  }
+
+  .mobile__wordmark {
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .mobile__count {
+    font-size: 11px;
+    color: var(--faint);
+    margin-left: 8px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mobile__body {
+    padding: 8px 0 16px;
+  }
+
+  .mobile__section-label {
+    font-size: 10px;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: 0.075em;
+    color: var(--faint);
+    padding: 9px 16px 3px;
+  }
+
+  .mobile__group {
+    margin-top: 8px;
+    border-top: 1px solid var(--line);
+    padding-top: 8px;
+  }
+
+  .mobile__header-group {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 9px 16px 3px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.075em;
+    color: var(--faint);
+  }
+
+  .mobile__header-count {
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ================= STATE wireframes ================= */
+
+  .state-loading {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    padding: 16px 0 12px;
+  }
+
+  .state-loading-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .state-loading-bucket {
+    height: 9px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--faint) 0%, #fff 50%, var(--faint) 100%);
+    background-size: 220% 100%;
+    animation: shimmer 1.5s ease infinite;
+  }
+
+  .state-loading-bucket:nth-child(2) { width: 78%; }
+  .state-loading-bucket:nth-child(3) { width: 92%; }
+  .state-loading-bucket:nth-child(4) { width: 64%; }
+
+  @keyframes shimmer {
+    from { background-position: 120% 0; }
+    to { background-position: -60% 0; }
+  }
+
+  .state-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 16px;
+    text-align: center;
+  }
+
+  .state-empty-icon {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 12px;
+  }
+
+  .state-empty-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .state-empty-note {
+    font-size: 12px;
+    color: var(--faint);
+    line-height: 1.5;
+    max-width: 280px;
+  }
+
+  .state-error {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .state-error-icon {
+    width: 34px;
+    height: 34px;
+    margin-bottom: 10px;
+    color: var(--cross);
+    flex-shrink: 0;
+  }
+
+  .state-error-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .state-error-note {
+    font-size: 11.5px;
+    color: var(--faint);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  .state-error-fix {
+    font-size: 11px;
+    color: var(--ink);
+    line-height: 1.5;
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+
+  .state-error-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .state-error-btn {
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 6px;
+    border: 0;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--ink);
+    background: var(--ink);
+  }
+
+  .state-error-btn--ghost {
+    background: transparent;
+    border: 1px solid var(--line);
+  }
+
+  /* ================= icon SVGs (grayscale) ================= */
+
+  .icon-settings { stroke-dasharray: 49; }
+  .icon-add { stroke-dasharray: 12.8; }
+  .icon-refresh { stroke-dasharray: 12 + 5.76; }
+  .icon-chevron { stroke-dasharray: 6.7; }
+  .icon-close { stroke-dasharray: 10.83; }
+  .icon-check { stroke-dasharray: 14; }
+  .icon-undo { stroke-dasharray: 14; }
+  .icon-warning { stroke-dasharray: 18; }
+  .icon-go { stroke-dasharray: 7.4; }
+
+  svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+</style>
+</head>
+<body>
+
+<h1>Wireframe — BRONE Reminder</h1>
+<p class="meta">Low-fi grayscale. Visual decisions: none. Tingkat: 11px kapitalisasi.</p>
+
+<div class="clarify">
+  ⚠️ Wireframe ini menggambarkan arah desain **Opt5 Ledger** sesuai spesifikasi teknis (PRD, TOKENS.md, AGENTS.md). Mockup visual akan dibuat setelah wireframe disetujui.
+</div>
+
+<div class="boards">
+
+  <!-- ============ DESKTOP WIDGET (dark) ============ -->
+  <div class="board">
+    <div class="board__head"><span>Desktop Widget · gelap</span><span>360px × height auto</span></div>
+    <div class="board__body" style="position:relative">
+
+      <div class="widget">
+        <!-- bar -->
+        <div class="widget__bar widget__bar--glow">
+          <div style="display:flex;align-items:baseline;gap:8px;min-width:0">
+            <span class="widget__wordmark" style="color:#37785a">BRONE Reminder</span>
+            <span class="widget__count" style="font-size:11px;color:#6f6d68;font-variant-numeric:tabular-nums">4 tugas</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:2px">
+            <span class="widget__sync">sync 12 mnt</span>
+            <button class="widget__icon" aria-label="Refresh"><svg viewBox="0 0 16 16" class="icon-refresh"><path d="M13.5 8a5.5 5.5 0 1 1-1.9-4.16"/><path d="M13.6 1.9v2.4h-2.4"/></svg></button>
+            <button class="widget__icon" aria-label="Settings"><svg viewBox="0 0 16 16" class="icon-settings"><path d="M8 2.6a5.4 5.4 0 1 0 0 10.8A5.4 5.4 0 0 0 8 2.6z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/><path d="M8 .8v1.9M8 13.3v1.9M.8 8h1.9M13.3 8h1.9"/></svg></button>
+            <button class="widget__icon" aria-label="Collapse"><svg viewBox="0 0 16 16" class="icon-chevron"><path d="M4 6.25 8 10.25l4-4"/></svg></button>
+            <button class="widget__icon" aria-label="Hide to tray" style="color:#d66161"><svg viewBox="0 0 16 16" class="icon-close"><path d="M4.2 4.2l7.6 7.6M11.8 4.2l-7.6 7.6"/></svg></button>
+          </div>
+        </div>
+
+        <div class="widget__body">
+
+          <!-- HERO -->
+          <div class="widget__hero">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="widget__hero-code" style="color:#8e8d88;font-family:monospace">IF2040</span>
+              <span class="widget__hero-name">Pemrograman Berbasis Web</span>
+              <div style="width:16px;height:16px;flex-shrink:0;margin-left:auto;visibility:hidden" class="icon-warning"><svg viewBox="0 0 16 16" style="color:#d66161"><path d="M8 2.5 15 14.5H1z"/><path d="M8 6.6v3.2"/><path d="M8 12.2v.1"/></svg></div>
+            </div>
+            <div class="widget__hero-count" style="font-family:monospace">5 jam lagi</div>
+            <div class="widget__hero-title">Tugas 1 — Pemrograman Web (IF2040)</div>
+            <button class="widget__btn">
+              <span class="widget__ring"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span>
+              <span>Tandai selesai</span>
+            </button>
+          </div>
+
+          <!-- LIST -->
+          <ul class="widget__list">
+
+            <!-- Row 1 — soon -->
+            <li class="widget__row" style="border-left-color:#8a6217">
+              <span class="widget__row-time" style="color:#8a6217;font-family:monospace">6 jam lagi</span>
+              <div class="widget__row-title">
+                <span class="widget__row-t">Kuis 2 — Basis Data Terdistribusi</span>
+                <div class="widget__row-meta">
+                  <span class="widget__row-code">IF3803</span>
+                  <span class="widget__row-name">StMeDS 2026</span>
+                </div>
+              </div>
+              <button class="widget__row-done" aria-label="Tandai Kuis 2 selesai">
+                <svg width="18" height="18" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2" fill="none" stroke="#6f6d68"/><path d="M3.5 8.5 6.5 11.5 12.5 5" fill="none" stroke="#6f6d68"/></svg>
+              </button>
+            </li>
+
+            <!-- Row 2 — overdue -->
+            <li class="widget__row" style="border-left-color:#d66161">
+              <span class="widget__row-time" style="color:#d66161;font-family:monospace">Terlewat 2 jam</span>
+              <div class="widget__row-title">
+                <span class="widget__row-t">Laporan Akhir Praktikum Jaringan</span>
+                <div class="widget__row-meta">
+                  <span class="widget__row-code">IF4615</span>
+                  <span class="widget__row-name">StJAKA</span>
+                </div>
+              </div>
+              <button class="widget__row-done" aria-label="Tandai Laporan Akhir selesai" style="color:#d66161">
+                <svg width="18" height="18" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2" fill="none" stroke="#d66161"/><path d="M3.5 8.5 6.5 11.5 12.5 5" fill="none" stroke="#d66161"/></svg>
+              </button>
+            </li>
+
+            <!-- Row 3 — later (netral) -->
+            <li class="widget__row">
+              <span class="widget__row-time" style="color:#6f6d68;font-family:monospace">32 hari lagi</span>
+              <div class="widget__row-title">
+                <span class="widget__row-t">Presentasi Metopen COMB0051</span>
+                <div class="widget__row-meta">
+                  <span class="widget__row-code">COMB0051</span>
+                  <span class="widget__row-name">Metopen</span>
+                </div>
+              </div>
+              <button class="widget__row-done" aria-label="Tandai Presentasi Metopen selesai">
+                <svg width="18" height="18" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2" fill="none" stroke="#6f6d68"/><path d="M3.5 8.5 6.5 11.5 12.5 5" fill="none" stroke="#6f6d68"/></svg>
+              </button>
+            </li>
+
+          </ul>
+
+          <!-- DONE SECTION -->
+          <div class="widget__done-section">
+            <button class="widget__done-btn">
+              <span class="widget__ring"><svg viewBox="0 0 16 16"><path d="M13.5 8a5.5 5.5 0 1 1-1.9-4.16"/><path d="M13.6 1.9v2.4h-2.4"/></svg></span>
+              <span><strong style="font-family:monospace">1</strong> tugas selesai</span>
+              <span style="margin-left:auto;display:flex;align-items:center;gap:6px;color:#6f6d68;font-size:11px;font-weight:700">
+                Kembalikan
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#6f6d68" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 8a5.5 5.5 0 1 1-1.9-4.16"/><path d="M13.6 1.9v2.4h-2.4"/></svg>
+              </span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- STALE FOOTER (shown when refresh failed but data on screen) -->
+        <div class="widget__stale" hidden>
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.9"/><path d="M8 5.1V8l2 1.2"/></svg>
+          <span class="widget__stale-text">Refresh terakhir gagal — menampilkan data terakhir</span>
+          <button class="widget__stale-retry">Coba lagi</button>
+        </div>
+      </div>
+    </div>
+    <!-- annotation -->
+    <span class="note" style="position:absolute;right:12px;bottom:12px;display:block;font-size:9px">● left-border 3px · hanya row pertama berwarna · hero countdown tabular · semua tombol ≥44px</span>
+  </div>
+
+  <!-- ============ MOBILE APP (dark) ============ -->
+  <div class="board">
+    <div class="board__head"><span>Mobile App · gelap</span><span>390px</span></div>
+    <div class="board__body" style="position:relative">
+
+      <div class="mobile">
+        <div class="mobile__bar">
+          <span class="mobile__wordmark" style="color:#37785a">BRONE Reminder</span>
+          <span class="mobile__count">4 tugas</span>
+          <button class="widget__icon" aria-label="Refresh"><svg viewBox="0 0 16 16" class="icon-refresh"><path d="M13.5 8a5.5 5.5 0 1 1-1.9-4.16"/><path d="M13.6 1.9v2.4h-2.4"/></svg></button>
+          <button class="widget__icon" aria-label="Add event"><svg viewBox="0 0 16 16" class="icon-add"><path d="M8 3.2v9.6M3.2 8h9.6"/></svg></button>
+          <button class="widget__icon" aria-label="Settings"><svg viewBox="0 0 16 16" class="icon-settings"><path d="M8 2.6a5.4 5.4 0 1 0 0 10.8A5.4 5.4 0 0 0 8 2.6z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/><path d="M8 .8v1.9M8 13.3v1.9M.8 8h1.9M13.3 8h1.9M3 3l1.3 1.3M11.7 11.7 13 13M13 3l-1.3 1.3M4.3 11.7 3 13"/></svg></button>
+        </div>
+
+        <div class="mobile__body">
+
+          <!-- HERO (same as desktop, mobile-scaled) -->
+          <div class="widget__hero" style="margin-top:12px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="widget__hero-code" style="color:#8e8d88;font-family:monospace">IF2040</span>
+              <span class="widget__hero-name">Pemrograman Berbasis Web</span>
+            </div>
+            <div class="widget__hero-count" style="font-family:monospace">5 jam lagi</div>
+            <div class="widget__hero-title">Tugas 1 — Pemrograman Web</div>
+            <button class="widget__btn">
+              <span class="widget__ring"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span>
+              <span>Tandai selesai</span>
+            </button>
+          </div>
+
+          <!-- Section label: "Berikutnya" -->
+          <div class="mobile__header-group">
+            <span style="color:#8a6217">Berikutnya</span>
+            <span class="mobile__header-count" style="color:#6f6d68">3 tugas</span>
+          </div>
+
+          <!-- Row dalam grup -->
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
+            <li class="widget__row" style="border-left-color:#8a6217">
+              <span class="widget__row-time" style="color:#8a6217;font-family:monospace">6 jam lagi</span>
+              <div class="widget__row-title">
+                <span class="widget__row-t">Kuis 2 — Basis Data Terdistribusi</span>
+                <div class="widget__row-meta">
+                  <span class="widget__row-code">IF3803</span>
+                  <span class="widget__row-name">StMeDS 2026</span>
+                </div>
+              </div>
+              <button class="widget__row-done" aria-label="Tandai Kuis 2 selesai">
+                <svg width="18" height="18" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2" fill="none" stroke="#6f6d68"/><path d="M3.5 8.5 6.5 11.5 12.5 5" fill="none" stroke="#6f6d68"/></svg>
+              </button>
+            </li>
+          </ul>
+
+          <!-- Empty state wireframe -->
+          <div class="state-empty" style="display:none;margin-top:18px" data-state="empty">
+            <svg width="44" height="44" viewBox="0 0 40 40" fill="none" stroke="#6f6d68" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="20" cy="20" r="13.5"/><path d="M20 13.2V20l4.6 2.8"/></svg>
+            <div class="state-empty-title">Tidak ada deadline mendekat</div>
+            <div class="state-empty-note">Tugas baru dari feed akan muncul otomatis di sini.</div>
+            <button class="state-error-btn" style="margin-top:12px">Buka pengaturan</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <span class="note" style="position:absolute;right:12px;bottom:12px;display:block;font-size:9px">● grup per matkul · time-bar kosong (opsional) · row 52px · diskalakan dari widget desktop</span>
+  </div>
+
+  <!-- ============ STATE: LOADING ============ -->
+  <div class="board">
+    <div class="board__head"><span>State: Loading</span><span>placeholder</span></div>
+    <div class="board__body">
+
+      <div class="state-loading">
+        <div class="state-loading-row"><div class="state-loading-bucket"></div><div class="state-loading-bucket" style="width:78%"></div></div>
+        <div class="state-loading-row"><div class="state-loading-bucket"></div><div class="state-loading-bucket" style="width:92%"></div></div>
+        <div class="state-loading-row"><div class="state-loading-bucket"></div><div class="state-loading-bucket" style="width:64%"></div></div>
+        <div class="text" style="margin-top:12px">Reading your calendar feed</div>
+        <div class="text" style="margin-top:8px">Bar akan terisi dalam ~1–2 detik.</div>
+      </div>
+
+    </div>
+    <span class="note" style="position:absolute;right:12px;bottom:12px;display:block;font-size:9px">● skeleton otomatis · tidak ada data parsial · hanya muncul saat feed dimuat pertama kali atau refresh manual</span>
+  </div>
+
+  <!-- ============ STATE: ERROR ============ -->
+  <div class="board">
+    <div class="board__head"><span>State: Error Feed</span><span>placeholder</span></div>
+    <div class="board__body">
+
+      <div class="state-error">
+        <div class="state-error-icon"><svg width="34" height="34" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 8.5 34 31.5H6z"/><path d="M20 17.5v6"/><path d="M20 27.2v.1"/></svg></div>
+        <div class="state-error-title">Feed tidak terjangkau</div>
+        <div class="state-error-note">Feed kalender tidak bisa dimuat. Coba lagi saat koneksi pulih.</div>
+        <div class="state-error-fix">URL tidak valid — pastikan mengarah ke file .ics, bukan halaman web.</div>
+        <div class="state-error-actions">
+          <button class="state-error-btn">Coba lagi</button>
+          <button class="state-error-btn state-error-btn--ghost">Pengaturan</button>
+        </div>
+      </div>
+
+    </div>
+    <span class="note" style="position:absolute;right:12px;bottom:12px;display:block;font-size:9px">● muncul hanya jika tidak ada data yang bisa ditampilkan · pesan error dan tombol retry terlihat · dengan data terakhir yang tersimpan, show stale footer bukan error screen</span>
+  </div>
+
+  <!-- ============ STATE: SETUP (first run) ============ -->
+  <div class="board">
+    <div class="board__head"><span>State: Belum Setup</span><span>placeholder</span></div>
+    <div class="board__body">
+
+      <div class="state-error" style="text-align:left">
+        <div class="state-error-title">Feed belum dipasang</div>
+        <div class="state-error-note" style="margin-bottom:12px">Tempel URL kalender BRONE atau secret address Google Calendar untuk mulai.</div>
+
+        <div style="margin-bottom:10px">
+          <div class="label">Langkah 1 — Buka halaman ekspor</div>
+          <div class="text" style="margin-top:4px">Di BRONE/Moodle: Calendar → "Semua Acara" + "Bulan ini/Mendatang" → "Dapatkan URL Kalender" → Salin linknya.</div>
+        </div>
+
+        <div class="state-error-actions" style="margin-top:14px">
+          <button class="state-error-btn">Buka pengaturan</button>
+        </div>
+      </div>
+
+    </div>
+    <span class="note" style="position:absolute;right:12px;bottom:12px;display:block;font-size:9px">● ini state default saat pertama install (belum ada URL feed) · bukan error · navigasi ke settings jelas</span>
+  </div>
+
+</div>
+
+<div style="margin-top:24px;padding:12px 16px;background:#fff;border:1px solid var(--line);border-radius:6px;font-size:11px;color:var(--faint);line-height:1.6">
+  <strong>Anotasi eye-flow:</strong> mata masuk dari hero (countdown terbesar, warna urgensi) → baris berikutnya (left-border + waktu) → tombol selesai → footer sync. Tidak ada hero ganda, tidak ada card per row. Satu momen fokus: deadline terdekat.
+</div>
+
+</body>
+</html>

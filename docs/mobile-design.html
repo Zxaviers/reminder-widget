@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRONE Reminder — Desain Mobile + Widget v2</title>
+<style>
+/* ============ TOKENS (sumber: src/style.css + widget XML native) ============ */
+.mock{--m-bg:#11131d;--m-surface:#16182a;--m-card:#1e293b;--m-ink:#f1f5f9;--m-muted:#94a3b8;
+--m-faint:#64748b;--m-line:#334155;--u-ok:#7ee787;--u-warn:#ffb454;--u-bad:#ff6b72;--m-accent:#38bdf8;
+--m-radius:14px;--m-font:system-ui,'Segoe UI',Roboto,sans-serif}
+.mock.light{--m-bg:#f1f5f9;--m-surface:#ffffff;--m-card:#ffffff;--m-ink:#0f172a;--m-muted:#64748b;
+--m-faint:#94a3b8;--m-line:#e2e8f0}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#020617;color:#e2e8f0;font-family:var(--m-font);padding:28px 20px 60px;font-family:system-ui,'Segoe UI',sans-serif}
+.wrap{max-width:1240px;margin:0 auto}
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.top h1{font-size:20px}
+.top p{color:#94a3b8;font-size:13px;width:100%;line-height:1.6}
+.surface{border:1px solid #334155;border-radius:10px;padding:10px 14px;font-size:13px;color:#cbd5e1;margin:12px 0 4px;line-height:1.6}
+.surface b{color:#38bdf8}
+.tweaks{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.tweaks .grp{display:flex;gap:6px;align-items:center;font-size:12px;color:#94a3b8}
+.tweaks button{border:1px solid #334155;background:#0f172a;color:#94a3b8;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;min-height:44px}
+.tweaks button.on{color:#38bdf8;border-color:#38bdf8}
+h2.sec{font-size:16px;margin:30px 0 4px}
+p.secsub{font-size:13px;color:#94a3b8;margin-bottom:14px;line-height:1.6}
+.screens{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:28px;margin-top:14px;align-items:start}
+.spec{font-size:12.5px;color:#94a3b8;margin-top:10px;line-height:1.7}
+.spec b{color:#e2e8f0}
+.spec code{color:#38bdf8;font-size:12px}
+.reco{display:inline-block;font-size:11px;font-weight:700;color:#06283a;background:var(--u-ok);border-radius:6px;padding:3px 9px;margin-bottom:8px}
+/* ============ PHONE FRAME ============ */
+.phone{width:340px;margin:0 auto;background:#000;border-radius:36px;padding:12px;box-shadow:0 0 0 2px #334155}
+.screen{background:var(--m-bg);color:var(--m-ink);border-radius:26px;overflow:hidden;min-height:640px;display:flex;flex-direction:column;font-family:var(--m-font)}
+.notch{height:26px;display:grid;place-items:center;color:var(--m-muted);font-size:11px}
+.apphead{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--m-line)}
+.apphead .t b{display:block;font-size:15px}
+.apphead .t span{font-size:11.5px;color:var(--m-muted)}
+.icobtn{width:44px;height:44px;min-width:44px;border-radius:12px;border:1px solid var(--m-line);background:var(--m-card);display:grid;place-items:center;cursor:pointer}
+.icobtn svg{width:20px;height:20px;stroke:var(--m-muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.list{padding:12px;display:flex;flex-direction:column;gap:10px;flex:1}
+.task{display:flex;gap:10px;align-items:center;background:var(--m-card);border:1px solid var(--m-line);border-radius:var(--m-radius);padding:12px}
+.dot{width:10px;min-width:10px;height:10px;border-radius:50%}
+.task .mid{flex:1;min-width:0}
+.task .mid b{display:block;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task .mid span{font-size:11.5px;color:var(--m-muted)}
+.num{font-variant-numeric:tabular-nums}
+.pill{font-size:11px;font-weight:700;padding:4px 9px;border-radius:99px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.done-btn{min-width:44px;height:44px;border-radius:12px;border:1px solid var(--m-line);background:transparent;color:var(--m-muted);font-size:13px;font-weight:700;cursor:pointer}
+.section-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--m-muted);padding:6px 4px 0}
+.foot{padding:10px 16px 16px;font-size:11px;color:var(--m-muted);text-align:center}
+.donerow{display:flex;gap:10px;align-items:center;background:transparent;border:1px dashed var(--m-line);border-radius:var(--m-radius);padding:10px 12px;color:var(--m-muted);font-size:13px}
+.donerow .mid{flex:1;min-width:0}
+.donerow .mid b{display:block;font-size:13px;text-decoration:line-through;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* agenda rows (varian C) */
+.arow{display:flex;gap:12px;align-items:center;background:var(--m-card);border:1px solid var(--m-line);border-radius:var(--m-radius);padding:12px}
+.arow .when{min-width:52px;text-align:center}
+.arow .when b{display:block;font-size:13px;font-variant-numeric:tabular-nums}
+.arow .when span{font-size:10.5px;color:var(--m-muted)}
+.arow .mid{flex:1;min-width:0}
+.arow .mid b{display:block;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arow .mid span{font-size:11.5px;color:var(--m-muted)}
+/* settings */
+.setgroup{margin:12px;background:var(--m-card);border:1px solid var(--m-line);border-radius:var(--m-radius);padding:14px}
+.setgroup h4{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--m-muted);margin-bottom:10px}
+.urlrow{display:flex;gap:8px}
+.urlrow input{flex:1;min-width:0;background:var(--m-bg);border:1px solid var(--m-line);border-radius:10px;color:var(--m-ink);padding:0 12px;height:44px;font-size:13px}
+.btn44{height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--m-line);background:var(--m-bg);color:var(--m-ink);font-size:13px;cursor:pointer;white-space:nowrap}
+.btn44.primary{background:var(--m-accent);border-color:var(--m-accent);color:#06283a;font-weight:700}
+.testresult{font-size:12px;margin-top:8px;color:var(--u-ok)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{height:44px;padding:0 16px;border-radius:99px;border:1px solid var(--m-line);background:var(--m-bg);color:var(--m-muted);font-size:13px;cursor:pointer}
+.chip.on{border-color:var(--m-accent);color:var(--m-accent)}
+.disabled{opacity:.45}
+.badge{display:inline-block;font-size:10px;border:1px dashed var(--m-muted);border-radius:6px;padding:2px 7px;color:var(--m-muted);margin-top:8px;line-height:1.5}
+.note{font-size:11.5px;color:var(--m-muted);line-height:1.6;padding:0 16px 16px}
+/* widget on wallpaper — selalu gelap agar terbaca di wallpaper apa pun */
+.wallpaper{background:linear-gradient(160deg,#1e3a5f,#0f172a 60%,#3b0764);padding:26px 16px;min-height:640px;display:flex;flex-direction:column;gap:14px}
+.widget{background:rgba(17,19,29,.92);border:1px solid #334155;border-radius:20px;padding:12px 12px 8px;color:#f1f5f9}
+.widget .wh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.widget .wh b{font-size:13px}
+.widget .wh span{font-size:10px;color:#94a3b8}
+.wrow{display:flex;gap:9px;align-items:center;padding:7px 0;border-top:1px solid #232b3d;font-size:12.5px}
+.wrow:first-of-type{border-top:none}
+.wrow .wdot{width:8px;min-width:8px;height:8px;border-radius:50%}
+.wrow .wmid{flex:1;min-width:0}
+.wrow .wmid b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrow .wmid small{display:block;color:#94a3b8;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wtime{font-size:10px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.wempty{text-align:center;padding:20px 0 14px}
+.wempty b{display:block;color:#7ee787;font-size:12px;margin-bottom:4px}
+.wempty span{color:#64748b;font-size:10px}
+.wallhint{text-align:center;color:#cbd5e1;font-size:11px}
+/* density rapat */
+.compact .list{gap:6px;padding:8px}
+.compact .task,.compact .arow{padding:8px 10px}
+.compact .setgroup{margin:8px;padding:10px}
+/* token table */
+.tokens{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:12px}
+.tokens th,.tokens td{border:1px solid #334155;padding:7px 10px;text-align:left;vertical-align:top}
+.tokens th{color:#e2e8f0;background:#0f172a}
+.tokens td{color:#94a3b8}
+.tokens td code{color:#38bdf8}
+.swatch{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:-1px;border:1px solid #0006}
+.findings{font-size:13px;color:#cbd5e1;line-height:1.7;margin-top:10px}
+.findings li{margin-bottom:6px}
+.findings code{color:#38bdf8;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap mock" id="stage">
+  <div class="top">
+    <div><h1>BRONE Reminder — Desain Mobile + Widget v2</h1>
+    <p>Mockup fase desain · label Indonesia · tanpa emoji (ikon SVG) · target sentuh min 44px · token dari <b>src/style.css</b> + layout widget native</p></div>
+    <div class="tweaks">
+      <span class="grp">Tema <button id="b-dark" class="on">Gelap</button><button id="b-light">Terang</button></span>
+      <span class="grp">Kepadatan <button id="b-dense-off" class="on">Normal</button><button id="b-dense-on">Rapat</button></span>
+    </div>
+  </div>
+  <div class="surface"><b>Surface yang dipakai:</b> layar daftar = <b>Monitor</b> (memantau deadline berubah; kepadatan + hierarki sekilas lebih penting dari dekorasi — tanpa hero), Pengaturan = <b>Configure</b> (progressive disclosure, tanpa fitur mati misterius), widget = <b>Monitor sekilas</b> (read-only, 3 teratas + umur sync).</div>
+
+  <h2 class="sec">Layar utama — 3 varian</h2>
+  <p class="secsub">Varian struktural (bukan tukar warna): A meniru daftar desktop, B pengelompokan urgensi, C agenda per hari. Pilih satu arah lalu konsolidasi.</p>
+  <div class="screens">
+    <!-- A. KONSERVATIF -->
+    <div><div class="phone"><div class="screen">
+      <div class="notch">09.41</div>
+      <div class="apphead">
+        <div class="t"><b>Deadlines</b><span>4 tugas aktif</span></div>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <div class="icobtn"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v5h-5"/></svg></div>
+          <div class="icobtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.06-.4.1-.8.1-1.2z"/></svg></div>
+        </div>
+      </div>
+      <div class="list">
+        <div class="task"><span class="dot" style="background:var(--u-bad)"></span>
+          <div class="mid"><b>Tugas Struktur Data Bab 6</b><span>IF2040 · Terlewat 2 jam</span></div>
+          <span class="pill num" style="color:var(--u-bad);border:1px solid var(--u-bad)">Terlewat</span>
+          <button class="done-btn">OK</button></div>
+        <div class="task"><span class="dot" style="background:var(--u-warn)"></span>
+          <div class="mid"><b>Kuis Jaringan Komputer</b><span>IF2031 · 6 jam lagi</span></div>
+          <span class="pill num" style="color:var(--u-warn);border:1px solid var(--u-warn)">6 jam</span>
+          <button class="done-btn">OK</button></div>
+        <div class="task"><span class="dot" style="background:var(--u-ok)"></span>
+          <div class="mid"><b>Presentasi Metopen</b><span>COM60051 · Besok 10.00</span></div>
+          <span class="pill num" style="color:var(--u-ok);border:1px solid var(--u-ok)">20 jam</span>
+          <button class="done-btn">OK</button></div>
+        <div class="task"><span class="dot" style="background:var(--u-ok)"></span>
+          <div class="mid"><b>Laporan Praktikum Fisika</b><span>FI1101 · 3 hari lagi</span></div>
+          <span class="pill num" style="color:var(--u-ok);border:1px solid var(--u-ok)">3 hari</span>
+          <button class="done-btn">OK</button></div>
+        <div class="section-label">Selesai (2) — ketuk untuk buka</div>
+      </div>
+      <div class="foot">Terakhir sync 5 mnt lalu</div>
+    </div></div>
+    <p class="spec"><b>A — Konservatif.</b> Paling dekat ke widget desktop: satu daftar terurut + header <code>Deadlines</code>. Risiko: urgensi tenggelam saat tugas &gt;5. Tanpa ikon sembunyi-ke-tray (tidak ada tray di HP).</p></div>
+
+    <!-- B. STRONG-FIT (rekomendasi) -->
+    <div><span class="reco">Rekomendasi</span><div class="phone"><div class="screen">
+      <div class="notch">09.41</div>
+      <div class="apphead">
+        <div class="t"><b>BRONE Reminder</b><span>3 tugas aktif · sync 5 mnt lalu</span></div>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <div class="icobtn"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v5h-5"/></svg></div>
+          <div class="icobtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.06-.4.1-.8.1-1.2z"/></svg></div>
+        </div>
+      </div>
+      <div class="list">
+        <div class="section-label">Mendesak</div>
+        <div class="task"><span class="dot" style="background:var(--u-bad)"></span>
+          <div class="mid"><b>Tugas Struktur Data Bab 6</b><span>IF2040 · Terlewat 2 jam</span></div>
+          <span class="pill num" style="color:var(--u-bad);border:1px solid var(--u-bad)">Terlewat</span>
+          <button class="done-btn">OK</button></div>
+        <div class="task"><span class="dot" style="background:var(--u-warn)"></span>
+          <div class="mid"><b>Kuis Jaringan Komputer</b><span>IF2031 · 6 jam lagi</span></div>
+          <span class="pill num" style="color:var(--u-warn);border:1px solid var(--u-warn)">6 jam</span>
+          <button class="done-btn">OK</button></div>
+        <div class="section-label">Berikutnya</div>
+        <div class="task"><span class="dot" style="background:var(--u-ok)"></span>
+          <div class="mid"><b>Presentasi Metopen</b><span>COM60051 · Besok 10.00</span></div>
+          <span class="pill num" style="color:var(--u-ok);border:1px solid var(--u-ok)">20 jam</span>
+          <button class="done-btn">OK</button></div>
+        <div class="task"><span class="dot" style="background:var(--u-ok)"></span>
+          <div class="mid"><b>Laporan Praktikum Fisika</b><span>FI1101 · 3 hari lagi</span></div>
+          <span class="pill num" style="color:var(--u-ok);border:1px solid var(--u-ok)">3 hari</span>
+          <button class="done-btn">OK</button></div>
+        <div class="section-label">Selesai (1)</div>
+        <div class="donerow"><div class="mid"><b>Tugas Basis Data Bab 4</b><span style="font-size:11.5px">IF2030</span></div><button class="done-btn" title="Kembalikan">↺</button></div>
+      </div>
+      <div class="foot">Tarik ke bawah untuk refresh · ketuk kartu untuk detail</div>
+    </div></div>
+    <p class="spec"><b>B — Strong-fit (Monitor).</b> Grup urgensi = keputusan komposisi utama: mata langsung ke yang Mendesak. Countdown tabular-nums agar tidak goyang tiap detik. Section Selesai terbuka sebagian mencontohkan restore ↺.</p></div>
+
+    <!-- C. DIVERGEN -->
+    <div><div class="phone"><div class="screen">
+      <div class="notch">09.41</div>
+      <div class="apphead">
+        <div class="t"><b>Agenda</b><span>Minggu 14 – 20 Sep</span></div>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <div class="icobtn"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v5h-5"/></svg></div>
+          <div class="icobtn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.06-.4.1-.8.1-1.2z"/></svg></div>
+        </div>
+      </div>
+      <div class="list">
+        <div class="section-label">Hari ini</div>
+        <div class="arow"><span class="dot" style="background:var(--u-bad)"></span>
+          <div class="when"><b class="num">07.00</b><span>lewat</span></div>
+          <div class="mid"><b>Tugas Struktur Data Bab 6</b><span>IF2040</span></div></div>
+        <div class="arow"><span class="dot" style="background:var(--u-warn)"></span>
+          <div class="when"><b class="num">15.00</b><span>6 jam</span></div>
+          <div class="mid"><b>Kuis Jaringan Komputer</b><span>IF2031</span></div></div>
+        <div class="section-label">Besok</div>
+        <div class="arow"><span class="dot" style="background:var(--u-ok)"></span>
+          <div class="when"><b class="num">10.00</b><span>20 jam</span></div>
+          <div class="mid"><b>Presentasi Metopen</b><span>COM60051</span></div></div>
+        <div class="section-label">Jumat, 19 Sep</div>
+        <div class="arow"><span class="dot" style="background:var(--u-ok)"></span>
+          <div class="when"><b class="num">23.59</b><span>5 hari</span></div>
+          <div class="mid"><b>Laporan Praktikum Fisika</b><span>FI1101</span></div></div>
+      </div>
+      <div class="foot">Ketuk hari untuk melompat · semua waktu WIB</div>
+    </div></div>
+    <p class="spec"><b>C — Divergen (agenda kalender).</b> Menguji batas selera: cocok bila pengguna berpikir per hari. Trade-off: tombol Selesai hilang (pindah ke detail) + butuh data jam per tugas yang tidak selalu ada di feed .ics.</p></div>
+  </div>
+
+  <h2 class="sec">Pengaturan (Configure)</h2>
+  <p class="secsub">Satu layar, bukan window kedua (keputusan D2 plan Android). Section desktop-only tampil redup berlabel — bukan fitur mati misterius.</p>
+  <div class="screens">
+    <div><div class="phone"><div class="screen">
+      <div class="notch">09.41</div>
+      <div class="apphead"><div class="icobtn"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+        <div class="t"><b>Pengaturan</b><span>BRONE Reminder</span></div></div>
+      <div class="setgroup"><h4>Feed Kalender</h4>
+        <div class="urlrow"><input value="webcal://brone.ub.ac.id/feed?token=•••"><button class="btn44">Tempel</button></div>
+        <div style="display:flex;gap:8px;margin-top:8px"><button class="btn44 primary" style="flex:1">Test Koneksi</button></div>
+        <div class="testresult">Terhubung · 4 tugas terbaca · sync 5 mnt lalu</div>
+      </div>
+      <div class="setgroup"><h4>Pengingat (jam sebelum deadline)</h4>
+        <div class="chips"><button class="chip on">24</button><button class="chip on">6</button><button class="chip">1</button></div>
+      </div>
+      <div class="setgroup"><h4>Refresh Otomatis</h4>
+        <div class="chips"><button class="chip">15 mnt</button><button class="chip on">20 mnt</button><button class="chip">30 mnt</button></div>
+      </div>
+      <div class="setgroup disabled"><h4>Masuk BRONE 1-klik</h4>
+        <button class="btn44" style="width:100%">Login (nonaktif di HP)</button>
+        <span class="badge">Khusus desktop — disembunyikan di HP, pakai tempel URL</span></div>
+      <div class="setgroup disabled"><h4>Deteksi Otomatis Submission</h4>
+        <button class="btn44" style="width:100%">Nonaktif di HP</button>
+        <span class="badge">Khusus desktop — tandai Selesai manual di HP</span></div>
+      <p class="note">Notifikasi terjadwal butuh izin notifikasi Android (diminta saat pertama buka). Menandai Selesai membatalkan jadwal tugas itu.</p>
+    </div></div>
+    <p class="spec"><b>Configure.</b> Semua kontrol 44px. Tambahan vs v1: status hasil Test Koneksi (validasi terlihat, bukan diam) + opsi 20 mnt sesuai default aplikasi + dua section desktop-only.</p></div>
+  </div>
+
+  <h2 class="sec">Widget layar utama 4×2 — dipetakan ke layout native</h2>
+  <p class="secsub">Cermin 1:1 dari <code>widget_reminder_layout.xml</code>: padding 12dp, header 13sp bold + sync 10sp, baris tugas (dot 8dp, judul 11sp, matkul 9sp, badge waktu 10sp), maksimal 3 tugas, selalu gelap. Ketuk widget membuka aplikasi.</p>
+  <div class="screens">
+    <div><div class="phone"><div class="screen">
+      <div class="notch" style="color:#cbd5e1">09.41</div>
+      <div class="wallpaper">
+        <div class="widget">
+          <div class="wh"><b>BRONE Reminder</b><span>sync 5 mnt lalu</span></div>
+          <div class="wrow"><span class="wdot" style="background:#ff6b72"></span>
+            <div class="wmid"><b>Tugas Struktur Data Bab 6</b><small>IF2040 · Terlewat 2 jam</small></div>
+            <span class="wtime" style="color:#ff6b72">Terlewat</span></div>
+          <div class="wrow"><span class="wdot" style="background:#ffb454"></span>
+            <div class="wmid"><b>Kuis Jaringan Komputer</b><small>IF2031 · 6 jam lagi</small></div>
+            <span class="wtime" style="color:#ffb454">6 jam</span></div>
+          <div class="wrow"><span class="wdot" style="background:#7ee787"></span>
+            <div class="wmid"><b>Presentasi Metopen</b><small>COM60051 · Besok 10.00</small></div>
+            <span class="wtime" style="color:#7ee787">20 jam</span></div>
+        </div>
+        <p class="wallhint">Varian terisi · <code>widget_tasks_container</code> · read-only, tanpa tombol</p>
+      </div>
+    </div></div>
+    <p class="spec"><b>Widget terisi.</b> Warna badge disamakan ke token aplikasi (<code>#7ee787/#ffb454/#ff6b72</code>) — kode native saat ini memakai sky <code>#38bdf8</code> untuk tugas normal, dicatat sebagai bug di bawah.</p></div>
+    <div><div class="phone"><div class="screen">
+      <div class="notch" style="color:#cbd5e1">09.41</div>
+      <div class="wallpaper">
+        <div class="widget">
+          <div class="wh"><b>BRONE Reminder</b><span>sync 1 jam lalu</span></div>
+          <div class="wempty"><b>Tidak ada deadline mendekat</b><span>Buka aplikasi untuk sinkronisasi</span></div>
+        </div>
+        <p class="wallhint">Varian kosong · <code>widget_empty_view</code></p>
+      </div>
+    </div></div>
+    <p class="spec"><b>Widget kosong.</b> Copy sama dengan string native (tanpa emoji). Widget tidak menjadwalkan apa pun sendiri — alarm diperbarui tiap aplikasi dibuka (loop reschedule).</p></div>
+  </div>
+
+  <h2 class="sec">Token + temuan untuk kode native</h2>
+  <table class="tokens">
+    <tr><th>Token</th><th>Nilai</th><th>Pakai</th><th>Sumber</th></tr>
+    <tr><td>bg / surface / card</td><td><code>#11131d / #16182a / #1e293b</code></td><td>Latar, permukaan, kartu <span class="swatch" style="background:#11131d"></span><span class="swatch" style="background:#16182a"></span><span class="swatch" style="background:#1e293b"></span></td><td>style.css + mock</td></tr>
+    <tr><td>ink / muted / faint</td><td><code>#f1f5f9 / #94a3b8 / #64748b</code></td><td>Teks, sekunder, tersier</td><td>widget XML native</td></tr>
+    <tr><td>ok / warn / bad</td><td><code>#7ee787 / #ffb454 / #ff6b72</code></td><td>Urgensi normal / ≤24 jam / terlewat <span class="swatch" style="background:#7ee787"></span><span class="swatch" style="background:#ffb454"></span><span class="swatch" style="background:#ff6b72"></span></td><td>style.css (sumber benar)</td></tr>
+    <tr><td>accent</td><td><code>#38bdf8</code></td><td>Toggle aktif, link, hasil test</td><td>widget XML + mock</td></tr>
+    <tr><td>radius kartu / pill / widget</td><td><code>14px / 99px / 20px</code></td><td>Kartu sentuh, countdown, kartu wallpaper</td><td>mock (app: 7–9px)</td></tr>
+    <tr><td>target sentuh</td><td><code>min 44px</code></td><td>Semua tombol</td><td>aturan platform</td></tr>
+  </table>
+  <ul class="findings">
+    <li><b>1. Badge normal di widget native memakai sky <code>#38bdf8</code></b> (<code>widget_time_1</code>) — seharusnya hijau urgensi. Samakan ke <code>#7ee787</code> agar konsisten dengan aplikasi.</li>
+    <li><b>2. Header + empty state native memakai emoji</b> (<code>📅 BRONE Reminders</code>, <code>🎉</code>) — melanggar preferensi tanpa-emoji; ganti teks polos + drawable dot yang sudah ada.</li>
+    <li><b>3. Copy judul beda:</b> native <code>BRONE Reminders</code> (plural, Inggris) vs aplikasi <code>Deadlines</code> — desain memakai <code>BRONE Reminder</code>; kunci satu nama di semua permukaan.</li>
+  </ul>
+</div>
+<script>
+var s=document.getElementById('stage');
+function pair(on,off){return function(){s.classList[on[0]]&&s.classList.remove(on[0]);s.classList.add(on[1]);document.getElementById(on[2]).classList.add('on');document.getElementById(off[2]).classList.remove('on');};}
+try{
+var th=localStorage.getItem('mock-theme'),dn=localStorage.getItem('mock-dense');
+if(th==='light')document.getElementById('b-light').click();
+if(dn==='compact')document.getElementById('b-dense-on').click();
+}catch(e){}
+document.getElementById('b-dark').onclick=function(){s.classList.remove('light');this.classList.add('on');document.getElementById('b-light').classList.remove('on');try{localStorage.setItem('mock-theme','dark');}catch(e){}};
+document.getElementById('b-light').onclick=function(){s.classList.add('light');this.classList.add('on');document.getElementById('b-dark').classList.remove('on');try{localStorage.setItem('mock-theme','light');}catch(e){}};
+document.getElementById('b-dense-off').onclick=function(){s.classList.remove('compact');this.classList.add('on');document.getElementById('b-dense-on').classList.remove('on');try{localStorage.setItem('mock-dense','normal');}catch(e){}};
+document.getElementById('b-dense-on').onclick=function(){s.classList.add('compact');this.classList.add('on');document.getElementById('b-dense-off').classList.remove('on');try{localStorage.setItem('mock-dense','compact');}catch(e){}};
+</script>
+</body>
+</html>
