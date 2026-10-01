@@ -1,11 +1,11 @@
 # DESIGN.md — BRONE Reminder Mobile + Widget v2
 
-> Sumber: `docs/mobile-design.html` (mockup hi-fi, 14 Sep 2026) + `src/style.css` + layout widget native.
+> Sumber: `docs/design/mockups/mobile-design.html` (mockup hi-fi, 14 Sep 2026) + `src/style.css` + layout widget native.
 > Status: **DIARSIPKAN 17 Sep 2026 — arah pengikat sekarang Opt5 Ledger, lihat
 > `../AGENTS.md` + `TOKENS.md`.** Isi varian B di bawah dipertahankan sebagai
 > arsip mockup 14 Sep 2026, BUKAN spec aktif. (Sebelumnya: DRAFT menunggu
 > sign-off, rekomendasi B — dibatalkan oleh keputusan Opt5.)
-> Verifikasi visual: render headless Chrome 14 Sep 2026, `docs/shots/shot-dark.png` +
+> Verifikasi visual: render headless Chrome 14 Sep 2026, `docs/design/shots/shot-dark.png` +
 > `shot-light.png`. Kedua tema lolos baca sekilas; widget tetap gelap di wallpaper
 > pada kedua tema (sesuai spec). Satu temuan visual: judul tugas terpotong
 > ellipsis pada lebar 340px — aplikasi disarankan clamp 2 baris untuk judul,

@@ -1,7 +1,7 @@
 # BRONE Reminder Widget v1.1.0 — Token System Brief
 ### Arah terpilih: Opt5 Ledger (grup matkul + time-bar)
 
-> Diarsipkan dari `C:\Users\riski\Downloads\brone-token-brief.md`, 17 Sep 2026.
+> Diarsipkan dari brief desain internal (17 Sep 2026).
 > Catatan: kalau BRONE (kampus) sudah punya warna logo/brand resmi, ganti token
 > aksen brand di bawah dengan warna itu — jangan pakai nilai di bawah kalau
 > ada identitas asli yang bisa dipakai. Nilai di sini adalah titik awal yang

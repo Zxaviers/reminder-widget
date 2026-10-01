@@ -157,7 +157,7 @@ Figma; token final disebar ke semua permukaan termasuk widget native.
 - Keputusan blocking (butuh jawaban sebelum eksekusi):
   1. ~~Pemenang review Figma~~ → **Opt5 Ledger** (diputuskan via token brief).
   2. ~~Theme system?~~ → **YA** (pasangan Opt5L/Opt5D).
-  3. Commit `docs/shots/` PNG (~880KB) atau gitignore?
+  3. Commit `docs/design/shots/` PNG (~880KB) atau gitignore?
   4. Fase fungsional dulu atau refaktor struktur dulu? (rekomendasi: fungsional)
 - Setelah PRD disetujui: pecah jadi tiket via `to-tickets`, publish ke issue
   tracker dengan label `ready-for-agent` (butuh `setup-matt-pocock-skills`

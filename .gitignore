@@ -7,20 +7,39 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Dependencies and build outputs
+node_modules/
+dist/
+dist-ssr/
 *.local
+src-tauri/target/
+src-tauri/gen/android/**/build/
 
-# Editor directories and files
+# Signing keys and credentials
+*.keystore
+*.jks
+keystore.properties
+key.properties
+*.apk
+*.aab
+SHA256SUMS.txt
+
+# Environment variables
+.env
+.env.*
+!*.env.example
+
+# Editor and IDE directories
 .vscode/
 .idea/
+.zed/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
-# AI Agent and IDE directories
+
+# AI Agent directories
 .opencode/
 .agents/
 .claude/

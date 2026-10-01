@@ -13,8 +13,7 @@
   aksen sky). `DESIGN.md` diarsipkan sebagai catatan mockup 14 Sep 2026,
   bukan spec aktif. D1–D3 diputuskan: D1 → Opt5, D2 → radius 6px row /
   12–16px kontainer (ikut AGENTS.md), D3 → copy `BRONE Reminder` tetap.
-- Token warna/tipografi/radius: `TOKENS.md` (diarsipkan dari
-  `C:\Users\riski\Downloads\brone-token-brief.md`).
+- Token warna/tipografi/radius: `TOKENS.md` (diarsipkan dari brief desain internal, 17 Sep 2026).
 - Batasan Figma bridge: hanya memuat Inter/Roboto/Arial — mockup pakai Inter
   (tabular saat implementasi via `JetBrains Mono`/`IBM Plex Mono` + `Manrope`/`Inter`).
 
@@ -36,10 +35,10 @@
 
 ### 17 Sep 2026 — Instalasi rule + subagent
 
-- `brone-design-system.md` (dari Downloads) dipasang ke `../AGENTS.md`.
+- `brone-design-system.md` (dari brief internal) dipasang ke `../AGENTS.md`.
 - `DESIGN.md` diselaraskan ke Opt5 (status diarsipkan, D1–D3 dikunci, riwayat
   keputusan lama dipertahankan dengan coret).
-- `brone-designer.md` (dari Downloads) dipasang ke
+- `brone-designer.md` (dari brief internal) dipasang ke
   `../.opencode/agents/brone-designer.md` dengan 2 perbaikan:
   referensi putus `docs/design-system.md` → `AGENTS.md` + `docs/TOKENS.md`,
   dan field deprecated `tools:` → `permission: edit/bash deny`.
@@ -148,18 +147,18 @@
 - Copy: "Selesai (1)" → "1 tugas selesai … Kembalikan" (angka mono, CTA aktif);
   ikon check footer dinetralkan ke `ink-400` demi aturan maks-2-warna-semantik
   (overdue + soon sudah aktif).
-- File: `instrument-ledger-dark-only.html`; render verifikasi via headless Edge.
-- Lanjutan: lembar perbandingan 4 permukaan `instrument-ledger-surfaces.html`
+- File: `design/mockups/instrument-ledger-dark-only.html`; render verifikasi via headless Edge.
+- Lanjutan: lembar perbandingan 4 permukaan `design/mockups/instrument-ledger-surfaces.html`
   (desktop widget 360px · app mobile 390px · widget home-screen native Android ·
   settings) dalam satu bahasa visual timeline-ledger. Board native sengaja tanpa
   webfont/ikon font (system sans + mono + dot geometris) sesuai batasan RemoteViews;
   settings memakai chip terpilih fill ink-900 (state, bukan warna brand) dan satu
   CTA primer teal — satu-satunya pemakaian brand accent di layar itu.
-  Render: `shots/instrument-ledger-surfaces.png`.
+  Render: `design/shots/instrument-ledger-surfaces.png`.
 
 ### 18 Sep 2026 — Visual multi-source: Google Classroom + event manual
 
-- File baru `instrument-ledger-multisource.html`: 4 board — home sumber
+- File baru `design/mockups/instrument-ledger-multisource.html`: 4 board — home sumber
   campuran (BRONE + Classroom + event manual), sheet tambah event manual,
   settings daftar feed (status per feed termasuk error token), widget native
   Android dengan tag source.
@@ -168,11 +167,11 @@
   teks mono di settings; Classroom masuk sebagai feed .ics kedua via Google
   Calendar secret address (tanpa OAuth), custom event via local store —
   keduanya merge ke pipeline task yang sama (doneStore/schedulePlan tak berubah).
-- Render: `shots/instrument-ledger-multisource.png` (headless Edge 1760×900).
+- Render: `design/shots/instrument-ledger-multisource.png` (headless Edge 1760×900).
 
 ### 18 Sep 2026 — Prototipe interaktif full app (mock data)
 
-- File baru `instrument-ledger-interactive.html`: app mobile utuh yang bisa
+- File baru `design/mockups/instrument-ledger-interactive.html`: app mobile utuh yang bisa
   diklik — home (hero + time-rail + mark-done/restore + undo toast), sheet
   tambah event manual, settings (daftar feed + uji/hapus, chips ambang &
   interval, kelola event lokal), countdown live per detik, navigasi antar
@@ -181,7 +180,7 @@
   object literal → seluruh script inline mati (DOM kosong). Diperbaiki;
   verifikasi ulang via `node --check` + dump-dom (taskCount/hero/row/feed
   terisi) + screenshot.
-- Render: `shots/instrument-ledger-interactive.png`.
+- Render: `design/shots/instrument-ledger-interactive.png`.
 
 ### 19 Sep 2026 — Kontrol mark-done di setiap row (bukan hanya hero)
 
@@ -189,7 +188,7 @@
   task terdekat.
 - Row list dipecah jadi dua kontrol bersaudara: `.row-open` (badan row → buka
   tugas) + `.row-done` (ring 44px → mark-done dengan toast undo). Diterapkan di
-  prototipe interaktif dan mockup statis `instrument-ledger-dark-only.html`
+  prototipe interaktif dan mockup statis `design/mockups/instrument-ledger-dark-only.html`
   (root preview); delegasi click existing (`data-done`/`data-open`) sudah
   menangani keduanya tanpa perubahan handler.
 - Ring row sengaja netral (`ink-400`, hover → `ink-900`) supaya tidak menambah
@@ -197,7 +196,7 @@
 
 ### 19 Sep 2026 — Sheet FULL DESIGN (pasangan dark+light, states, semua permukaan)
 
-- File `instrument-ledger-full-design.html`: 12 board satu lembar — app home
+- File `design/mockups/instrument-ledger-full-design.html`: 12 board satu lembar — app home
   dark & light (pasangan dibangun bersama, syarat D-Design-3), settings (feed
   list multi-sumber + chip tema Gelap/Terang), sheet tambah event manual,
   4 states wajib PRD #15-16 (loading skeleton, empty, error/offline + coba
@@ -206,7 +205,7 @@
 - Tema lewat scope class `.dk`/`.lt` pada CSS variables; token light diambil
   dari `TOKENS.md` (#F5F4F1 / #FFFFFF / #E4E2DD, teal #1F6F63, urgensi varian
   light), bukan ditebak.
-- Verifikasi: headless Edge 1760×1780 → `shots/instrument-ledger-full-design.png`
+- Verifikasi: headless Edge 1760×1780 → `design/shots/instrument-ledger-full-design.png`
   (176 KB); dump-dom: phone dk 3, phone lt 1, widget dk 1, widget lt 1, mini 5,
   awidget 1, chip-on 3 baris — sesuai isi sheet.
 
@@ -224,6 +223,10 @@
   semantik baru (catatan error memakai `--danger` yang sudah ada).
 - Keputusan terkunci: widget native Android tetap selalu gelap (kontras di
   wallpaper terang), varian terangnya tidak dibuat.
+
+### 1 Okt 2026 — Catatan Teknis Deduplikasi Kalender BRONE Moodle (E1)
+
+- Evaluasi terhadap entri ganda tugas (seperti kasus LK04b) menyimpulkan bahwa entri tersebut merupakan dua VEVENT resmi terpisah pada kalender akademik Moodle UB, masing-masing dengan UID dan URL penyerahan tugas (*submission link*) yang berbeda. Menghapus salah satunya melalui deduplikasi berbasis nama berisiko menghilangkan tautan pengumpulan tugas mahasiswa di LMS. Oleh karena itu, entri dipertahankan sesuai feed asli.
 
 ## 4. Backlog
 

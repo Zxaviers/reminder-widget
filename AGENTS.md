@@ -1,6 +1,6 @@
 # AGENTS.md — BRONE Reminder Widget v2
 
-> Aturan Figma di bawah arsip dari `C:\Users\riski\Downloads\brone-design-system.md`,
+> Aturan Figma di bawah arsip dari brief desain internal (17 Sep 2026),
 > dipasang 17 Sep 2026 agar berlaku otomatis tiap sesi desain tanpa dijelaskan ulang.
 > Token lengkap: `docs/TOKENS.md`. Catatan: Figma bridge hanya memuat
 > Inter/Roboto/Arial — untuk mockup pakai Inter tabular sebagai pengganti mono,
