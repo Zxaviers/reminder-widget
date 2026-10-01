@@ -8,7 +8,7 @@ const path = require('path');
 
 const DIR = path.resolve(__dirname, '..', 'docs');
 const PORT = Number(process.env.PORT) || 8787;
-const DEFAULT_FILE = 'instrument-ledger-dark-only.html';
+const DEFAULT_FILE = 'design/mockups/instrument-ledger-dark-only.html';
 
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
