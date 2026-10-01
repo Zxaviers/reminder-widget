@@ -78,29 +78,28 @@ async fn run_inner(app: AppHandle, urls: Vec<String>) -> Result<(), String> {
             if let Some(_existing) = build_app.get_webview_window(LABEL) {
                 return Ok(());
             }
-            WebviewWindowBuilder::new(
-                &build_app,
-                LABEL,
-                WebviewUrl::App("checker.html".into()),
-            )
-            .title("Reminder Widget — Checker")
-            .inner_size(420.0, 320.0)
-            .visible(false)
-            .skip_taskbar(true)
-            .user_agent(CHROME_USER_AGENT)
-            .build()
-            .map(|_| ())
-            .map_err(|e| e.to_string())
+            WebviewWindowBuilder::new(&build_app, LABEL, WebviewUrl::App("checker.html".into()))
+                .title("Reminder Widget — Checker")
+                .inner_size(420.0, 320.0)
+                .visible(false)
+                .skip_taskbar(true)
+                .user_agent(CHROME_USER_AGENT)
+                .build()
+                .map(|_| ())
+                .map_err(|e| e.to_string())
         })();
         let _ = tx.send(result);
     });
     if let Err(e) = send_result {
         return Err(format!("main thread unavailable: {e}"));
     }
-    rx.recv().map_err(|_| "main thread unavailable".to_string())??;
+    rx.recv()
+        .map_err(|_| "main thread unavailable".to_string())??;
 
     for url in urls {
-        let Some(win) = app.get_webview_window(LABEL) else { break };
+        let Some(win) = app.get_webview_window(LABEL) else {
+            break;
+        };
         let parsed = match tauri::Url::parse(&url) {
             Ok(u) => u,
             Err(_) => continue,
@@ -113,7 +112,9 @@ async fn run_inner(app: AppHandle, urls: Vec<String>) -> Result<(), String> {
         let mut status = "unknown".to_string();
         'poll: while Instant::now() < deadline {
             tokio::time::sleep(Duration::from_millis(600)).await;
-            let Some(win) = app.get_webview_window(LABEL) else { return Ok(()) };
+            let Some(win) = app.get_webview_window(LABEL) else {
+                return Ok(());
+            };
             let _ = win.eval(CHECK_JS);
             if let Ok(title) = win.title() {
                 if let Some(verdict) = title.strip_prefix(RESULT_PREFIX) {

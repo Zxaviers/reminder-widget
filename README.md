@@ -1,276 +1,218 @@
 # 📅 BRONE Reminder Widget
 
-> **Compact, always-on-top desktop reminder widget for Moodle / BRONE (UB) assignment deadlines from iCalendar (.ics) feed.**
->
-> ⚠️ **Penting / Notice:** Versi desktop (Windows) berfungsi penuh & siap dipakai. Versi **Android (build v8) sudah lulus Audit UI/UX 2.0** dan tersedia sebagai *developer preview* — fungsional untuk pengujian harian, namun masih tanpa background refresh otomatis.
+[![Windows Desktop](https://img.shields.io/badge/Windows%20Desktop-v1.0.0-0078d4?logo=windows&logoColor=white)](https://github.com/Zxaviers/reminder-widget/releases/tag/v1.0.0)
+[![Android Release](https://img.shields.io/github/v/release/Zxaviers/reminder-widget?label=Android%20Release&color=3ddc84&logo=android&logoColor=white)](https://github.com/Zxaviers/reminder-widget/releases/latest)
+[![CI Pipeline](https://img.shields.io/github/actions/workflow/status/Zxaviers/reminder-widget/ci.yml?branch=main&label=CI)](https://github.com/Zxaviers/reminder-widget/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen)](test/)
 
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/Zxaviers/reminder-widget/releases/tag/v1.1.0)
-[![Platform](https://img.shields.io/badge/platform-Windows%20(Stable)%20|%20Android%20(Preview)-blue.svg)](https://github.com/Zxaviers/reminder-widget)
-[![Build](https://img.shields.io/github/actions/workflow/status/Zxaviers/reminder-widget/ci.yml?branch=main)](https://github.com/Zxaviers/reminder-widget/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/Zxaviers/reminder-widget)](https://github.com/Zxaviers/reminder-widget/releases/latest)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-
-A sleek Windows desktop widget designed to keep students on track with upcoming course deadlines. Deadlines are sorted nearest-first with a high-visibility live countdown.
+> **BRONE Reminder Widget** is a lightweight, distraction-free deadline tracker for UB Moodle (BRONE) and Google Calendar, built on Tauri v2.  
+> Available as a floating always-on-top or wallpaper-pinned desktop widget on Windows 10/11, and as an Android app with interactive homescreen widget support.  
+> Operates with zero telemetry, direct-to-source HTTP connections, and safe local storage.
 
 ---
 
-## 📸 Preview
+Widget pengingat tenggat waktu tugas akademik Moodle ([BRONE Universitas Brawijaya](https://brone.ub.ac.id/)) dan Google Calendar yang ringkas, elegan, dan hemat daya. Menampilkan daftar tugas terdekat langsung di layar desktop atau homescreen ponsel Anda tanpa perlu membuka peramban secara terus-menerus.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ 📅 BRONE Reminder Widget                     [🔄] [⚙️] [✕] │
-├─────────────────────────────────────────────────────────────┤
-│ 🟢 Tugas 1 - Pemrograman Web                 ⏳ 4 hari lagi │
-│    Pemrograman Berbasis Web (Kelas A)                       │
-├─────────────────────────────────────────────────────────────┤
-│ 🟡 Kuis 2 - Basis Data Terdistribusi        ⏳ 18 jam lagi │
-│    Sistem Basis Data (Kelas B)                   [✓ Selesai]│
-├─────────────────────────────────────────────────────────────┤
-│ 🔴 Laporan Akhir Praktikum                    ⚠️ Terlewat 2h│
-│    Praktikum Jaringan Komputer                   [✓ Selesai]│
-├─────────────────────────────────────────────────────────────┤
-│ 📂 Selesai (1 tugas diselesaikan)                        [▼]│
-└─────────────────────────────────────────────────────────────┘
-```
-
-*Deadlines are colour-coded by urgency (🟢 Upcoming • 🟡 Due within 24h • 🔴 Overdue).*
+<p align="center">
+  <img src="docs/design/shots/shot-dark.png" alt="Desktop Widget Dark" width="46%" />
+  &nbsp;
+  <img src="docs/audit/2.0/01-home-gelap-b455aef.png" alt="Android App Dark" width="28%" />
+  &nbsp;
+  <img src="docs/audit/2.0/06-widget-b455aef.png" alt="Android Homescreen Widget" width="21%" />
+</p>
 
 ---
 
-## ✨ Key Features
+## ✨ Fitur Utama (Feature Matrix)
 
-| Feature | Description |
-|---------|-------------|
-| **🚀 Live Countdown** | Real-time ticker with dynamic color urgency: <br>🟢 Normal • 🟡 Amber (≤24h) • 🔴 Red (Overdue) |
-| **🖥️ Dual Display Modes** | **Floating** (always on top) or **Desktop** (pinned to wallpaper layer) |
-| **🔔 Toast Notifications** | Native Windows toast at 24h, 6h, and 1h before deadline |
-| **✅ Mark Done & ↺ Restore** | Click ✓ to hide task; restore from "Selesai" section with one click |
-| **🤖 Auto-Detect Submission** | Opt-in: checks BRONE assignment pages for "Submitted" status |
-| **🔄 Polite Sync** | Conditional GET (ETag/If-Modified-Since), 15-min minimum refresh |
-| **🔒 Private & Secure** | Encrypted via Windows Credential Manager, direct connection only, zero telemetry |
-| **🪟 Tray Integration** | Minimize to tray, toggle visibility, auto-start, display mode switch |
-| **🌓 Opacity Slider** | 35–100% transparency with live preview |
-| **⌨️ Keyboard Shortcuts** | `Esc` to hide to tray, `F5` / `Ctrl+R` to force refresh |
-
----
-
-## 📥 Quick Start
-
-### 1️⃣ Download & Install
-
-| Option | Description | Download |
-|--------|-------------|----------|
-| **📦 Installer (Recommended)** | Creates Start Menu & Desktop shortcuts | [📥 Setup.exe (~3.8 MB)](https://github.com/Zxaviers/reminder-widget/releases/download/v1.0.0/Reminder.Widget.1.0.0.Setup.exe) |
-| **📦 Portable** | No install required, run directly | [📥 Portable.exe (~16.2 MB)](https://github.com/Zxaviers/reminder-widget/releases/download/v1.0.0/Reminder.Widget.1.0.0.exe) |
-| **📱 Android APK** (arm64) | Sideload via ADB or USB Debugging — HP Android ≥2018 | [📥 BRONE-Reminder-v1.1.0-arm64.apk (~9.8 MB)](https://github.com/Zxaviers/reminder-widget/releases/download/v1.1.0/BRONE-Reminder-v1.1.0-arm64.apk) |
-
-> **Requirements:** Windows 10/11 with WebView2 Runtime (pre-installed on modern Windows).
-
-### 2️⃣ Connect Your BRONE/Moodle Calendar
-
-1. Open your **Moodle / BRONE** website → Login
-2. Open **Calendar** → **Export calendar**
-3. Select: **All events** + **Recent and next 60 days**
-4. Click **Get calendar URL** → Copy the URL
-5. In Widget: Click **Settings (⚙️)** → Paste URL → Click **Save Settings**
-
-> The URL looks like: `https://brone.ub.ac.id/calendar/export_execute.php?userid=...&authtoken=...`
+| Fitur / Kemampuan | Windows Desktop (v1.0.0) | Android (Preview) | Deskripsi & Catatan |
+|---|:---:|:---:|---|
+| **Daftar Tugas Terdekat** | ✅ | ✅ | Daftar terurut tenggat waktu terdekat, indikator warna urgensi (merah: lewat batas, kuning: < 24 jam). |
+| **Tandai Selesai (Mark Done)** | ✅ | ✅ | Sembunyikan tugas yang sudah dikerjakan seketika dengan bilah **Urungkan (Undo)** 6 detik. |
+| **Pemulihan Tugas (Restore)** | ✅ | ✅ | Seksi *Selesai* untuk mengembalikan tugas yang tidak sengaja ditandai selesai. |
+| **Dukungan Multi-Feed** | — | ✅ | Hubungkan lebih dari satu kalender sekaligus (BRONE + Google Calendar + iCal eksternal). |
+| **Google Calendar (.ics)** | — | ✅ | Sinkronisasi tenggat waktu via URL kalender rahasia berekstensi `.ics`. |
+| **Event Manual Offline** | — | ✅ | Tambahkan deadline tugas mandiri atau agenda lokal yang disimpan langsung di perangkat. |
+| **Mode Tampilan Ganda** | ✅ | — | Pilihan mode melayang (*Always-on-Top*) atau menempel di wallpaper desktop (`HWND_BOTTOM`). |
+| **Widget Homescreen** | — | ✅ | Android AppWidget 6 baris interaktif dengan scrolling vertikal langsung di layar beranda. |
+| **Pilihan Tema Visual** | Gelap murni | Gelap / Terang / Auto | Mendukung tema Gelap (*Dark*), Terang (*Light*), atau Otomatis mengikuti pengaturan sistem operasi. |
+| **Notifikasi Alarm** | ✅ | ✅ | Notifikasi toast / sistem menjelang tenggat waktu (ambang batas default: 24j, 6j, 1j). |
+| **Deteksi Submit Otomatis** | ✅ | — | Pengecekan status "Submitted for grading" di latar belakang via sesi login BRONE (hemat kuota & sopan). |
+| **Penyimpanan Kredensial Aman** | Windows Credential Manager | Penyimpanan Privat App | Windows via `keyring` (terenkripsi DPAPI OS); Android di sandbox privat aplikasi ([#5](https://github.com/Zxaviers/reminder-widget/issues/5)). |
+| **Integrasi System Tray** | ✅ | — | Ikon tray Windows lengkap: toggle widget, refresh sekarang, buka folder konfigurasi, dsb. |
+| **Instance Tunggal** | ✅ | ✅ | Membuka aplikasi berulang kali akan memfokuskan jendela yang sudah aktif (*single-instance*). |
 
 ---
 
-## ⚙️ Settings Reference
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| **Display Mode** | Floating | `Floating` (always on top) or `Desktop` (wallpaper layer) |
-| **Auto-Start** | Off | Launch silently at Windows login |
-| **Notifications** | ✅ Enabled | Toast notifications at configured thresholds |
-| **Auto-Detect Submission** | Off | Auto-mark done when BRONE shows "Submitted for grading" |
-| **Refresh Interval** | 20 min | Sync frequency (15–30 min range) |
-| **Notification Thresholds** | 24, 6, 1 | Hours before deadline to trigger notifications |
-| **Opacity** | 100% | Widget transparency level (35–100%) |
-
----
-
-## ⌨️ Keyboard Shortcuts
-
-| Key / Action | Result |
-|--------------|--------|
-| `Esc` | Hide widget to tray |
-| `F5` / `Ctrl + R` | Force refresh feed |
-| `Click header` | Drag to move widget position |
-| `Click task title` | Open assignment directly in default browser |
-| `Click ✓` | Mark task as completed (hide) |
-| `Click ↺` | Restore completed task from "Selesai" section |
-
----
-
-## 🗑️ Uninstall
-
-1. Open **Windows Settings** (`Win + I`) → **Apps** → **Installed apps**
-2. Find **Reminder Widget** → click `...` → select **Uninstall**
-3. Or right-click the tray icon → select **Quit**, then uninstall via Windows Settings
-
----
-
-## 📱 Mobile (Android)
+## 📦 Unduh & Pasang (Downloads)
 
 > [!NOTE]
-> ### 📱 Status: Developer Preview (Build v8 — Lulus Audit UI/UX 2.0)
-> Versi Android build v8 telah lulus seluruh butir audit P1 (aksesibilitas, kontras WCAG AA, layout konsisten).
-> - **Cocok untuk pengujian harian** — notifikasi, widget homescreen, dan sinkronisasi feed berfungsi.
-> - **Batasan aktif**: belum ada background refresh otomatis; feed baru muncul saat aplikasi dibuka.
-> - Pengguna yang membutuhkan keandalan penuh tetap disarankan menggunakan **versi Desktop (Windows)**.
+> **Status Platform**: Versi rilis untuk desktop Windows tetap dipertahankan pada **v1.0.0** (versi stabil resmi). Pembaruan multi-feed dan fitur Android diterbitkan melalui rilis terbaru.
 
-The same codebase compiles to a native Android app via Tauri 2. The mobile experience adapts automatically:
+| Berkas | Platform | Status Rilis | Ukuran | Deskripsi |
+|---|---|---|---|---|
+| [`Reminder.Widget.1.0.0.Setup.exe`](https://github.com/Zxaviers/reminder-widget/releases/download/v1.0.0/Reminder.Widget.1.0.0.Setup.exe) | Windows 10/11 (x64) | **Stabil (v1.0.0)** | ~3.8 MB | Installer resmi NSIS (Start Menu, tray, autostart) |
+| [`Reminder.Widget.1.0.0.exe`](https://github.com/Zxaviers/reminder-widget/releases/download/v1.0.0/Reminder.Widget.1.0.0.exe) | Windows 10/11 (x64) | **Stabil (v1.0.0)** | ~16.2 MB | Biner portabel mandiri (langsung jalan tanpa instalasi) |
+| [`BRONE-Reminder-arm64.apk`](https://github.com/Zxaviers/reminder-widget/releases/latest/download/BRONE-Reminder-arm64.apk) | Android 7.0+ (`arm64-v8a`) | **Rilis Terbaru** | ~9.8 MB | Paket aplikasi mandiri Android arsitektur 64-bit |
 
-- **Scheduled notifications** replace the always-on-top widget — deadline reminders at H-24, H-6, and H-1 fire via Android's AlarmManager even when the app is closed.
-- **Single-window navigation** — Settings opens inside the same screen instead of a separate window.
-- **Paste URL flow** — copy your feed URL from the desktop widget's Settings, then paste it on your phone.
-- Desktop-only features (tray icon, wallpaper mode, auto-start, auto-detect submission, BRONE login assist) are automatically hidden.
+### Panduan Instalasi & Keamanan
 
-### 📲 Install APK (Developer Preview Only)
+#### Windows SmartScreen
+Biner desktop Windows belum ditandatangani sertifikat digital komersial berbayar (EV Code Signing). Jika Windows SmartScreen menampilkan layar biru perlindungan (*"Windows protected your PC"*):
+1. Klik **More info** (*Informasi selengkapnya*).
+2. Klik tombol **Run anyway** (*Tetap jalankan*).
 
-```bash
-# Gunakan APK yang sudah di-sign (direkomendasikan):
-adb install src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-signed.apk
+#### Memasang APK Android
+1. Unduh `BRONE-Reminder-arm64.apk` ke perangkat HP Android Anda.
+2. Buka berkas APK melalui browser atau pengelola berkas (*File Manager*).
+3. Jika muncul dialog perizinan, aktifkan opsi **Install unknown apps** (*Pasang aplikasi tidak dikenal*).
+4. Anda juga dapat memasang via ADB dari komputer pengembang:
+   ```bash
+   adb install -r BRONE-Reminder-arm64.apk
+   ```
 
-# Atau instal APK unsigned (hanya untuk emulator):
-adb install src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
-```
-
-### 🔨 Build from Source
-
-**Prerequisites:** JDK 17, Android SDK (API 36), NDK 27.3, Rust with `aarch64-linux-android` target.
-
-```bash
-# 1. Install Rust target (one-time)
-rustup target add aarch64-linux-android
-
-# 2. Initialize Android project (one-time)
-npx tauri android init
-
-# 3. Build release APK
-npm run android:build
-
-# 4. Live development on connected device
-npm run android:dev
-```
-
-### ⚡ Known Limitations (v1.1 Mobile — Build v8)
-
-| Limitation | Workaround |
-|-----------|------------|
-| **No background refresh** — new deadlines appear after opening the app | Buka aplikasi secara berkala; notifikasi dari sinkronisasi terakhir tetap aktif tepat waktu |
-| **Some vendors restrict exact alarms** (MIUI, Samsung battery saver) | Tambahkan aplikasi ke "Unrestricted" di pengaturan baterai ponsel Anda |
-| **No 1-click BRONE login** — hidden-webview polling tidak andal di Android | Salin URL feed dari widget desktop, lalu paste di ponsel |
-| **No auto-detect submission** — hidden webview per-task terlalu berisiko di mobile | Tandai tugas selesai secara manual |
+#### Verifikasi Integritas Checksum (SHA-256)
+- **Windows (PowerShell)**:
+  ```powershell
+  Get-FileHash .\Reminder.Widget.1.0.0.Setup.exe -Algorithm SHA256
+  ```
+- **Android (Linux / macOS)**:
+  ```bash
+  curl -sL https://github.com/Zxaviers/reminder-widget/releases/latest/download/SHA256SUMS.txt | sha256sum -c -
+  ```
 
 ---
 
-## 🏗️ For Developers
+## ⚙️ Menghubungkan Kalender (Connect Feeds)
 
-### Prerequisites
-- **Windows 10/11**
-- **Node.js 18+** & **npm**
-- **Rust stable (MSVC toolchain)** + VS Build Tools (C++ workload)
-- WebView2 Runtime (pre-installed on Windows 10/11)
-- *(Android builds only)* JDK 17, Android SDK/NDK (see `docs/PLAN-ANDROID-PORT.md` §4)
+### 1. Ekspor Kalender BRONE (Moodle UB)
+1. Buka dan masuk ke portal **[BRONE UB](https://brone.ub.ac.id/)**.
+2. Masuk ke menu **Calendar** &rarr; **Export calendar**.
+3. Pilih opsi:
+   - **Events to export**: *All events*
+   - **Time period**: *Recent and next 60 days*
+4. Klik tombol **Get calendar URL**, lalu salin tautan ekspor yang dihasilkan.
+5. Pada widget: buka **Pengaturan (⚙️)** &rarr; tempel URL pada kolom yang tersedia &rarr; klik **Simpan URL**.
+*(Pengguna desktop juga dapat menggunakan fitur **Bantuan Login BRONE** untuk mengambil URL secara otomatis).*
 
-### Quick Start
+### 2. Kalender Eksternal (Google Calendar / iCal)
+1. Buka Google Calendar di peramban komputer &rarr; **Settings** &rarr; pilih kalender Anda di menu kiri.
+2. Gulir ke bagian **Integrate calendar**, cari kolom **Secret address in iCal format** (*Alamat rahasia dalam format iCal*).
+3. Salin URL yang berakhiran `.ics` tersebut, lalu tambahkan sebagai sumber baru di Pengaturan widget.
 
+Widget menyinkronkan data secara berkala (default setiap 20 menit, dibatasi minimal 15 menit agar tidak membebani server kampus).
+
+---
+
+## 📱 Platform Android & Batasan yang Diketahui (Known Limitations)
+
+Porting Android berstatus *Developer Preview*. Seluruh integrasi berjalan langsung di atas Android WebView & Rust native interface. 
+
+Berikut adalah batasan sistem yang telah diverifikasi beserta nomor tiket pelacaknya:
+
+| Batasan / Kendala | Dampak & Perilaku | Status & Tiket Isu |
+|---|---|---|
+| **Penyimpanan URL Feed Teks Biasa** | Parameter URL (termasuk token feed) disimpan di file `secret.json` di direktori privat aplikasi. | Dilacak di [#5](https://github.com/Zxaviers/reminder-widget/issues/5) (Rencana migrasi ke Keystore / EncryptedSharedPreferences) |
+| **Izin Exact Alarm Android 12+** | Izin `SCHEDULE_EXACT_ALARM` dapat ditolak secara default pada Android 14+ tanpa izin manual pengguna. | Dilacak di [#6](https://github.com/Zxaviers/reminder-widget/issues/6) (Pemeriksaan runtime & fallback inexact alarm) |
+| **Penjadwalan Ulang Pasca-Reboot** | Jadwal alarm Android terhapus oleh OS saat HP dimatikan/reboot hingga aplikasi dibuka kembali. | Dilacak di [#7](https://github.com/Zxaviers/reminder-widget/issues/7) (Penjadwalan ulang otomatis di BootReceiver) |
+| **Belum Ada Background Sync** | Sinkronisasi feed hanya dieksekusi saat aplikasi dibuka atau berada di foreground. | Dilacak di [#8](https://github.com/Zxaviers/reminder-widget/issues/8) (Integrasi WorkManager berkala) |
+
+Dokumentasi rancangan arsitektur Android selengkapnya dapat dibaca di [`docs/PLAN-ANDROID-PORT.md`](docs/PLAN-ANDROID-PORT.md).
+
+---
+
+## 🔒 Privasi & Keamanan Data (Zero Telemetry)
+
+1. **Nol Telemetri**: Tidak ada analitik, pelacak perilaku, maupun pengiriman telemetri ke server mana pun.
+2. **Koneksi Langsung**: Permintaan HTTP kalender hanya dilakukan langsung dari perangkat Anda ke domain kalender yang Anda tambahkan (`brone.ub.ac.id`, `calendar.google.com`, dan `*.googleapis.com`). Konfigurasi izin jaringan dibatasi ketat melalui file kemampuan Tauri di `src-tauri/capabilities/`.
+3. **Penyimpanan Kredensial**:
+   - Desktop Windows menyimpan URL feed di dalam **Windows Credential Manager** yang terenkripsi oleh akun login OS Anda.
+   - Android menyimpan konfigurasi di folder privat internal aplikasi.
+4. **Kebijakan Kerentanan**: Untuk panduan pelaporan masalah keamanan secara privat, silakan baca [`SECURITY.md`](SECURITY.md).
+
+---
+
+## 💻 Panduan Pengembang (For Developers)
+
+### Prasyarat Lingkungan
+- **Node.js**: v18 atau v20+
+- **Rust**: Rust stable MSVC (`x86_64-pc-windows-msvc`)
+- **Windows**: Windows 10/11 dengan Microsoft Edge WebView2 Runtime & Visual Studio C++ Build Tools
+- **Android**: JDK 17 (Eclipse Temurin), Android SDK Platform 35/36, dan Android NDK `27.3.13750724`
+
+### Perintah Utama
 ```bash
-# 1. Clone & install
-git clone https://github.com/Zxaviers/reminder-widget.git
-cd reminder-widget
+# 1. Pasang dependensi
 npm install
 
-# 2. Development (with hot reload)
-npm run tauri dev
-
-# 3. Run test suite (42 tests)
+# 2. Jalankan seluruh pengujian unit test
 npm test
 
-# 4. Build installer + portable executable
+# 3. Jalankan widget di desktop Windows (Live Reload)
+npm run tauri dev
+
+# 4. Bangun paket distribusi Windows (Installer & Portable)
 npm run dist
+
+# 5. Bangun APK rilis Android arm64
+npm run android:build
 ```
 
-### Project Structure
+Untuk petunjuk penandatanganan APK, pembuatan rilis, dan variabel lingkungan CI/CD, baca panduan resmi di [`docs/RELEASING.md`](docs/RELEASING.md).
+
+---
+
+## 📂 Struktur Proyek
 
 ```
 reminder-widget/
-├── .github/workflows/       # GitHub Actions CI & Release pipelines
-├── assets/                  # Application icons & tray graphics
-├── dist/                    # Release output (generated by npm run dist)
-├── src/                     # Frontend source (vanilla ESM, no bundler needed)
-│   ├── index.html           # Main widget HTML structure
-│   ├── renderer.js          # Widget UI & countdown ticker
-│   ├── style.css            # Widget dark glassmorphism styling
-│   ├── settings.html        # Settings window UI
-│   ├── settings.js          # Settings logic & form bindings
-│   ├── settings.css         # Settings page styling
-│   ├── checker.html         # Background submission detection webview
-│   ├── api.js               # Typed bridge over Tauri IPC
-│   ├── fetchCalendar.js     # HTTP client + ETag cache + retry ladder
-│   ├── parseTasks.js        # Zero-dep RFC 5545 iCal parser
-│   ├── doneStore.js         # Pure mark-done & restore state machine
-│   ├── submissionQueue.js   # Rate-limited auto-detect queue
-│   ├── notifyConfig.js      # Notification threshold helpers
-│   └── schedulePlan.js      # Mobile notification scheduling planner
-├── src-tauri/               # Rust native backend
-│   ├── src/
-│   │   ├── main.rs          # Entry point
-│   │   ├── lib.rs           # Window setup & lifecycle
-│   │   ├── commands.rs      # Tauri IPC command handlers
-│   │   ├── tray.rs          # System tray icon & context menu
-│   │   ├── detect.rs        # Submission detection engine
-│   │   ├── settings.rs      # Settings JSON persistence
-│   │   ├── secret.rs        # Keyring / Windows Credential Manager
-│   │   ├── win32.rs         # Win32 z-order desktop pinning
-│   │   └── brone_login.rs   # 1-click assisted login window
-│   ├── Cargo.toml           # Rust dependencies & metadata
-│   └── tauri.conf.json      # Tauri app & bundle configuration
+├── .github/
+│   ├── ISSUE_TEMPLATE/       # Template laporan bug & usulan fitur
+│   ├── workflows/            # Workflow CI (Windows/Android) & Release
+│   ├── dependabot.yml        # Pembaruan dependensi mingguan
+│   └── PULL_REQUEST_TEMPLATE.md
+├── docs/
+│   ├── audit/2.0/            # Screenshot baseline audit antarmuka
+│   ├── design/               # Spesifikasi visual, mockup, dan screenshot acuan
+│   ├── PLAN-ANDROID-PORT.md  # Arsitektur & implementasi Android
+│   ├── PRD.md                # Dokumen kebutuhan produk
+│   ├── README.md             # Indeks katalog dokumentasi
+│   ├── RELEASING.md          # Prosedur rilis & panduan penandatanganan
+│   └── TOKENS.md             # Definisi token warna & tipografi
 ├── scripts/
-│   └── collect-dist.js      # Post-build artifact collector
-├── test/                    # Node test suite (node:test)
-│   ├── parseTasks.test.js
-│   ├── doneStore.test.js
-│   ├── submissionQueue.test.js
-│   ├── notifyConfig.test.js
-│   └── schedulePlan.test.js # Mobile notification scheduling tests
-└── src-tauri/gen/android/   # Generated Android project (Gradle)
+│   ├── collect-dist.js       # Pengumpul installer & biner portabel Windows
+│   └── release-notes.js      # Generator catatan rilis otomatis
+├── src/                      # Frontend (Vanilla ESM, tanpa bundler)
+│   ├── api.js                # Jembatan Tauri IPC & isolasi platform
+│   ├── doneStore.js          # Mesin status tandai selesai & riwayat undo
+│   ├── feeds.js              # Manajemen & validasi multi-feed kalender
+│   ├── fetchCalendar.js      # Pengunduh feed iCalendar & cache ETag
+│   ├── icons.js              # Path data SVG Phosphor Icons resmi
+│   ├── localEvents.js        # Pengelola event deadline manual offline
+│   ├── multiFetch.js         # Pengunduh paralel beberapa feed kalender
+│   ├── parseTasks.js         # Parser RFC 5545 iCalendar murni
+│   ├── renderer.js           # Pengendali antarmuka & kalkulasi tinggi jendela
+│   ├── settings.js           # Sinkronisasi form & preferensi pengguna
+│   └── taskFormat.js         # Kalkulasi hitung mundur waktu tenggat
+├── src-tauri/                # Backend native Rust (Tauri v2)
+│   ├── capabilities/         # Konfigurasi perizinan IPC & domain jaringan
+│   ├── gen/android/          # Proyek Android native (Gradle + Kotlin)
+│   ├── src/                  # Modul Rust (tray, win32, login webview, settings)
+│   └── Cargo.toml
+├── test/                     # Rangkaian pengujian unit test (node:test)
+├── AGENTS.md
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── LICENSE
+├── package.json
+└── SECURITY.md
 ```
 
 ---
 
-## 🧪 Testing
+## 📜 Lisensi & Kontribusi
 
-```bash
-# Run all unit tests (80 tests: parser, doneStore, queue, notify, schedulePlan, taskFormat)
-npm test
-
-# Syntax check frontend files
-node --check src/renderer.js
-node --check src/settings.js
-node --check src/api.js
-
-# Lint Rust codebase
-cd src-tauri && cargo clippy -- -D warnings
-```
-
----
-
-## 🔐 Security & Privacy
-
-- **Zero telemetry** — no tracking, analytics, or third-party servers.
-- **Direct connection only** — requests only communicate directly with `brone.ub.ac.id`.
-- **Windows Credential Manager** — feed URL and private tokens are encrypted using Windows DPAPI.
-- **Sandboxed WebView** — strict Content Security Policy (CSP).
-- **Opt-in auto-detection** — background checking only runs when explicitly activated in Settings.
-
----
-
-## 📄 License & Changelog
-
-- **License**: [MIT License](LICENSE)
-- **Changelog**: See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
+- Lisensi: Proyek ini dilisensikan di bawah lisensi terbuka [MIT](LICENSE) © 2026 Zxaviers.
+- Panduan Kontribusi: Silakan baca [CONTRIBUTING.md](CONTRIBUTING.md) sebelum mengirimkan Pull Request.
+- Catatan Perubahan: Riwayat rilis dan pembaharuan fitur dicatat secara berkala di [CHANGELOG.md](CHANGELOG.md).

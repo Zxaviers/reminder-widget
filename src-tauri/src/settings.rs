@@ -17,7 +17,12 @@ pub struct Bounds {
 
 impl Default for Bounds {
     fn default() -> Self {
-        Self { x: 0, y: 0, width: 360.0, height: 420.0 }
+        Self {
+            x: 0,
+            y: 0,
+            width: 360.0,
+            height: 420.0,
+        }
     }
 }
 
@@ -36,7 +41,12 @@ pub struct FeedMeta {
 
 impl Default for FeedMeta {
     fn default() -> Self {
-        Self { id: String::new(), kind: "ics".into(), label: String::new(), enabled: true }
+        Self {
+            id: String::new(),
+            kind: "ics".into(),
+            label: String::new(),
+            enabled: true,
+        }
     }
 }
 
@@ -117,7 +127,10 @@ impl Settings {
 }
 
 pub fn settings_path(app: &AppHandle) -> PathBuf {
-    app.path().app_config_dir().unwrap_or_else(|_| PathBuf::from(".")).join("settings.json")
+    app.path()
+        .app_config_dir()
+        .unwrap_or_else(|_| PathBuf::from("."))
+        .join("settings.json")
 }
 
 /// Missing or corrupt file falls back to defaults; unknown fields from newer
@@ -125,9 +138,7 @@ pub fn settings_path(app: &AppHandle) -> PathBuf {
 pub fn load(app: &AppHandle) -> Settings {
     let path = settings_path(app);
     match std::fs::read_to_string(&path) {
-        Ok(raw) => {
-            serde_json::from_str(raw.trim_start_matches('\u{feff}')).unwrap_or_default()
-        }
+        Ok(raw) => serde_json::from_str(raw.trim_start_matches('\u{feff}')).unwrap_or_default(),
         Err(_) => Settings::default(),
     }
 }

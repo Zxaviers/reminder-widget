@@ -16,7 +16,9 @@ pub fn validate_feed_id(raw: &str) -> Result<String, String> {
     if id.is_empty() || id.len() > 64 {
         return Err("FEED_ID_INVALID".into());
     }
-    let ok = id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.');
+    let ok = id
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.');
     if !ok {
         return Err("FEED_ID_INVALID".into());
     }
@@ -101,10 +103,10 @@ mod imp {
 
 #[cfg(not(windows))]
 mod imp {
+    use serde::{Deserialize, Serialize};
     use std::collections::BTreeMap;
     use std::path::PathBuf;
     use std::sync::Mutex;
-    use serde::{Deserialize, Serialize};
 
     use super::BRONE_ID;
 
