@@ -1,0 +1,44 @@
+name: Usulan Fitur / Feature Request
+description: Usulkan ide, peningkatan fungsionalitas, atau integrasi baru
+title: "[Feat]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Punya ide untuk membuat BRONE Reminder Widget lebih bermanfaat? Kami menyambut baik masukan Anda!
+
+  - type: dropdown
+    id: target_platform
+    attributes:
+      label: Target Platform
+      description: Platform mana yang ditargetkan untuk fitur ini?
+      options:
+        - Semua Platform (Windows & Android)
+        - Khusus Android
+        - Khusus Windows Desktop
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem_statement
+    attributes:
+      label: Masalah yang Ingin Diselesaikan (Problem Statement)
+      description: Jelaskan skenario atau kendala apa yang mendasari usulan fitur ini
+      placeholder: "Saya sering merasa kesulitan ketika..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: Solusi yang Diusulkan
+      description: Jelaskan bagaimana fitur ini bekerja menurut Anda
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatif yang Dipertimbangkan
+      description: Apakah ada solusi alternatif atau workaround yang pernah Anda coba?

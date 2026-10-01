@@ -1,0 +1,77 @@
+name: Laporan Bug / Bug Report
+description: Laporkan kendala, galat tampilan, atau kerusakan aplikasi
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Terima kasih telah meluangkan waktu untuk melaporkan masalah!
+        
+        > [!CAUTION]
+        > **JANGAN MENEMPELKAN URL FEED ASLI MAUPUN AUTHTOKEN PRIBADI!**
+        > URL feed Moodle/BRONE berisi token akses rahasia. Jika perlu mencantumkan log atau contoh data, sensor terlebih dahulu nilai `authtoken` dan parameter sensitif lainnya.
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform / Sistem Operasi
+      description: Pilih platform di mana kendala terjadi
+      options:
+        - Windows (Setup Installer)
+        - Windows (Portable .exe)
+        - Android (APK arm64)
+    validations:
+      required: true
+
+  - type: input
+    id: app_version
+    attributes:
+      label: Versi Aplikasi
+      description: Versi aplikasi yang Anda gunakan (misal 1.0.0 atau 1.2.0)
+      placeholder: "1.2.0"
+    validations:
+      required: true
+
+  - type: input
+    id: os_version
+    attributes:
+      label: Versi OS / Perangkat
+      description: Rincian sistem operasi (misal Windows 11 23H2 atau Xiaomi HyperOS / Android 14)
+      placeholder: "Windows 11 23H2"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Deskripsi Masalah
+      description: Jelaskan kendala yang Anda alami secara singkat dan jelas
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction_steps
+    attributes:
+      label: Langkah Reproduksi (Steps to Reproduce)
+      description: Langkah demi langkah untuk memicu bug
+      placeholder: |
+        1. Buka widget
+        2. Buka Pengaturan -> Tambah Event Manual
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Perilaku yang Diharapkan (Expected Behavior)
+      description: Apa yang seharusnya terjadi?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs_or_screenshots
+    attributes:
+      label: Tangkapan Layar / Log
+      description: Lampirkan tangkapan layar atau pesan log yang relevan (pastikan tidak ada data pribadi)
