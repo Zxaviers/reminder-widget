@@ -32,21 +32,19 @@ const standardBlocks = `
 
 ### 📦 Berkas Unduhan / Downloads
 
-| Berkas | Platform | Deskripsi |
-|---|---|---|
-| [\`Reminder-Widget-Setup-x64.exe\`](https://github.com/Zxaviers/reminder-widget/releases/latest/download/Reminder-Widget-Setup-x64.exe) | Windows 10/11 x64 | Installer NSIS (Start Menu, tray, autostart) |
-| [\`Reminder-Widget-Portable-x64.exe\`](https://github.com/Zxaviers/reminder-widget/releases/latest/download/Reminder-Widget-Portable-x64.exe) | Windows 10/11 x64 | Biner portabel (langsung jalan tanpa instalasi) |
-| [\`BRONE-Reminder-arm64.apk\`](https://github.com/Zxaviers/reminder-widget/releases/latest/download/BRONE-Reminder-arm64.apk) | Android 7.0+ (arm64) | APK mandiri untuk Android arm64-v8a |
-| [\`SHA256SUMS.txt\`](https://github.com/Zxaviers/reminder-widget/releases/latest/download/SHA256SUMS.txt) | Semua | Daftar hash SHA-256 untuk verifikasi integritas |
+> [!NOTE]
+> **Status Platform**: Rilis baru ini menerbitkan pembaruan untuk platform **Android**. Untuk desktop **Windows**, versi yang dirilis tetap menggunakan versi stabil **v1.0.0**.
+
+| Berkas | Platform | Status | Deskripsi |
+|---|---|---|---|
+| [\`BRONE-Reminder-arm64.apk\`](https://github.com/Zxaviers/reminder-widget/releases/latest/download/BRONE-Reminder-arm64.apk) | Android 7.0+ (arm64) | Rilis Terbaru | APK mandiri untuk Android arm64-v8a |
+| [\`SHA256SUMS.txt\`](https://github.com/Zxaviers/reminder-widget/releases/latest/download/SHA256SUMS.txt) | Android | Rilis Terbaru | Hash SHA-256 untuk verifikasi integritas APK |
+| [\`Reminder.Widget.1.0.0.Setup.exe\`](https://github.com/Zxaviers/reminder-widget/releases/download/v1.0.0/Reminder.Widget.1.0.0.Setup.exe) | Windows 10/11 x64 | Rilis v1.0.0 | Installer NSIS resmi Windows (Start Menu, tray, autostart) |
+| [\`Reminder.Widget.1.0.0.exe\`](https://github.com/Zxaviers/reminder-widget/releases/download/v1.0.0/Reminder.Widget.1.0.0.exe) | Windows 10/11 x64 | Rilis v1.0.0 | Biner portabel resmi Windows (tanpa instalasi) |
 
 ---
 
 ### 🛡️ Catatan Keamanan & Panduan Instalasi
-
-#### Windows SmartScreen
-Biner aplikasi ini belum ditandatangani sertifikat digital berbayar (EV Code Signing). Windows SmartScreen mungkin akan menampilkan peringatan warna biru (*"Windows protected your PC"*).
-1. Klik **More info** (*Informasi selengkapnya*).
-2. Klik tombol **Run anyway** (*Tetap jalankan*).
 
 #### Instalasi APK Android
 1. Unduh \`BRONE-Reminder-arm64.apk\` ke perangkat Android Anda.
@@ -57,25 +55,26 @@ Biner aplikasi ini belum ditandatangani sertifikat digital berbayar (EV Code Sig
    adb install -r BRONE-Reminder-arm64.apk
    \`\`\`
 
-#### Verifikasi Integritas Checksum (SHA-256)
-- **Windows (PowerShell)**:
-  \`\`\`powershell
-  Get-FileHash .\\Reminder-Widget-Setup-x64.exe -Algorithm SHA256
-  \`\`\`
-- **Windows (CMD)**:
-  \`\`\`cmd
-  certutil -hashfile Reminder-Widget-Setup-x64.exe SHA256
-  \`\`\`
+#### Verifikasi Integritas Checksum Android (SHA-256)
 - **Linux / macOS**:
   \`\`\`bash
   sha256sum -c SHA256SUMS.txt
   \`\`\`
+- **Windows (PowerShell)**:
+  \`\`\`powershell
+  Get-FileHash .\\BRONE-Reminder-arm64.apk -Algorithm SHA256
+  \`\`\`
+
+#### Catatan Windows Desktop (v1.0.0)
+Jika Anda menggunakan Windows, silakan unduh rilis stabil v1.0.0 di atas. Windows SmartScreen mungkin menampilkan layar biru perlindungan (*"Windows protected your PC"*):
+1. Klik **More info** (*Informasi selengkapnya*).
+2. Klik tombol **Run anyway** (*Tetap jalankan*).
 
 ---
 
 ### ⚙️ Persyaratan Sistem
-- **Windows**: Windows 10 atau 11 (64-bit), dengan [Microsoft Edge WebView2 Evergreen Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) (bawaan Windows 11 dan Windows 10 versi terbaru).
 - **Android**: Android 7.0 (Nougat / API 24) ke atas, arsitektur prosesor 64-bit (\`arm64-v8a\`).
+- **Windows**: Windows 10 atau 11 (64-bit), dengan [Microsoft Edge WebView2 Evergreen Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/).
 `;
 
 const fullReleaseNotes = `${notesBody}\n\n${standardBlocks.trim()}\n`;

@@ -27,14 +27,18 @@ Agar pipeline rilis Android dapat menandatangani APK rilis secara otomatis di Gi
 
 ## 2. Format Penamaan Aset Rilis Baku
 
-Seluruh aset rilis menggunakan nama tetap tanpa nomor versi agar tautan unduhan permanen (`releases/latest/download/...`) tidak pernah kedaluwarsa:
+> [!NOTE]
+> **Status Platform**: Sesuai kebijakan rilis, desktop **Windows** tetap dipertahankan pada rilis stabil **v1.0.0** (`Reminder.Widget.1.0.0.Setup.exe` dan `Reminder.Widget.1.0.0.exe`). Pipeline otomatis tag `v*` hanya membangun dan menerbitkan pembaruan untuk platform **Android**. Job Windows hanya dijalankan melalui pemicu manual `workflow_dispatch` sebagai artifact CI.
 
-| Aset | Nama Berkas | Deskripsi |
-|---|---|---|
-| Windows Installer | `Reminder-Widget-Setup-x64.exe` | Setup NSIS untuk Windows 10/11 x64 |
-| Windows Portable | `Reminder-Widget-Portable-x64.exe` | Biner tunggal langsung jalan (tanpa install) |
-| Android APK | `BRONE-Reminder-arm64.apk` | APK mandiri 64-bit untuk Android 7.0+ |
-| Checksum | `SHA256SUMS.txt` | Berkas teks berisi hash SHA-256 seluruh aset |
+Format penamaan aset:
+
+| Aset | Nama Berkas | Rilis Target | Deskripsi |
+|---|---|---|---|
+| Android APK | `BRONE-Reminder-arm64.apk` | Rilis Otomatis (`latest`) | APK mandiri 64-bit untuk Android 7.0+ |
+| Checksum | `SHA256SUMS.txt` | Rilis Otomatis (`latest`) | Berkas teks berisi hash SHA-256 APK Android |
+| Windows Installer | `Reminder.Widget.1.0.0.Setup.exe` | Rilis Stabil v1.0.0 | Setup NSIS resmi untuk Windows 10/11 x64 |
+| Windows Portable | `Reminder.Widget.1.0.0.exe` | Rilis Stabil v1.0.0 | Biner tunggal resmi langsung jalan (tanpa instalasi) |
+| Windows Artifact (CI) | `Reminder-Widget-Setup-x64.exe` / `Portable` | `workflow_dispatch` | Biner pengujian Windows (hanya artifact CI) |
 
 ---
 
@@ -80,15 +84,15 @@ Setelah dry run hijau dan diverifikasi:
    git tag vX.Y.Z
    git push origin vX.Y.Z
    ```
-3. Workflow **Release** akan berjalan otomatis, memverifikasi kesamaan tag dengan `package.json`, membangun seluruh aset, mengekstrak catatan rilis dari `CHANGELOG.md`, dan membuat GitHub Release resmi beserta 4 aset publik.
+3. Workflow **Release** akan berjalan otomatis, memverifikasi kesamaan tag dengan `package.json`, membangun APK Android, memverifikasi `versionCode` > v1.1.0, memeriksa tanda tangan sertifikat dan guard ukuran ≤ 15 MB, mengekstrak catatan rilis dari `CHANGELOG.md`, dan membuat GitHub Release resmi beserta aset `BRONE-Reminder-arm64.apk` dan `SHA256SUMS.txt`.
 
 ---
 
 ## 4. Verifikasi Pasca-Rilis
 
 Setelah rilis terbit di GitHub Releases:
-1. **Unduh Ulang 4 Aset**:
-   Pastikan keempat berkas ada dan dapat diunduh.
+1. **Unduh Aset Rilis**:
+   Pastikan berkas `BRONE-Reminder-arm64.apk` dan `SHA256SUMS.txt` ada dan dapat diunduh dari halaman rilis.
 2. **Verifikasi Checksum SHA-256**:
    - Di terminal Linux/macOS:
      ```bash
@@ -96,7 +100,7 @@ Setelah rilis terbit di GitHub Releases:
      ```
    - Di Windows PowerShell:
      ```powershell
-     Get-FileHash .\Reminder-Widget-Setup-x64.exe -Algorithm SHA256
+     Get-FileHash .\BRONE-Reminder-arm64.apk -Algorithm SHA256
      ```
      Bandingkan nilainya dengan yang tertera di `SHA256SUMS.txt`.
 3. **Verifikasi Sertifikat APK Android**:
@@ -105,8 +109,8 @@ Setelah rilis terbit di GitHub Releases:
    ```
    Pastikan SHA-256 digest dari sertifikat APK cocok dengan sertifikat rilis `v1.1.0`.
 4. **Uji Pasang**:
-   - Pasang installer Windows di sistem bersih dan uji shortcut Start Menu serta tray.
    - Pasang APK Android di atas perangkat yang telah terpasang versi sebelumnya (`v1.1.0`) untuk memastikan update berjalan mulus tanpa konflik tanda tangan (*signature mismatch*).
+   - Pengguna desktop Windows tetap menggunakan installer/portable stabil v1.0.0.
 
 ---
 
