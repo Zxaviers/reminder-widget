@@ -5,8 +5,8 @@
 > `../AGENTS.md` + `TOKENS.md`.** Isi varian B di bawah dipertahankan sebagai
 > arsip mockup 14 Sep 2026, BUKAN spec aktif. (Sebelumnya: DRAFT menunggu
 > sign-off, rekomendasi B — dibatalkan oleh keputusan Opt5.)
-> Verifikasi visual: render headless Chrome 14 Sep 2026, `docs/design/shots/shot-dark.png` +
-> `shot-light.png`. Kedua tema lolos baca sekilas; widget tetap gelap di wallpaper
+> Verifikasi visual: render headless Chrome 14 Sep 2026 (arsip mockup awal `mobile-design.html`).
+> Kedua tema lolos baca sekilas; widget tetap gelap di wallpaper
 > pada kedua tema (sesuai spec). Satu temuan visual: judul tugas terpotong
 > ellipsis pada lebar 340px — aplikasi disarankan clamp 2 baris untuk judul,
 > bukan 1 baris ellipsis seperti mockup.

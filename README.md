@@ -15,11 +15,11 @@
 Widget pengingat tenggat waktu tugas akademik Moodle ([BRONE Universitas Brawijaya](https://brone.ub.ac.id/)) dan Google Calendar yang ringkas, elegan, dan hemat daya. Menampilkan daftar tugas terdekat langsung di layar desktop atau homescreen ponsel Anda tanpa perlu membuka peramban secara terus-menerus.
 
 <p align="center">
-  <img src="docs/design/shots/shot-dark.png" alt="Desktop Widget Dark" width="46%" />
+  <img src="docs/audit/desktop-fix/03-7tasks-dark-after.png" alt="Desktop Widget Dark" width="32%" />
   &nbsp;
-  <img src="docs/audit/2.0/01-home-gelap-b455aef.png" alt="Android App Dark" width="28%" />
+  <img src="docs/audit/2.0/01-home-gelap-b455aef.png" alt="Android App Dark" width="32%" />
   &nbsp;
-  <img src="docs/audit/2.0/06-widget-b455aef.png" alt="Android Homescreen Widget" width="21%" />
+  <img src="docs/audit/2.0/06-widget-b455aef.png" alt="Android Homescreen Widget" width="32%" />
 </p>
 
 ---
