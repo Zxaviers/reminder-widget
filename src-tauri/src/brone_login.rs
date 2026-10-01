@@ -62,13 +62,28 @@ use crate::commands::LoginOutcome;
 
 impl LoginOutcome {
     fn success(url: String) -> Self {
-        Self { ok: true, url: Some(url), canceled: false, message: None }
+        Self {
+            ok: true,
+            url: Some(url),
+            canceled: false,
+            message: None,
+        }
     }
     fn canceled() -> Self {
-        Self { ok: false, url: None, canceled: true, message: Some("Proses login ditutup oleh pengguna.".into()) }
+        Self {
+            ok: false,
+            url: None,
+            canceled: true,
+            message: Some("Proses login ditutup oleh pengguna.".into()),
+        }
     }
     fn failed(message: &str) -> Self {
-        Self { ok: false, url: None, canceled: false, message: Some(message.into()) }
+        Self {
+            ok: false,
+            url: None,
+            canceled: false,
+            message: Some(message.into()),
+        }
     }
 }
 
@@ -127,7 +142,9 @@ pub async fn start(app: AppHandle) -> LoginOutcome {
             let app = nav_app.clone();
             let shared = nav_shared.clone();
             let on_export = url.as_str().contains("/calendar/export.php");
-            tauri::async_runtime::spawn(async move { run_extraction(app, shared, on_export).await });
+            tauri::async_runtime::spawn(
+                async move { run_extraction(app, shared, on_export).await },
+            );
             true
         })
         .build()
@@ -136,7 +153,9 @@ pub async fn start(app: AppHandle) -> LoginOutcome {
         let _ = tx.send(result);
     });
 
-    let build_result = rx.recv().unwrap_or_else(|_| Err("main thread unavailable".into()));
+    let build_result = rx
+        .recv()
+        .unwrap_or_else(|_| Err("main thread unavailable".into()));
     if let Err(message) = build_result {
         return LoginOutcome::failed(&format!("Gagal membuka jendela login: {message}"));
     }
@@ -180,7 +199,9 @@ async fn run_extraction(app: AppHandle, shared: Arc<Shared>, already_on_export: 
     }
 
     while started.elapsed() < OVERALL {
-        let Some(win) = app.get_webview_window(LABEL) else { return };
+        let Some(win) = app.get_webview_window(LABEL) else {
+            return;
+        };
         let _ = win.eval(EXTRACT_JS);
         tokio::time::sleep(POLL).await;
 

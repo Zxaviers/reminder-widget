@@ -55,14 +55,15 @@ fn env_feed_url() -> Option<String> {
         .ok()
         .filter(|v| !v.trim().is_empty())
         .or_else(|| {
-            std::env::var("BRONE_ICS_URL").ok().filter(|v| !v.trim().is_empty())
+            std::env::var("BRONE_ICS_URL")
+                .ok()
+                .filter(|v| !v.trim().is_empty())
         })
 }
 
 /// True when neither the credential store nor the environment supplies a feed.
 pub fn env_feed_url_for_setup() -> bool {
-    std::env::var_os("CALENDAR_FEED_URL").is_none()
-        && std::env::var_os("BRONE_ICS_URL").is_none()
+    std::env::var_os("CALENDAR_FEED_URL").is_none() && std::env::var_os("BRONE_ICS_URL").is_none()
 }
 
 // ------------------------------------------------------------------- window
@@ -97,7 +98,10 @@ pub fn clamp_bounds(app: &AppHandle, b: settings::Bounds) -> settings::Bounds {
             .find(|m| {
                 let p = m.position();
                 let s = m.size();
-                center.0 >= p.x && center.0 < p.x + s.width as i32 && center.1 >= p.y && center.1 < p.y + s.height as i32
+                center.0 >= p.x
+                    && center.0 < p.x + s.width as i32
+                    && center.1 >= p.y
+                    && center.1 < p.y + s.height as i32
             })
             .or_else(|| monitors.first());
         if let Some(m) = hit {
@@ -106,7 +110,9 @@ pub fn clamp_bounds(app: &AppHandle, b: settings::Bounds) -> settings::Bounds {
             best = Some((p.x, p.y, s.width, s.height));
         }
     }
-    let Some((mx, my, mw, mh)) = best else { return b };
+    let Some((mx, my, mw, mh)) = best else {
+        return b;
+    };
     let width = WINDOW_WIDTH;
     let height = b.height.clamp(WINDOW_MIN_HEIGHT, WINDOW_MAX_HEIGHT);
     settings::Bounds {
@@ -119,9 +125,15 @@ pub fn clamp_bounds(app: &AppHandle, b: settings::Bounds) -> settings::Bounds {
 
 #[tauri::command]
 pub fn widget_autosize(app: AppHandle, height: f64) {
-    let Some(win) = app.get_webview_window("widget") else { return };
-    let Ok(scale) = win.scale_factor() else { return };
-    let target = (height * scale).round().clamp(WINDOW_MIN_HEIGHT * scale, WINDOW_MAX_HEIGHT * scale);
+    let Some(win) = app.get_webview_window("widget") else {
+        return;
+    };
+    let Ok(scale) = win.scale_factor() else {
+        return;
+    };
+    let target = (height * scale)
+        .round()
+        .clamp(WINDOW_MIN_HEIGHT * scale, WINDOW_MAX_HEIGHT * scale);
     let current = match win.outer_size() {
         Ok(size) => size.height as f64,
         Err(_) => return,
@@ -212,7 +224,10 @@ pub fn reset_position(app: AppHandle) {
     let _ = settings::save(&app, &s);
     if let Some(win) = app.get_webview_window("widget") {
         let (x, y) = default_bounds(&app);
-        let height = win.outer_size().map(|sz| sz.height).unwrap_or(DEFAULT_HEIGHT as u32);
+        let height = win
+            .outer_size()
+            .map(|sz| sz.height)
+            .unwrap_or(DEFAULT_HEIGHT as u32);
         let _ = win.set_position(PhysicalPosition::new(x, y));
         if let Ok(scale) = win.scale_factor() {
             let width = (WINDOW_WIDTH * scale).round() as u32;
@@ -227,11 +242,20 @@ pub fn reset_position(app: AppHandle) {
 #[tauri::command]
 pub fn feed_url_get() -> Result<FeedUrlInfo, String> {
     if let Some(url) = crate::secret::get()? {
-        return Ok(FeedUrlInfo { url: Some(mask(&url)), source: "keyring-full" });
+        return Ok(FeedUrlInfo {
+            url: Some(mask(&url)),
+            source: "keyring-full",
+        });
     }
     Ok(match env_feed_url() {
-        Some(url) => FeedUrlInfo { url: Some(mask(&url)), source: "env-var" },
-        None => FeedUrlInfo { url: None, source: "none" },
+        Some(url) => FeedUrlInfo {
+            url: Some(mask(&url)),
+            source: "env-var",
+        },
+        None => FeedUrlInfo {
+            url: None,
+            source: "none",
+        },
     })
 }
 
@@ -293,7 +317,11 @@ fn upsert_feed_meta(app: &AppHandle, id: &str, kind: &str, label: &str, enabled:
         s.feeds.push(settings::FeedMeta {
             id: id.to_string(),
             kind: kind.to_string(),
-            label: if label.is_empty() { id.to_string() } else { label.to_string() },
+            label: if label.is_empty() {
+                id.to_string()
+            } else {
+                label.to_string()
+            },
             enabled,
         });
     }
@@ -474,7 +502,10 @@ fn mask(raw: &str) -> String {
             {
                 let mut query = parsed.query_pairs_mut();
                 for (key, value) in pairs {
-                    if SENSITIVE.iter().any(|part| key.to_lowercase().contains(part)) {
+                    if SENSITIVE
+                        .iter()
+                        .any(|part| key.to_lowercase().contains(part))
+                    {
                         query.append_pair(&key, BULLETS);
                     } else {
                         query.append_pair(&key, &value);
@@ -491,7 +522,12 @@ fn mask(raw: &str) -> String {
 
 #[tauri::command]
 pub fn set_display_mode(app: AppHandle, mode: String) -> String {
-    let chosen = if mode == "desktop" { "desktop" } else { "alwaysOnTop" }.to_string();
+    let chosen = if mode == "desktop" {
+        "desktop"
+    } else {
+        "alwaysOnTop"
+    }
+    .to_string();
     let mut s = settings::load(&app);
     s.display_mode = chosen.clone();
     let _ = settings::save(&app, &s);
@@ -506,12 +542,7 @@ pub fn set_display_mode(app: AppHandle, mode: String) -> String {
 #[tauri::command]
 pub fn notify(app: AppHandle, title: String, body: String) {
     use tauri_plugin_notification::NotificationExt;
-    let _ = app
-        .notification()
-        .builder()
-        .title(title)
-        .body(body)
-        .show();
+    let _ = app.notification().builder().title(title).body(body).show();
 }
 
 #[tauri::command]
@@ -637,7 +668,11 @@ pub fn autostart_set(app: AppHandle, enabled: bool) -> bool {
     {
         use tauri_plugin_autostart::ManagerExt;
         let launcher = app.autolaunch();
-        let result = if enabled { launcher.enable() } else { launcher.disable() };
+        let result = if enabled {
+            launcher.enable()
+        } else {
+            launcher.disable()
+        };
         result.is_ok()
     }
     #[cfg(mobile)]
@@ -707,4 +742,3 @@ pub fn sync_widget_data(app: AppHandle, tasks: Vec<WidgetTaskItem>) -> Result<()
     }
     Ok(())
 }
-

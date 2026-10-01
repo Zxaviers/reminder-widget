@@ -20,15 +20,46 @@ fn build_menu(app: &AppHandle) -> tauri::Result<tauri::menu::Menu<tauri::Wry>> {
         .map(|w| w.is_visible().unwrap_or(false))
         .unwrap_or(false);
 
-    let toggle_label = if visible { "Sembunyikan Widget (Hide)" } else { "Tampilkan Widget (Show)" };
+    let toggle_label = if visible {
+        "Sembunyikan Widget (Hide)"
+    } else {
+        "Tampilkan Widget (Show)"
+    };
     let toggle = MenuItem::with_id(app, "toggle", toggle_label, true, None::<&str>)?;
-    let bring_front = MenuItem::with_id(app, "front", "Bawa ke Depan (Bring to Front)", true, None::<&str>)?;
+    let bring_front = MenuItem::with_id(
+        app,
+        "front",
+        "Bawa ke Depan (Bring to Front)",
+        true,
+        None::<&str>,
+    )?;
     let sep1 = PredefinedMenuItem::separator(app)?;
     let settings_item = MenuItem::with_id(app, "settings", "Pengaturan…", true, None::<&str>)?;
     let refresh = MenuItem::with_id(app, "refresh", "Refresh Sekarang", true, None::<&str>)?;
-    let always_top = CheckMenuItem::with_id(app, "always-top", "Always on top (Floating)", true, floating, None::<&str>)?;
-    let autostart = CheckMenuItem::with_id(app, "autostart", "Open at Windows startup", true, autostart_on, None::<&str>)?;
-    let notif = CheckMenuItem::with_id(app, "notifications", "Deadline notifications", true, s.notifications, None::<&str>)?;
+    let always_top = CheckMenuItem::with_id(
+        app,
+        "always-top",
+        "Always on top (Floating)",
+        true,
+        floating,
+        None::<&str>,
+    )?;
+    let autostart = CheckMenuItem::with_id(
+        app,
+        "autostart",
+        "Open at Windows startup",
+        true,
+        autostart_on,
+        None::<&str>,
+    )?;
+    let notif = CheckMenuItem::with_id(
+        app,
+        "notifications",
+        "Deadline notifications",
+        true,
+        s.notifications,
+        None::<&str>,
+    )?;
     let sep2 = PredefinedMenuItem::separator(app)?;
     let config = MenuItem::with_id(app, "config", "Open config folder", true, None::<&str>)?;
     let reset = MenuItem::with_id(app, "reset", "Reset position", true, None::<&str>)?;
@@ -37,7 +68,21 @@ fn build_menu(app: &AppHandle) -> tauri::Result<tauri::menu::Menu<tauri::Wry>> {
 
     tauri::menu::Menu::with_items(
         app,
-        &[&toggle, &bring_front, &sep1, &settings_item, &refresh, &always_top, &autostart, &notif, &sep2, &config, &reset, &sep3, &quit],
+        &[
+            &toggle,
+            &bring_front,
+            &sep1,
+            &settings_item,
+            &refresh,
+            &always_top,
+            &autostart,
+            &notif,
+            &sep2,
+            &config,
+            &reset,
+            &sep3,
+            &quit,
+        ],
     )
 }
 
@@ -68,7 +113,13 @@ pub fn create(app: &AppHandle) -> tauri::Result<()> {
             // Left click toggles visibility; right click opens the menu.
             // Handle both Up and Down states for better compatibility with
             // overflow area clicks which may send different event sequences.
-            if matches!(event, TrayIconEvent::Click { button: MouseButton::Left, .. }) {
+            if matches!(
+                event,
+                TrayIconEvent::Click {
+                    button: MouseButton::Left,
+                    ..
+                }
+            ) {
                 super::toggle_widget(tray.app_handle());
             }
         });
@@ -93,7 +144,11 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
             let _ = app.emit("tray-command", "refresh");
         }
         "always-top" => {
-            let mode = if crate::settings::load(app).is_desktop_mode() { "alwaysOnTop" } else { "desktop" };
+            let mode = if crate::settings::load(app).is_desktop_mode() {
+                "alwaysOnTop"
+            } else {
+                "desktop"
+            };
             let _ = super::commands::set_display_mode(app.clone(), mode.to_string());
             push_settings_changed(app);
         }
@@ -101,7 +156,11 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
             use tauri_plugin_autostart::ManagerExt;
             let launcher = app.autolaunch();
             let enable = !launcher.is_enabled().unwrap_or(false);
-            let result = if enable { launcher.enable() } else { launcher.disable() };
+            let result = if enable {
+                launcher.enable()
+            } else {
+                launcher.disable()
+            };
             if result.is_ok() {
                 let mut s = crate::settings::load(app);
                 s.open_at_login = enable;
