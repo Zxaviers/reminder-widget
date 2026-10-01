@@ -110,6 +110,7 @@ pub async fn start(app: AppHandle) -> LoginOutcome {
         let result = WebviewWindowBuilder::new(
             &build_app,
             LABEL,
+            // LOGIN_URL is a hardcoded valid HTTPS URL constant
             WebviewUrl::External(LOGIN_URL.parse().unwrap()),
         )
         .title("Memuat Login BRONE - Universitas Brawijaya...")
@@ -146,7 +147,7 @@ pub async fn start(app: AppHandle) -> LoginOutcome {
     let deadline = Instant::now() + Duration::from_secs(180);
     loop {
         tokio::time::sleep(Duration::from_millis(400)).await;
-        if let Some(url) = shared.0.lock().unwrap().clone() {
+        if let Some(url) = shared.0.lock().unwrap_or_else(|e| e.into_inner()).clone() {
             return LoginOutcome::success(url);
         }
         if app.get_webview_window(LABEL).is_none() {
@@ -189,7 +190,7 @@ async fn run_extraction(app: AppHandle, shared: Arc<Shared>, already_on_export: 
             if let Ok(title) = win.title() {
                 if let Some(raw) = title.strip_prefix(RESULT_PREFIX) {
                     if let Some(url) = validate_export_url(raw) {
-                        *shared.0.lock().unwrap() = Some(url.clone());
+                        *shared.0.lock().unwrap_or_else(|e| e.into_inner()) = Some(url.clone());
                         let _ = win.set_title("Login Berhasil!");
                         let _ = win.close();
                         return;
