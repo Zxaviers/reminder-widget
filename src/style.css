@@ -198,8 +198,8 @@ body {
 .icon-btn {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 28px;
+  height: 28px;
   border: 0;
   border-radius: var(--radius);
   background: transparent;
@@ -823,28 +823,26 @@ body {
 
 /* Touch screens have no hover: a tap would otherwise leave the hover
    wash stuck on (audit A5). Only devices with a real hover get :hover. */
-@media (hover: none) {
-  .icon-btn:hover,
-  .btn:hover,
-  .btn--primary:hover,
-  .row-open:hover,
-  .hero-done:hover,
-  .done-btn:hover,
-  .btn-sec:hover,
-  .chip:hover,
-  .undo-bar__btn:hover,
-  .local-item:hover,
-  .local-item__remove:hover,
-  .done-section__toggle:hover,
-  .icon-btn--close:hover {
-    background: transparent;
-    color: inherit;
-    filter: none;
-  }
-  .row-done:hover .ring {
-    border-color: var(--ink-400);
-    color: var(--ink-400);
-  }
+:root[data-platform="android"] .icon-btn:hover,
+:root[data-platform="android"] .btn:hover,
+:root[data-platform="android"] .btn--primary:hover,
+:root[data-platform="android"] .row-open:hover,
+:root[data-platform="android"] .hero-done:hover,
+:root[data-platform="android"] .done-btn:hover,
+:root[data-platform="android"] .btn-sec:hover,
+:root[data-platform="android"] .chip:hover,
+:root[data-platform="android"] .undo-bar__btn:hover,
+:root[data-platform="android"] .local-item:hover,
+:root[data-platform="android"] .local-item__remove:hover,
+:root[data-platform="android"] .done-section__toggle:hover,
+:root[data-platform="android"] .icon-btn--close:hover {
+  background: transparent;
+  color: inherit;
+  filter: none;
+}
+:root[data-platform="android"] .row-done:hover .ring {
+  border-color: var(--ink-400);
+  color: var(--ink-400);
 }
 
 body {
@@ -862,35 +860,51 @@ body {
   }
 }
 
-/* Mobile responsive adjustments */
-@media (max-width: 480px) {
-  html,
-  body {
-    overflow-y: auto;
-    background: var(--canvas);
-  }
-  .stage {
-    /* Side gutter stays 20px on mobile: bare safe-area insets collapse to 0
-       in the Android WebView and glued accents/bars to x=0 (audit C2/C3).
-       Top/bottom follow the device inset, sides keep the ledger gutter.
-       Bottom padding max 56px clears the Android gesture navigation pill (audit N6). */
-    padding: env(safe-area-inset-top, 0px) var(--sp-gutter) max(56px, env(safe-area-inset-bottom, 56px));
-    padding-left: max(var(--sp-gutter), env(safe-area-inset-left, 0px));
-    padding-right: max(var(--sp-gutter), env(safe-area-inset-right, 0px));
-    height: auto;
-    min-height: 100%;
-  }
-  .panel {
-    width: 100% !important;
-    max-width: 100% !important;
-    border-radius: 0;
-    box-shadow: none;
-  }
-  .icon-btn,
-  .btn {
-    min-height: 44px;
-    min-width: 44px;
-  }
+/* Mobile (Android) responsive adjustments */
+:root[data-platform="android"],
+:root[data-platform="android"] body {
+  overflow-y: auto;
+  background: var(--canvas);
+}
+
+:root[data-platform="android"] .stage {
+  /* Side gutter stays 20px on mobile: bare safe-area insets collapse to 0
+     in the Android WebView and glued accents/bars to x=0 (audit C2/C3).
+     Top/bottom follow the device inset, sides keep the ledger gutter.
+     Bottom padding max 56px clears the Android gesture navigation pill (audit N6). */
+  padding: env(safe-area-inset-top, 0px) var(--sp-gutter) max(56px, env(safe-area-inset-bottom, 56px));
+  padding-left: max(var(--sp-gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--sp-gutter), env(safe-area-inset-right, 0px));
+  height: auto;
+  min-height: 100%;
+  background: var(--canvas);
+}
+
+:root[data-platform="android"] .panel {
+  width: 100% !important;
+  max-width: 100% !important;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+:root[data-platform="android"] .icon-btn,
+:root[data-platform="android"] .btn {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+:root[data-platform="android"] .icon-btn {
+  width: 44px;
+  height: 44px;
+}
+
+:root[data-platform="android"] .icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+:root[data-platform="android"] .bar__actions > .icon-btn:last-child {
+  margin-right: -10px;
 }
 
 /* ===========================================================================
@@ -900,12 +914,11 @@ body {
 
 body {
   font-family: var(--sans);
-  background: var(--canvas);
   color: var(--ink-900);
 }
 
 .stage {
-  background: var(--canvas);
+  background: transparent;
 }
 
 .panel {
@@ -966,14 +979,9 @@ body {
   gap: 2px;
 }
 
-/* Glyph (not the 44px box) aligns to the right gutter (audit C4). */
-.bar__actions > .icon-btn:last-child {
-  margin-right: -10px;
-}
-
 .icon-btn {
-  width: 44px;
-  height: 44px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
   border: 0;
   background: transparent;
@@ -991,8 +999,8 @@ body {
 }
 
 .icon-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   fill: currentColor;
   stroke: none;
 }
@@ -1516,6 +1524,20 @@ svg[data-ph] {
   gap: 12px;
   max-height: 88%;
   overflow-y: auto;
+}
+
+:root[data-platform="desktop"] .sheet {
+  left: var(--sp-gutter);
+  right: var(--sp-gutter);
+  bottom: 12px;
+  border-radius: var(--radius-outer);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.45);
+  max-height: calc(100% - 48px);
+}
+
+:root[data-platform="desktop"] .scrim {
+  inset: 12px var(--sp-gutter);
+  border-radius: var(--radius-outer);
 }
 
 .sheet-handle {

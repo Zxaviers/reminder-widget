@@ -23,32 +23,30 @@
 /* One mobile shell for every screen (audit C1/C2): the settings page is
    full-bleed like home — no floating panel, no side overflow. Scoped to
    .settings-body so the home bottom-sheet keeps its own geometry. */
-@media (max-width: 480px) {
-  .settings-body .sheet {
-    height: 100%;
-    min-height: 100%;
-    margin: 0;
-    border-radius: 0;
-    background: var(--canvas);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+:root[data-platform="android"] .settings-body .sheet {
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  border-radius: 0;
+  background: var(--canvas);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
-  .sheet__bar {
-    padding-top: max(11px, env(safe-area-inset-top, 11px));
-    padding-left: max(var(--sp-gutter), env(safe-area-inset-left, 0px));
-    padding-right: max(var(--sp-gutter), env(safe-area-inset-right, 0px));
-    flex-shrink: 0;
-  }
+:root[data-platform="android"] .sheet__bar {
+  padding-top: max(11px, env(safe-area-inset-top, 11px));
+  padding-left: max(var(--sp-gutter), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--sp-gutter), env(safe-area-inset-right, 0px));
+  flex-shrink: 0;
+}
 
-  .sheet__body {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 16px var(--sp-gutter) max(56px, env(safe-area-inset-bottom, 56px));
-  }
+:root[data-platform="android"] .sheet__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px var(--sp-gutter) max(56px, env(safe-area-inset-bottom, 56px));
 }
 
 .sheet__bar {
@@ -110,10 +108,8 @@ body[data-mobile="true"] .desktop-card,
   display: none !important;
 }
 
-@media (max-width: 480px) {
-  .desktop-card {
-    display: none !important;
-  }
+:root[data-platform="android"] .desktop-card {
+  display: none !important;
 }
 
 .auth-box:not(.connected) .auth-box__reconnect {

@@ -414,6 +414,7 @@ async function commitChips (patch) {
 
 async function load () {
   const isMob = await api.isMobile()
+  document.documentElement.dataset.platform = isMob ? 'android' : 'desktop'
   if (isMob) {
     document.body.dataset.mobile = 'true'
     const desktopCard = document.querySelector('.desktop-card')
