@@ -24,7 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Mutex hardening**: replaced `lock().unwrap()` with poison-safe `.unwrap_or_else(|e| e.into_inner())` across background login webview threads (`src-tauri/src/brone_login.rs`).
 - **Repository hygiene**: removed stray local logs and Windows local file paths; sanitized mockups to prevent personal identifier exposure; updated license copyright to 2026.
 - **Audit asset consolidation**: consolidated official v8 audit screenshots in `docs/audit/2.0/` and archived previous iterations.
-- All 81 unit tests pass (`npm test`).
 
 ## [1.1.0] - 2026-10-01 (Android Build v8 — Audit 2.0 Patch)
 
