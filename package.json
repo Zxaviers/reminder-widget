@@ -1,7 +1,25 @@
 {
   "name": "reminder-widget",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.2.0",
+  "description": "Always-on-top deadline reminder widget for Moodle/BRONE and iCalendar feeds",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Zxaviers/reminder-widget.git"
+  },
+  "homepage": "https://github.com/Zxaviers/reminder-widget#readme",
+  "bugs": {
+    "url": "https://github.com/Zxaviers/reminder-widget/issues"
+  },
+  "keywords": [
+    "tauri",
+    "moodle",
+    "desktop-widget",
+    "deadline-reminder",
+    "android",
+    "windows",
+    "icalendar"
+  ],
   "license": "MIT",
   "type": "module",
   "scripts": {
