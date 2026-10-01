@@ -25,11 +25,11 @@ const version = pkg.version
 const artifacts = [
   {
     from: path.join(src, 'bundle', 'nsis', `Reminder Widget_${version}_x64-setup.exe`),
-    to: path.join(outDir, `Reminder Widget ${version} Setup.exe`)
+    to: path.join(outDir, 'Reminder-Widget-Setup-x64.exe')
   },
   {
     from: path.join(src, 'reminder-widget.exe'),
-    to: path.join(outDir, `Reminder Widget ${version}.exe`)
+    to: path.join(outDir, 'Reminder-Widget-Portable-x64.exe')
   }
 ]
 
