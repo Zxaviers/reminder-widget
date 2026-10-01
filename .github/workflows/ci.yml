@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: windows-latest
@@ -18,7 +22,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          components: clippy
+          components: clippy, rustfmt
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -27,19 +31,15 @@ jobs:
       - name: Install frontend deps
         run: npm ci
 
-      - name: Unit tests (parser + doneStore + queue + notify)
+      - name: Unit tests
         run: npm test
 
-      - name: Syntax check frontend
-        run: |
-          node --check src/renderer.js
-          node --check src/settings.js
-          node --check src/api.js
-          node --check src/parseTasks.js
-          node --check src/fetchCalendar.js
-          node --check src/doneStore.js
-          node --check src/submissionQueue.js
-          node --check src/notifyConfig.js
+      - name: Syntax check frontend (all src/**/*.js)
+        shell: bash
+        run: find src -name '*.js' -print0 | xargs -0 -n1 node --check
+
+      - name: Rust formatting (cargo fmt --check)
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml -- --check
 
       - name: Clippy (deny warnings; implies cargo check)
         run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
