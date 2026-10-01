@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-10-01
+
+### Added
+- **Multi-feed support** (`src/feeds.js`, `src/multiFetch.js`): connect multiple calendar feeds simultaneously (BRONE academic calendar + external feeds).
+- **Google Calendar support**: import deadlines directly via Google Calendar secret iCal address (`https://calendar.google.com/calendar/ical/.../basic.ics`), with automatic URL normalization.
+- **Local custom events** (`src/localEvents.js`): add and manage offline deadline events manually with validation and seamless merging into the urgency task list.
+- **Theme switching**: Gelap (Dark), Terang (Light), and Otomatis (follows OS/system preference) available across Windows desktop and Android (`src/settings.js`, `src-tauri/src/settings.rs`).
+- **Version consistency test** (`test/version.test.js`): automated test verifying version alignment across `package.json`, `Cargo.toml`, and `tauri.conf.json`.
+
+### Changed
+- **Rust release profile**: unified `[profile.release]` with `opt-level = "z"`, `lto = true`, `codegen-units = 1`, `panic = "abort"`, and `strip = true` for both desktop Windows and Android builds.
+- **Release packaging**: Android APK distributed as arm64-only (`~9.8 MB`, down from ~62 MB universal build).
+- **Standardized artifact naming**: release binaries standardized to versionless permanent download targets (`Reminder-Widget-Setup-x64.exe`, `Reminder-Widget-Portable-x64.exe`, `BRONE-Reminder-arm64.apk`, and `SHA256SUMS.txt`).
+- **Single source of truth for versioning**: `tauri.conf.json` version linked to `package.json`.
+
+### Fixed & Security
+- **Mutex hardening**: replaced `lock().unwrap()` with poison-safe `.unwrap_or_else(|e| e.into_inner())` across background login webview threads (`src-tauri/src/brone_login.rs`).
+- **Repository hygiene**: removed stray local logs and Windows local file paths; sanitized mockups to prevent personal identifier exposure; updated license copyright to 2026.
+- **Audit asset consolidation**: consolidated official v8 audit screenshots in `docs/audit/2.0/` and archived previous iterations.
+
 ## [1.1.0] - 2026-10-01 (Android Build v8 — Audit 2.0 Patch)
 
 ### Added
@@ -69,3 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2026-08-25 (Internal Tauri v2 prototype, unpublished)
 
 - Initial Tauri v2 port from Electron v1.
+
+[1.2.0]: https://github.com/Zxaviers/reminder-widget/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/Zxaviers/reminder-widget/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/Zxaviers/reminder-widget/releases/tag/v1.0.0
