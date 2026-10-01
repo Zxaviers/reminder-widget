@@ -644,13 +644,23 @@ function renderError () {
 
 // ----------------------------------------------------------------- autosizing
 
+const WINDOW_MAX_HEIGHT = 720
+
 function desiredHeight () {
-  const bar = document.getElementById('bar').offsetHeight
-  const stale = el.stale.hidden ? 0 : el.stale.offsetHeight
-  const undo = el.undoBar.hidden ? 0 : el.undoBar.offsetHeight
-  const collapsed = el.panel.dataset.collapsed === 'true'
-  const content = collapsed ? el.digest.offsetHeight : el.body.scrollHeight
-  return bar + content + stale + undo + 24
+  const bar = document.getElementById('bar')?.offsetHeight || 0
+  const stale = el.stale?.hidden ? 0 : (el.stale?.offsetHeight || 0)
+  const undo = el.undoBar?.hidden ? 0 : (el.undoBar?.offsetHeight || 0)
+  const collapsed = el.panel?.dataset.collapsed === 'true'
+  const content = collapsed ? (el.digest?.offsetHeight || 0) : (el.body?.scrollHeight || 0)
+  const baseHeight = bar + content + stale + undo + 24
+
+  let height = baseHeight
+  if (el.localPanel && !el.localPanel.hidden) {
+    const sheetHeight = bar + el.localPanel.scrollHeight + 24
+    height = Math.max(baseHeight, sheetHeight)
+  }
+
+  return Math.min(height, WINDOW_MAX_HEIGHT)
 }
 
 let lastSent = 0
@@ -1103,6 +1113,7 @@ function localPanelOpen (open) {
   if (scrim) scrim.hidden = !open
   el.btnAddLocal?.setAttribute('aria-expanded', String(open))
   if (open) el.localTitle?.focus()
+  autosize()
   requestAnimationFrame(autosize)
 }
 
@@ -1182,6 +1193,7 @@ el.localSave?.addEventListener('click', addLocalEvent)
 
 ;(async () => {
   const isMob = await api.isMobile()
+  document.documentElement.dataset.platform = isMob ? 'android' : 'desktop'
   if (isMob) {
     if (el.btnHide) el.btnHide.hidden = true
     try {

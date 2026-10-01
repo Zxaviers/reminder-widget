@@ -37,7 +37,9 @@ static LAST_TOGGLE_MS: AtomicU64 = AtomicU64::new(0);
 pub fn apply_display_mode(app: &AppHandle) {
     #[cfg(desktop)]
     {
-        let Some(win) = app.get_webview_window(WIDGET_LABEL) else { return };
+        let Some(win) = app.get_webview_window(WIDGET_LABEL) else {
+            return;
+        };
         if settings::load(app).is_desktop_mode() {
             PIN_TO_DESKTOP.store(true, Ordering::SeqCst);
             let _ = win.set_always_on_top(false);
@@ -89,7 +91,10 @@ pub fn hide_widget(app: &AppHandle) {
     if let Some(win) = app.get_webview_window(WIDGET_LABEL) {
         let result = win.hide();
         #[cfg(debug_assertions)]
-        eprintln!("[hide] hide() result: {:?}", result.as_ref().map(|_| "ok").map_err(|e| e.to_string()));
+        eprintln!(
+            "[hide] hide() result: {:?}",
+            result.as_ref().map(|_| "ok").map_err(|e| e.to_string())
+        );
         let _ = result;
     }
     #[cfg(desktop)]
@@ -123,12 +128,9 @@ pub fn toggle_widget(app: &AppHandle) {
 // -------------------------------------------------------------- window setup
 
 fn create_widget(app: &AppHandle) -> tauri::Result<tauri::WebviewWindow> {
-    let builder = WebviewWindowBuilder::new(
-        app,
-        WIDGET_LABEL,
-        WebviewUrl::App("index.html".into()),
-    )
-    .title("Reminder Widget");
+    let builder =
+        WebviewWindowBuilder::new(app, WIDGET_LABEL, WebviewUrl::App("index.html".into()))
+            .title("Reminder Widget");
 
     #[cfg(desktop)]
     let (builder, is_desktop) = {
@@ -137,7 +139,12 @@ fn create_widget(app: &AppHandle) -> tauri::Result<tauri::WebviewWindow> {
             Some(saved) => commands::clamp_bounds(app, saved),
             None => {
                 let (x, y) = commands::default_bounds(app);
-                settings::Bounds { x, y, width: commands::WINDOW_WIDTH, height: commands::DEFAULT_HEIGHT }
+                settings::Bounds {
+                    x,
+                    y,
+                    width: commands::WINDOW_WIDTH,
+                    height: commands::DEFAULT_HEIGHT,
+                }
             }
         };
         (
@@ -168,11 +175,15 @@ fn create_widget(app: &AppHandle) -> tauri::Result<tauri::WebviewWindow> {
 }
 
 fn persist_bounds(app: &AppHandle) {
-    let Some(win) = app.get_webview_window(WIDGET_LABEL) else { return };
+    let Some(win) = app.get_webview_window(WIDGET_LABEL) else {
+        return;
+    };
     if !win.is_visible().unwrap_or(false) {
         return;
     }
-    let (Ok(pos), Ok(size)) = (win.outer_position(), win.outer_size()) else { return };
+    let (Ok(pos), Ok(size)) = (win.outer_position(), win.outer_size()) else {
+        return;
+    };
     if let Ok(scale) = win.scale_factor() {
         let mut s = settings::load(app);
         s.bounds = Some(settings::Bounds {
@@ -293,13 +304,14 @@ pub fn run() {
                         }
                     }
                 }
-                WindowEvent::Focused(false) if is_widget
-                    && PIN_TO_DESKTOP.load(Ordering::Relaxed) => {
-                        #[cfg(windows)]
-                        if let Some(w) = window.app_handle().get_webview_window(WIDGET_LABEL) {
-                            win32::send_to_bottom(&w);
-                        }
+                WindowEvent::Focused(false)
+                    if is_widget && PIN_TO_DESKTOP.load(Ordering::Relaxed) =>
+                {
+                    #[cfg(windows)]
+                    if let Some(w) = window.app_handle().get_webview_window(WIDGET_LABEL) {
+                        win32::send_to_bottom(&w);
                     }
+                }
                 _ => {}
             }
         })

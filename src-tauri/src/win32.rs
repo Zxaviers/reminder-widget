@@ -30,9 +30,13 @@ fn hwnd_of(win: &tauri::WebviewWindow) -> Option<HWND> {
 }
 
 pub fn make_tool_window(win: &tauri::WebviewWindow) -> bool {
-    let Some(hwnd) = hwnd_of(win) else { return false };
+    let Some(hwnd) = hwnd_of(win) else {
+        return false;
+    };
     unsafe {
-        let Some(current) = get_ex_style(hwnd) else { return false };
+        let Some(current) = get_ex_style(hwnd) else {
+            return false;
+        };
         let updated = (current | WS_EX_TOOLWINDOW) & !WS_EX_APPWINDOW;
         if current == updated {
             return true;
@@ -46,7 +50,9 @@ pub fn make_tool_window(win: &tauri::WebviewWindow) -> bool {
 }
 
 pub fn bring_to_top(win: &tauri::WebviewWindow) -> bool {
-    let Some(hwnd) = hwnd_of(win) else { return false };
+    let Some(hwnd) = hwnd_of(win) else {
+        return false;
+    };
     unsafe { SetWindowPos(hwnd, Some(HWND_TOPMOST), 0, 0, 0, 0, flags_zorder()).is_ok() }
 }
 
@@ -56,7 +62,9 @@ fn is_at_bottom(hwnd: HWND) -> bool {
 }
 
 pub fn send_to_bottom(win: &tauri::WebviewWindow) -> bool {
-    let Some(hwnd) = hwnd_of(win) else { return false };
+    let Some(hwnd) = hwnd_of(win) else {
+        return false;
+    };
     if is_at_bottom(hwnd) {
         return true;
     }
