@@ -2,8 +2,12 @@ name: CI Android
 
 on:
   push:
-    branches: [main, feat/android-port]
+    branches: [main]
   pull_request:
+
+concurrency:
+  group: ci-android-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   android-build:
@@ -20,12 +24,18 @@ jobs:
         with:
           targets: aarch64-linux-android
 
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
       - uses: android-actions/setup-android@v3
+        with:
+          packages: ''
 
       - name: Install Android SDK & NDK components
         run: |
@@ -37,7 +47,14 @@ jobs:
       - name: Run JS tests
         run: npm test
 
-      - name: Build Android APK
+      - name: Build Android APK (Unsigned PR Build)
         env:
           NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.3.13750724
         run: npx tauri android build --apk --target aarch64
+
+      - name: Upload Android APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-pr
+          path: src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: warn

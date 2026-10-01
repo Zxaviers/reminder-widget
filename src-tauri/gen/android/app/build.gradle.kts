@@ -13,6 +13,30 @@ val tauriProperties = Properties().apply {
     }
 }
 
+val keystorePropertiesFile = rootProject.file("keystore.properties").takeIf { it.exists() }
+    ?: file("keystore.properties").takeIf { it.exists() }
+val keystoreProperties = Properties().apply {
+    keystorePropertiesFile?.inputStream()?.use { load(it) }
+}
+
+val keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+    ?: keystoreProperties.getProperty("storeFile")
+    ?: keystoreProperties.getProperty("ANDROID_KEYSTORE_PATH")
+val keystorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+    ?: keystoreProperties.getProperty("storePassword")
+    ?: keystoreProperties.getProperty("ANDROID_KEYSTORE_PASSWORD")
+val keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+    ?: keystoreProperties.getProperty("keyAlias")
+    ?: keystoreProperties.getProperty("ANDROID_KEY_ALIAS")
+val keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+    ?: keystoreProperties.getProperty("keyPassword")
+    ?: keystoreProperties.getProperty("ANDROID_KEY_PASSWORD")
+
+val hasSigningCredentials = !keystorePath.isNullOrBlank() &&
+    !keystorePassword.isNullOrBlank() &&
+    !keyAlias.isNullOrBlank() &&
+    !keyPassword.isNullOrBlank()
+
 android {
     compileSdk = 36
     namespace = "dev.riski.reminderwidget"
@@ -24,19 +48,36 @@ android {
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
     }
+    signingConfigs {
+        if (hasSigningCredentials) {
+            create("release") {
+                val storeFileObj = file(keystorePath!!)
+                storeFile = if (storeFileObj.isAbsolute) storeFileObj else rootProject.file(keystorePath)
+                this.storePassword = keystorePassword
+                this.keyAlias = keyAlias
+                this.keyPassword = keyPassword
+            }
+        }
+    }
     buildTypes {
         getByName("debug") {
             manifestPlaceholders["usesCleartextTraffic"] = "true"
             isDebuggable = true
             isJniDebuggable = true
             isMinifyEnabled = false
-            packaging {                jniLibs.keepDebugSymbols.add("*/arm64-v8a/*.so")
+            packaging {
+                jniLibs.keepDebugSymbols.add("*/arm64-v8a/*.so")
                 jniLibs.keepDebugSymbols.add("*/armeabi-v7a/*.so")
                 jniLibs.keepDebugSymbols.add("*/x86/*.so")
                 jniLibs.keepDebugSymbols.add("*/x86_64/*.so")
             }
         }
         getByName("release") {
+            if (hasSigningCredentials) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                logger.warn("WARNING: Release build will be UNSIGNED. Set ANDROID_KEYSTORE_* environment variables or keystore.properties to enable signing.")
+            }
             isMinifyEnabled = true
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }

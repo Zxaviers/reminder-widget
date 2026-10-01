@@ -2,13 +2,21 @@ name: Release
 
 on:
   push:
-    tags: ['v*']
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (build and upload artifacts without creating GitHub release)'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
-  build:
+  windows:
+    name: Build Windows Release (Manual Artifact Only)
+    if: github.event_name == 'workflow_dispatch'
     runs-on: windows-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -23,18 +31,195 @@ jobs:
         with:
           workspaces: src-tauri
 
-      - name: Install frontend deps
+      - name: Install dependencies
         run: npm ci
 
-      - name: Unit tests
+      - name: Run unit tests
         run: npm test
 
-      - name: Build installer + portable exe
+      - name: Build Windows binaries (NSIS setup + portable)
         run: npm run dist
 
-      - name: Release
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-artifacts
+          path: |
+            dist/Reminder-Widget-Setup-x64.exe
+            dist/Reminder-Widget-Portable-x64.exe
+          if-no-files-found: error
+
+  android:
+    name: Build Android arm64 Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify tag matches package version (on tag push)
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          TAG="${{ github.ref_name }}"
+          PKG_VER="v$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG_VER" ]; then
+            echo "ERROR: Tag ($TAG) does not match package.json version ($PKG_VER)!"
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: ''
+
+      - name: Install Android SDK & NDK components
+        run: |
+          sdkmanager "platforms;android-35" "platforms;android-36" "build-tools;35.0.0" "build-tools;36.0.0" "ndk;27.3.13750724"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Decode signing keystore (if secret configured)
+        if: env.HAS_KEYSTORE == 'true'
+        env:
+          HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.keystore" >> $GITHUB_ENV
+          echo "ANDROID_KEYSTORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+          echo "ANDROID_KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> $GITHUB_ENV
+          echo "ANDROID_KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> $GITHUB_ENV
+
+      - name: Build Android arm64 APK
+        env:
+          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.3.13750724
+        run: npx tauri android build --apk --target aarch64
+
+      - name: Locate and inspect built APK
+        id: locate_apk
+        run: |
+          APK=$(find src-tauri/gen/android/app/build/outputs/apk -type f -name "*.apk" | head -n 1)
+          if [ -z "$APK" ]; then
+            echo "ERROR: No APK found after build!"
+            exit 1
+          fi
+          echo "Found APK at: $APK"
+          cp "$APK" BRONE-Reminder-arm64.apk
+          echo "apk_path=$APK" >> $GITHUB_OUTPUT
+
+      - name: VersionCode guard against v1.1.0 release
+        run: |
+          AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
+          NEW_VC=$($AAPT dump badging BRONE-Reminder-arm64.apk | grep -o "versionCode='[0-9]*'" | cut -d"'" -f2)
+          NEW_VN=$($AAPT dump badging BRONE-Reminder-arm64.apk | grep -o "versionName='[^']*'" | cut -d"'" -f2)
+          echo "Built APK: versionName='$NEW_VN', versionCode='$NEW_VC'"
+          
+          curl -sL -o /tmp/v1.1.0.apk https://github.com/Zxaviers/reminder-widget/releases/download/v1.1.0/BRONE-Reminder-v1.1.0-arm64.apk || true
+          if [ -f /tmp/v1.1.0.apk ] && [ -s /tmp/v1.1.0.apk ]; then
+            OLD_VC=$($AAPT dump badging /tmp/v1.1.0.apk 2>/dev/null | grep -o "versionCode='[0-9]*'" | cut -d"'" -f2 || echo 0)
+            echo "Baseline v1.1.0 versionCode: $OLD_VC"
+            if [ -n "$OLD_VC" ] && [ "$OLD_VC" -gt 0 ]; then
+              if [ "$NEW_VC" -le "$OLD_VC" ]; then
+                echo "ERROR: New versionCode ($NEW_VC) must be strictly greater than v1.1.0 ($OLD_VC)!"
+                exit 1
+              fi
+              echo "versionCode check passed: $NEW_VC > $OLD_VC"
+            fi
+          else
+            echo "Notice: Could not download v1.1.0 baseline APK, skipping comparison."
+          fi
+
+      - name: Verify signing with apksigner (if keystore configured)
+        if: env.HAS_KEYSTORE == 'true'
+        env:
+          HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        run: |
+          APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          $APKSIGNER verify --print-certs BRONE-Reminder-arm64.apk
+
+      - name: Size guard (fail if > 15 MB)
+        run: |
+          APK_SIZE=$(stat -c%s "BRONE-Reminder-arm64.apk")
+          MAX_SIZE=$((15 * 1024 * 1024))
+          echo "APK size: $APK_SIZE bytes (limit: $MAX_SIZE bytes)"
+          if [ "$APK_SIZE" -gt "$MAX_SIZE" ]; then
+            echo "ERROR: APK size exceeds 15 MB limit!"
+            exit 1
+          fi
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-artifacts
+          path: BRONE-Reminder-arm64.apk
+          if-no-files-found: error
+
+  publish:
+    name: Publish Release Assets & GitHub Release
+    needs: [android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Download Android build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android-artifacts
+          path: dist-release
+
+      - name: Generate SHA256 checksums
+        working-directory: dist-release
+        run: |
+          ls -la
+          sha256sum BRONE-Reminder-arm64.apk > SHA256SUMS.txt
+          echo "=== SHA256SUMS.txt ==="
+          cat SHA256SUMS.txt
+
+      - name: Generate release notes
+        run: |
+          node scripts/release-notes.js --out release-notes.md
+          echo "=== Release Notes Preview ==="
+          cat release-notes.md
+
+      - name: Check for dry run
+        id: dry_run_check
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            echo "dry_run=true" >> $GITHUB_OUTPUT
+            echo "Dry run mode active: skipping GitHub release creation."
+          else
+            echo "dry_run=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create GitHub Release
+        if: steps.dry_run_check.outputs.dry_run == 'false'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.ref_name }}
+          body_path: release-notes.md
           files: |
-            dist/*.exe
-          generate_release_notes: true
+            dist-release/BRONE-Reminder-arm64.apk
+            dist-release/SHA256SUMS.txt
