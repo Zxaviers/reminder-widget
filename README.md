@@ -62,7 +62,7 @@ A sleek Windows desktop widget designed to keep students on track with upcoming 
 |--------|-------------|----------|
 | **📦 Installer (Recommended)** | Creates Start Menu & Desktop shortcuts | [📥 Setup.exe (~3.8 MB)](https://github.com/Zxaviers/reminder-widget/releases/download/v1.0.0/Reminder.Widget.1.0.0.Setup.exe) |
 | **📦 Portable** | No install required, run directly | [📥 Portable.exe (~16.2 MB)](https://github.com/Zxaviers/reminder-widget/releases/download/v1.0.0/Reminder.Widget.1.0.0.exe) |
-| **📱 Android APK** | Sideload via ADB or USB Debugging | [📥 BRONE-Reminder-v1.1.0-android.apk (~62 MB)](https://github.com/Zxaviers/reminder-widget/releases/download/v1.1.0/BRONE-Reminder-v1.1.0-android.apk) |
+| **📱 Android APK** (arm64) | Sideload via ADB or USB Debugging — HP Android ≥2018 | [📥 BRONE-Reminder-v1.1.0-arm64.apk (~9.8 MB)](https://github.com/Zxaviers/reminder-widget/releases/download/v1.1.0/BRONE-Reminder-v1.1.0-arm64.apk) |
 
 > **Requirements:** Windows 10/11 with WebView2 Runtime (pre-installed on modern Windows).
 
